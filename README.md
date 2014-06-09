@@ -1,7 +1,9 @@
 ciso8601
 ========
 
-`ciso8601` converts ISO8601 date time strings into Python datetime objects. Since it's written as a C module, it is much faster than other Python libraries.
+[![Build Status](https://travis-ci.org/elasticsales/ciso8601.svg?branch=master)](https://travis-ci.org/elasticsales/ciso8601)
+
+`ciso8601` converts ISO8601 date time strings into Python datetime objects. Since it's written as a C module, it is much faster than other Python libraries. Tested with Python 2.7 + 3.4.
 
 Usage
 -----
