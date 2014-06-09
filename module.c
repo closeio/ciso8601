@@ -208,13 +208,35 @@ static PyMethodDef CISO8601Methods[] =
      {"parse_datetime_unaware", parse_datetime_unaware, METH_VARARGS, "Parse a ISO8601 date time string, ignoring the time zone component."},
      {NULL, NULL, 0, NULL}
 };
- 
+
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "ciso8601",
+    NULL,
+    -1,
+    CISO8601Methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+};
+#endif
+
 PyMODINIT_FUNC
+#if PY_MAJOR_VERSION >= 3
+PyInit_ciso8601(void)
+#else
 initciso8601(void)
+#endif
 {
     PyObject* pytz;
-    PyDateTime_IMPORT;
+#if PY_MAJOR_VERSION >= 3
+    PyObject *module = PyModule_Create(&moduledef);
+#else
     (void) Py_InitModule("ciso8601", CISO8601Methods);
+#endif
+    PyDateTime_IMPORT;
     pytz = PyImport_ImportModule("pytz");
     if (pytz == NULL)
     {
@@ -225,4 +247,7 @@ initciso8601(void)
         pytz_fixed_offset = PyObject_GetAttrString(pytz, "_FixedOffset");
         pytz_utc = PyObject_GetAttrString(pytz, "UTC");
     }
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
 }
