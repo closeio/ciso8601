@@ -1,5 +1,5 @@
-#include <Python/Python.h>
-#include <Python/datetime.h>
+#include <Python.h>
+#include <datetime.h>
 
 static PyObject* pytz_fixed_offset;
 static PyObject* pytz_utc;
