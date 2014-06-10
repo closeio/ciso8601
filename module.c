@@ -22,7 +22,7 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
         if (*c >= '0' && *c <= '9')
             year = 10 * year + *c++ - '0';
         else
-            return Py_None;
+            Py_RETURN_NONE;
     }
 
     if (*c == '-') // Optional separator
@@ -33,7 +33,7 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
         if (*c >= '0' && *c <= '9')
             month = 10 * month + *c++ - '0';
         else
-            return Py_None;
+            Py_RETURN_NONE;
     }
 
     if (*c == '-') // Optional separator
@@ -58,7 +58,7 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
             if (*c >= '0' && *c <= '9')
                 hour = 10 * hour + *c++ - '0';
             else
-                return Py_None;
+                Py_RETURN_NONE;
         }
 
         if (*c == ':') // Optional separator
@@ -151,7 +151,7 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
 
     obj = PyDateTime_FromDateAndTime(year, month, day, hour, minute, second, usecond);
     if (!obj)
-        return Py_None;
+        Py_RETURN_NONE;
 
     if (parse_tzinfo && aware && pytz_fixed_offset != NULL) {
 
