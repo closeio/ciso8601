@@ -153,7 +153,7 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
     if (!obj)
         Py_RETURN_NONE;
 
-    if (parse_tzinfo && aware && pytz_fixed_offset != NULL) {
+    if (aware && pytz_fixed_offset != NULL) {
 
         PyObject* replace;
         PyObject* aware_obj;
