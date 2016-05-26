@@ -1,0 +1,4 @@
+test:
+  override:
+    - pyenv global 2.7.11 3.4.4 3.5.1
+    - tox
