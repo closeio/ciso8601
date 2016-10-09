@@ -29,12 +29,14 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
         c++;
 
     // Month
-    for (i = 0; i < 2; i++) {
-        if (*c >= '0' && *c <= '9')
-            month = 10 * month + *c++ - '0';
-        else
-            Py_RETURN_NONE;
-    }
+    if (*c >= '0' && *c <= '1')
+        month = *c++ - '0';
+    else
+        Py_RETURN_NONE;
+    if (*c >= '0' && *c <= '9' && (month == 0 || *c <= '2'))
+        month = 10 * month + *c++ - '0';
+    else
+        Py_RETURN_NONE;
 
     if (*c == '-') // Optional separator
         c++;
