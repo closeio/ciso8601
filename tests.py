@@ -124,6 +124,18 @@ class CISO8601TestCase(unittest.TestCase):
             None,
         )
         self.assertEqual(
+            ciso8601.parse_datetime('20140203T24:35:27'),
+            None,
+        )
+        self.assertEqual(
+            ciso8601.parse_datetime('20140203T23:60:27'),
+            None,
+        )
+        self.assertEqual(
+            ciso8601.parse_datetime('20140203T23:35:61'),
+            None,
+        )
+        self.assertEqual(
             ciso8601.parse_datetime_unaware('Z'),
             None,
         )
