@@ -59,6 +59,10 @@ class CISO8601TestCase(unittest.TestCase):
             ciso8601.parse_datetime('20140203T103527.234567891234'),
             datetime.datetime(2014, 2, 3, 10, 35, 27, 234567)
         )
+        self.assertEqual(
+            ciso8601.parse_datetime_unaware('2016-02-29'),  # 2016 is a leap year
+            datetime.datetime(2016, 2, 29, 0, 0, 0, 0)
+        )
 
     def test_aware_utc(self):
         expected = datetime.datetime(2014, 12, 5, 12, 30, 45, 123456, pytz.UTC)
@@ -133,6 +137,14 @@ class CISO8601TestCase(unittest.TestCase):
         )
         self.assertEqual(
             ciso8601.parse_datetime('20140203T23:35:61'),
+            None,
+        )
+        self.assertEqual(
+            ciso8601.parse_datetime_unaware('2014-01-32'),
+            None,
+        )
+        self.assertEqual(
+            ciso8601.parse_datetime_unaware('2014-02-29'),  # 2014 is not a leap year
             None,
         )
         self.assertEqual(
