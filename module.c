@@ -54,36 +54,41 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
     if (*c == 'T' || *c == ' ') // Time separator
     {
         c++;
-
-        // Hour
-        for (i = 0; i < 2; i++) {
-            if (*c >= '0' && *c <= '9')
-                hour = 10 * hour + *c++ - '0';
-            else
-                Py_RETURN_NONE;
-        }
+        // Hour (00-23)
+        if (*c >= '0' && *c <= '2')
+            hour = *c++ - '0';
+        else
+            Py_RETURN_NONE;
+        if (*c >= '0' && *c <= '9' && (hour < 2 || *c <= '3'))
+            hour = 10 * hour + *c++ - '0';
+        else
+            Py_RETURN_NONE;
 
         if (*c == ':') // Optional separator
             c++;
 
-        // Minute (optional)
-        for (i = 0; i < 2; i++) {
+        // Minute (optional) (00-59)
+        if (*c >= '0' && *c <= '5') {
+            minute = *c++ - '0';
             if (*c >= '0' && *c <= '9')
                 minute = 10 * minute + *c++ - '0';
             else
-                break;
-        }
+                Py_RETURN_NONE;
+        } else if (*c >= '6' && *c <= '9')
+            Py_RETURN_NONE;
 
         if (*c == ':') // Optional separator
             c++;
 
-        // Second (optional)
-        for (i = 0; i < 2; i++) {
+        // Second (optional) (00-59)
+        if (*c >= '0' && *c <= '5') {
+            second = *c++ - '0';
             if (*c >= '0' && *c <= '9')
                 second = 10 * second + *c++ - '0';
             else
-                break;
-        }
+                Py_RETURN_NONE;
+        } else if (*c >= '6' && *c <= '9')
+            Py_RETURN_NONE;
 
         if (*c == '.' || *c == ',') // separator
         {
@@ -104,7 +109,6 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
             // If we break early, fully expand the usecond
             while (i++ < 6)
                 usecond *= 10;
-
         }
     }
 
