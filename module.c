@@ -51,12 +51,6 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
 
     if (day == 0) day = 1; // YYYY-MM format
 
-    // In the Gregorian calendar three criteria must be taken into account to identify leap years:
-    // * The year can be evenly divided by 4;
-    // * If the year can be evenly divided by 100, it is NOT a leap year, unless;
-    // * The year is also evenly divisible by 400. Then it is a leap year.
-    unsigned int leap = (year % 4 == 0) && (year % 100 || (year % 400 == 0));
-
     // Validate max day based on month
     switch(month) {
         case 1:
@@ -64,12 +58,15 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
                 Py_RETURN_NONE;
             break;
         case 2:
-            if (leap > 0) {
-                if (day > 29)
+            // In the Gregorian calendar three criteria must be taken into account to identify leap years:
+            // * The year can be evenly divided by 4;
+            // * If the year can be evenly divided by 100, it is NOT a leap year, unless;
+            // * The year is also evenly divisible by 400. Then it is a leap year.
+            if (day > 28) {
+                unsigned int leap = (year % 4 == 0) && (year % 100 || (year % 400 == 0));
+                if (leap == 0 || day > 29) {
                     Py_RETURN_NONE;
-            } else {
-                if (day > 28)
-                    Py_RETURN_NONE;
+                }
             }
             break;
         case 3:
