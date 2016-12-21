@@ -52,7 +52,7 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
     if (day == 0) day = 1; // YYYY-MM format
 
     // Validate max day based on month
-    switch(month) {
+    switch (month) {
         case 1:
             if (day > 31)
                 Py_RETURN_NONE;
