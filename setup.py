@@ -2,7 +2,7 @@ from setuptools import setup, Extension
 
 setup(
     name="ciso8601",
-    version="1.0.2",
+    version="1.0.3",
     description='Fast ISO8601 date time parser for Python written in C',
     license="MIT",
     ext_modules=[Extension("ciso8601", ["module.c"])],
