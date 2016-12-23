@@ -144,6 +144,10 @@ class CISO8601TestCase(unittest.TestCase):
             ciso8601.parse_datetime_unaware('2014-01-32'),
             None,
         )
+        self.assertEqual(
+            ciso8601.parse_datetime_unaware('2014-06-31'),
+            None,
+        )
         for non_leap_year in (1700, 1800, 1900, 2014):
             self.assertEqual(
                 ciso8601.parse_datetime_unaware('{}-02-29'.format(non_leap_year)),
