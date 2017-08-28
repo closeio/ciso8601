@@ -6,6 +6,9 @@ static PyObject* pytz_utc;
 
 static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
 {
+    PyObject *obj;
+    PyObject* tzinfo = Py_None;
+    
     char* str = NULL;
     char* c;
     int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, usecond = 0, i = 0;
@@ -213,8 +216,6 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
         }
     }
 
-    PyObject* tzinfo = Py_None;
-
     if (aware && pytz_fixed_offset != NULL) {
         tzminute += 60*tzhour;
         tzminute *= tzsign;
@@ -225,7 +226,7 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
             tzinfo = PyObject_CallFunction(pytz_fixed_offset, "i", tzminute);
     }
 
-    PyObject *obj = PyDateTimeAPI->DateTime_FromDateAndTime(
+    obj = PyDateTimeAPI->DateTime_FromDateAndTime(
         year,
         month,
         day,
