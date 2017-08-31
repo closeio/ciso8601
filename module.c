@@ -7,6 +7,8 @@ static PyObject* pytz_utc;
 static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
 {
     PyObject *obj;
+    PyObject* tzinfo = Py_None;
+    
     char* str = NULL;
     char* c;
     int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, usecond = 0, i = 0;
@@ -179,46 +181,33 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
         }
     }
 
-
-    obj = PyDateTime_FromDateAndTime(year, month, day, hour, minute, second, usecond);
-    if (!obj)
-        Py_RETURN_NONE;
-
     if (aware && pytz_fixed_offset != NULL) {
-
-        PyObject* replace;
-        PyObject* aware_obj;
-        PyObject* args;
-        PyObject* kwargs;
-        PyObject* tzinfo = NULL;
-
         tzminute += 60*tzhour;
         tzminute *= tzsign;
 
         if (tzminute == 0)
             tzinfo = pytz_utc;
-        if (!tzinfo)
+        else
             tzinfo = PyObject_CallFunction(pytz_fixed_offset, "i", tzminute);
-        if (!tzinfo)
-            return obj;
-
-        // Assume these will succeed
-        args = PyTuple_New(0);
-        replace = PyObject_GetAttrString(obj, "replace");
-        kwargs = PyDict_New();
-        PyDict_SetItemString(kwargs, "tzinfo", tzinfo);
-        aware_obj = PyObject_Call(replace, args, kwargs);
-
-        Py_DECREF(obj);
-        Py_DECREF(replace);
-        Py_DECREF(kwargs);
-        Py_DECREF(args);
-        if (tzinfo != pytz_utc)
-            Py_DECREF(tzinfo);
-
-        obj = aware_obj;
-
     }
+
+    obj = PyDateTimeAPI->DateTime_FromDateAndTime(
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        second,
+        usecond,
+        tzinfo,
+        PyDateTimeAPI->DateTimeType
+    );
+
+    if (tzinfo != Py_None && tzinfo != pytz_utc)
+        Py_DECREF(tzinfo);
+
+    if (!obj)
+        Py_RETURN_NONE;
 
     return obj;
 }
