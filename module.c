@@ -53,10 +53,6 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
 
     // Validate max day based on month
     switch (month) {
-        case 1:
-            if (day > 31)
-                Py_RETURN_NONE;
-            break;
         case 2:
             // In the Gregorian calendar three criteria must be taken into account to identify leap years:
             // * The year can be evenly divided by 4;
@@ -69,43 +65,12 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
                 }
             }
             break;
-        case 3:
-            if (day > 31)
-                Py_RETURN_NONE;
-            break;
-        case 4:
+        case 4: case 6: case 9: case 11:
             if (day > 30)
                 Py_RETURN_NONE;
             break;
-        case 5:
-            if (day > 31)
-                Py_RETURN_NONE;
-            break;
-        case 6:
-            if (day > 30)
-                Py_RETURN_NONE;
-            break;
-        case 7:
-            if (day > 31)
-                Py_RETURN_NONE;
-            break;
-        case 8:
-            if (day > 31)
-                Py_RETURN_NONE;
-            break;
-        case 9:
-            if (day > 30)
-                Py_RETURN_NONE;
-            break;
-        case 10:
-            if (day > 31)
-                Py_RETURN_NONE;
-            break;
-        case 11:
-            if (day > 30)
-                Py_RETURN_NONE;
-            break;
-        case 12:
+        default:
+            // For other months i.e. 1, 3, 5, 7, 8, 10 and 12
             if (day > 31)
                 Py_RETURN_NONE;
             break;
