@@ -1,9 +1,13 @@
 from setuptools import setup, Extension
 
+with open('README.rst') as file:
+    long_description = file.read()
+
 setup(
     name="ciso8601",
-    version="1.0.4",
+    version="1.0.5",
     description='Fast ISO8601 date time parser for Python written in C',
+    long_description=long_description,
     license="MIT",
     ext_modules=[Extension("ciso8601", ["module.c"])],
     test_suite='tests',
