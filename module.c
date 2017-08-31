@@ -275,7 +275,7 @@ initciso8601(void)
     }
     else
     {
-        pytz_fixed_offset = PyObject_GetAttrString(pytz, "_FixedOffset");
+        pytz_fixed_offset = PyObject_GetAttrString(pytz, "FixedOffset");
         pytz_utc = PyObject_GetAttrString(pytz, "UTC");
     }
 #if PY_MAJOR_VERSION >= 3
