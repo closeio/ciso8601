@@ -51,28 +51,28 @@ Date time string with no time zone information:
   In [2]: ds = u'2014-01-09T21:48:00.921000'
 
   In [3]: %timeit ciso8601.parse_datetime(ds)
-  1000000 loops, best of 3: 320 ns per loop
+  1000000 loops, best of 3: 204 ns per loop
 
   In [4]: %timeit datetime.datetime.strptime(ds, "%Y-%m-%dT%H:%M:%S.%f")
-  100000 loops, best of 3: 19.7 us per loop
+  100000 loops, best of 3: 15 µs per loop
 
   In [5]: %timeit dateutil.parser.parse(ds)
-  10000 loops, best of 3: 111 us per loop
+  10000 loops, best of 3: 122 µs per loop
 
   In [6]: %timeit aniso8601.parse_datetime(ds)
-  10000 loops, best of 3: 31.1 us per loop
+  10000 loops, best of 3: 28.9 µs per loop
 
   In [7]: %timeit iso8601.parse_date(ds)
-  10000 loops, best of 3: 70.9 us per loop
+  10000 loops, best of 3: 42 µs per loop
 
   In [8]: %timeit isodate.parse_datetime(ds)
-  10000 loops, best of 3: 81.8 us per loop
+  10000 loops, best of 3: 69.4 µs per loop
 
   In [9]: %timeit arrow.get(ds).datetime
-  10000 loops, best of 3: 41.4 us per loop
+  10000 loops, best of 3: 87 µs per loop
 
-ciso8601 takes 0.32us, which is 62x faster than datetime's strptime, which is
-not a full ISO8601 parser. It is **97x faster than aniso8601**, the next fastest
+ciso8601 takes 0.204us, which is 73x faster than datetime's strptime, which is
+not a full ISO8601 parser. It is **141x faster than aniso8601**, the next fastest
 ISO8601 parser in this comparison.
 
 Date time string with time zone information:
@@ -84,36 +84,35 @@ Date time string with time zone information:
   In [2]: ds = u'2014-01-09T21:48:00.921000+05:30'
 
   In [3]: %timeit ciso8601.parse_datetime(ds)
-  100000 loops, best of 3: 3.62 us per loop
+  1000000 loops, best of 3: 525 ns per loop
 
   In [4]: %timeit dateutil.parser.parse(ds)
-  10000 loops, best of 3: 126 us per loop
+  10000 loops, best of 3: 162 µs per loop
 
   In [5]: %timeit aniso8601.parse_datetime(ds)
-  10000 loops, best of 3: 34.9 us per loop
+  10000 loops, best of 3: 36.8 µs per loop
 
   In [6]: %timeit iso8601.parse_date(ds)
-  10000 loops, best of 3: 94 us per loop
+  10000 loops, best of 3: 53.5 µs per loop
 
   In [7]: %timeit isodate.parse_datetime(ds)
-  10000 loops, best of 3: 91.3 us per loop
+  10000 loops, best of 3: 82.6 µs per loop
 
   In [8]: %timeit arrow.get(ds).datetime
-  10000 loops, best of 3: 56.2 us per loop
+  10000 loops, best of 3: 104 µs per loop
 
-Even with time zone information, ``ciso8601`` is almost 10x faster than
-``aniso8601``.
+Even with time zone information, ``ciso8601`` is 70x as fast as ``aniso8601``.
 
-Tested on Python 2.7 on OS X 10.9.2 using the following modules:
+Tested on Python 2.7.10 on macOS 10.12.6 using the following modules:
 
 .. code:: python
 
-  aniso8601==0.82
-  arrow==0.4.2
-  ciso8601==1.0
-  iso8601==0.1.10
-  isodate==0.5.0
-  python-dateutil==2.2
+  aniso8601==1.2.1
+  arrow==0.10.0
+  ciso8601==1.0.4
+  iso8601==0.1.12
+  isodate==0.5.4
+  python-dateutil==2.6.1
 
 Supported formats
 -----------------
