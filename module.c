@@ -35,8 +35,11 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
         month = *c++ - '0';
     else
         Py_RETURN_NONE;
-    if (*c >= '0' && *c <= '9' && ((month == 0 && *c > '0') || (month > 0 && *c <= '2')))
-        month = 10 * month + *c++ - '0';
+
+    if (month == 0 && *c > '0' && *c <= '9')
+        month = *c++ - '0';
+    else if (month == 1 && *c >= '0' && *c <= '2')
+        month = 10 + *c++ - '0';
     else
         Py_RETURN_NONE;
 
