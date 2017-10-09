@@ -165,6 +165,10 @@ class CISO8601TestCase(unittest.TestCase):
             ciso8601.parse_datetime('2014-12-05asdfasdf'),
             datetime.datetime(2014, 12, 5)
         )
+        self.assertEqual(
+            ciso8601.parse_datetime('20140203 04:05:.123456'),
+            datetime.datetime(2014, 2, 3, 4, 5)
+        )
 
 if __name__ == '__main__':
     unittest.main()
