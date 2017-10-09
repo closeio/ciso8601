@@ -165,10 +165,41 @@ class CISO8601TestCase(unittest.TestCase):
             ciso8601.parse_datetime('2014-12-05asdfasdf'),
             datetime.datetime(2014, 12, 5)
         )
-        self.assertEqual(
-            ciso8601.parse_datetime('20140203 04:05:.123456'),
-            datetime.datetime(2014, 2, 3, 4, 5)
-        )
+
+        assertNotNone = lambda s: self.assertNotEqual(ciso8601.parse_datetime(s), None)
+        assertNone = lambda s: self.assertEqual(ciso8601.parse_datetime(s), None)
+
+        assertNotNone(  '20140203 04:05:06.123')
+        assertNone(     '20140203 04:05:0.123')
+        assertNone(     '20140203 04:05:.123')
+        assertNotNone(  '20140203 04:05:06.')
+        assertNotNone(  '20140203 0405:06.')
+        assertNotNone(  '20140203 040506.')
+        assertNone(     '20140203 04050.')
+        assertNone(     '20140203 0405:0')
+        assertNone(     '20140203 04:05:.')
+        assertNone(     '20140203 04::')
+        assertNotNone(  '20140203 04:00:')
+        assertNone(     '20140203 04::01')
+        assertNotNone(  '20140203 04:')
+
+        assertNotNone(  '2014-02-03')
+        assertNone(     '2014-0-03')
+        assertNone(     '2014--03')
+        assertNotNone(  '2014-02')
+        assertNone(     '2014--0')
+        assertNone(     '2014--')
+        assertNone(     '2014-')
+        assertNone(     '2014')
+
+        assertNotNone(  '20140203 040506123')
+        assertNotNone(  '20140203 04050612')
+        assertNotNone(  '20140203 0405061')
+        assertNotNone(  '20140203 040506')
+        assertNone(     '20140203 04050')
+        assertNotNone(  '20140203 0405')
+        assertNone(     '20140203 040')
+        assertNotNone(  '20140203 04')
 
 if __name__ == '__main__':
     unittest.main()
