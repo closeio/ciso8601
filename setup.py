@@ -1,6 +1,8 @@
 from setuptools import setup, Extension
+# workaround for open() with encoding='' python2/3 compability
+from io import open
 
-with open('README.rst') as file:
+with open('README.rst', encoding='utf-8') as file:
     long_description = file.read()
 
 setup(
