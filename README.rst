@@ -109,7 +109,7 @@ Tested on Python 2.7.10 on macOS 10.12.6 using the following modules:
 
   aniso8601==1.2.1
   arrow==0.10.0
-  ciso8601==1.0.4
+  ciso8601==1.0.6
   iso8601==0.1.12
   isodate==0.5.4
   python-dateutil==2.6.1
