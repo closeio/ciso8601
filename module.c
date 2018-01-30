@@ -11,8 +11,7 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
 
     char* str = NULL;
     char* c;
-    int year = 0, month = 0, day = 0, hour = -1, minute = -1, second = -1, usecond = 0;
-    int i = 0;
+    int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, usecond = 0, i = 0;
     int aware = 0; // 1 if aware
     int tzhour = 0, tzminute = 0, tzsign = 0;
 
@@ -95,11 +94,8 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
         else
             Py_RETURN_NONE;
 
-        if (*c == ':') { // Optional separator
-            if (hour == -1)  // But if we have it, hour wasn't optional.
-                Py_RETURN_NONE;
+        if (*c == ':') // Optional separator
             c++;
-        }
 
         // Minute (optional) (00-59)
         if (*c >= '0' && *c <= '5') {
@@ -108,14 +104,11 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
                 minute = 10 * minute + *c++ - '0';
             else
                 Py_RETURN_NONE;
-        } else if (*c >= '6' && *c <= '9')
+        } else if ((*c >= '6' && *c <= '9') || *c == ':')
             Py_RETURN_NONE;
 
-        if (*c == ':') { // Optional separator
-            if (minute == -1)  // But if we have it, minute wasn't optional.
-                Py_RETURN_NONE;
+        if (*c == ':') // Optional separator
             c++;
-        }
 
         // Second (optional) (00-59)
         if (*c >= '0' && *c <= '5') {
@@ -124,13 +117,11 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
                 second = 10 * second + *c++ - '0';
             else
                 Py_RETURN_NONE;
-        } else if (*c >= '6' && *c <= '9')
+        } else if ((*c >= '6' && *c <= '9') || *c == ':')
             Py_RETURN_NONE;
 
         if (*c == '.' || *c == ',') // separator
         {
-            if (second == -1)
-                Py_RETURN_NONE;
             c++;
 
             // Parse fraction of second up to 6 places
@@ -150,9 +141,6 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
                 usecond *= 10;
         }
     }
-    if (hour == -1) hour = 0;
-    if (minute == -1) minute = 0;
-    if (second == -1) second = 0;
 
     if (parse_tzinfo)
     {
