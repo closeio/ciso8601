@@ -166,5 +166,45 @@ class CISO8601TestCase(unittest.TestCase):
             datetime.datetime(2014, 12, 5)
         )
 
+        parse = ciso8601.parse_datetime
+        none_or_dt = lambda *x: None if x[0] is None else datetime.datetime(*x)
+        check = lambda s, *x: self.assertEqual(parse(s), none_or_dt(*x))
+
+        check('20140203 04:05:06.123', 2014, 2, 3, 4, 5, 6, 123000)
+        check('20140203 04:05:06,123', 2014, 2, 3, 4, 5, 6, 123000)
+        check('20140203 04:05:0.123', None)
+        check('20140203 04:05:.123', None)
+        check('20140203 04:05:,123', None)
+        check('20140203 04:05:06.', 2014, 2, 3, 4, 5, 6)
+        check('20140203 0405:06.', 2014, 2, 3, 4, 5, 6)
+        check('20140203 040506.', 2014, 2, 3, 4, 5, 6)
+        check('20140203 04050.', None)
+        check('20140203 0405:0', None)
+        check('20140203 04:05:.', None)
+        check('20140203 04:05:,', None)
+        check('20140203 04::', None)
+        check('20140203 04:00:', 2014, 2, 3, 4)
+        check('20140203 04::01', None)
+        check('20140203 04:', 2014, 2, 3, 4)
+
+        check('2014-02-03', 2014, 2, 3)
+        check('2014-0-03', None)
+        check('2014--03', None)
+        check('2014-02', 2014, 2, 1)
+        check('2014--0', None)
+        check('2014--', None)
+        check('2014-', None)
+        check('2014', None)
+
+        check('20140203 040506.123', 2014, 2, 3, 4, 5, 6, 123000)
+        check('20140203 040506123', 2014, 2, 3, 4, 5, 6)  # NB: drops usec
+        check('20140203 04050612', 2014, 2, 3, 4, 5, 6)
+        check('20140203 0405061', 2014, 2, 3, 4, 5, 6)
+        check('20140203 040506', 2014, 2, 3, 4, 5, 6)
+        check('20140203 04050', None)
+        check('20140203 0405', 2014, 2, 3, 4, 5)
+        check('20140203 040', None)
+        check('20140203 04', 2014, 2, 3, 4)
+
 if __name__ == '__main__':
     unittest.main()
