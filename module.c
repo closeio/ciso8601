@@ -117,7 +117,7 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
                 second = 10 * second + *c++ - '0';
             else
                 Py_RETURN_NONE;
-        } else if ((*c >= '6' && *c <= '9') || *c == ':')
+        } else if ((*c >= '6' && *c <= '9') || *c == '.' || *c == ',')
             Py_RETURN_NONE;
 
         if (*c == '.' || *c == ',') // separator
