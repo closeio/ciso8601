@@ -169,7 +169,7 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
                 if (*c >= '0' && *c <= '9')
                     tzhour = 10 * tzhour + *c++ - '0';
                 else
-                    break;
+                    Py_RETURN_NONE;
             }
 
             if (*c == ':') // Optional separator
@@ -179,7 +179,7 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
                 if (*c >= '0' && *c <= '9')
                     tzminute = 10 * tzminute + *c++ - '0';
                 else
-                    break;
+                    Py_RETURN_NONE;
             }
         }
     }
