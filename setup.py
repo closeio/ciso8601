@@ -7,7 +7,7 @@ with open('README.rst', encoding='utf-8') as file:
 
 setup(
     name="ciso8601",
-    version="1.0.7",
+    version="2.0.0",
     description='Fast ISO8601 date time parser for Python written in C',
     long_description=long_description,
     license="MIT",
