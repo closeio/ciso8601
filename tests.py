@@ -116,59 +116,80 @@ class CISO8601TestCase(unittest.TestCase):
         )
 
     def test_invalid(self):
-        self.assertEqual(
-            ciso8601.parse_datetime_unaware('asdf'),
-            None,
+        self.assertRaises(
+            ValueError,
+            ciso8601.parse_datetime_unaware,
+            'asdf',
         )
-        self.assertEqual(
-            ciso8601.parse_datetime_unaware('2014-99-03'),
-            None,
+        self.assertRaises(
+            ValueError,
+            ciso8601.parse_datetime_unaware,
+            '2014-99-03',
         )
-        self.assertEqual(
-            ciso8601.parse_datetime_unaware('2014-13-03'),
-            None,
+        self.assertRaises(
+            ValueError,
+            ciso8601.parse_datetime_unaware,
+            '2014-13-03',
         )
-        self.assertEqual(
-            ciso8601.parse_datetime_unaware('2014-00-03'),
-            None,
+        self.assertRaises(
+            ValueError,
+            ciso8601.parse_datetime_unaware,
+            '2014-00-03',
         )
-        self.assertEqual(
-            ciso8601.parse_datetime('20140203T24:35:27'),
-            None,
+        self.assertRaises(
+            ValueError,
+            ciso8601.parse_datetime,
+            '20140203T24:35:27',
         )
-        self.assertEqual(
-            ciso8601.parse_datetime('20140203T23:60:27'),
-            None,
+        self.assertRaises(
+            ValueError,
+            ciso8601.parse_datetime,
+            '20140203T23:60:27',
         )
-        self.assertEqual(
-            ciso8601.parse_datetime('20140203T23:35:61'),
-            None,
+        self.assertRaises(
+            ValueError,
+            ciso8601.parse_datetime,
+            '20140203T23:35:61',
         )
-        self.assertEqual(
-            ciso8601.parse_datetime_unaware('2014-01-32'),
-            None,
+        self.assertRaises(
+            ValueError,
+            ciso8601.parse_datetime_unaware,
+            '2014-01-32',
         )
-        self.assertEqual(
-            ciso8601.parse_datetime_unaware('2014-06-31'),
-            None,
+        self.assertRaises(
+            ValueError,
+            ciso8601.parse_datetime_unaware,
+            '2014-06-31',
         )
         for non_leap_year in (1700, 1800, 1900, 2014):
-            self.assertEqual(
-                ciso8601.parse_datetime_unaware('{}-02-29'.format(non_leap_year)),
-                None,
+            self.assertRaises(
+                ValueError,
+                ciso8601.parse_datetime_unaware,
+                '{}-02-29'.format(non_leap_year)
             )
-        self.assertEqual(
-            ciso8601.parse_datetime_unaware('Z'),
-            None,
+        self.assertRaises(
+            ValueError,
+            ciso8601.parse_datetime_unaware,
+            'Z',
         )
-        self.assertEqual(
-            ciso8601.parse_datetime('2014-12-05asdfasdf'),
-            datetime.datetime(2014, 12, 5)
+
+        self.assertRaises(
+            ValueError,
+            ciso8601.parse_datetime,
+            '2014-12-05asdfasdf'
         )
 
         parse = ciso8601.parse_datetime
-        none_or_dt = lambda *x: None if x[0] is None else datetime.datetime(*x)
-        check = lambda s, *x: self.assertEqual(parse(s), none_or_dt(*x))
+
+        def check(s, *result):
+            if (
+                len(result) == 1 and
+                isinstance(result[0], type) and
+                issubclass(result[0], Exception)
+            ):
+                self.assertRaises(result[0], parse, s)
+            else:
+                self.assertEqual(parse(s), datetime.datetime(*result))
 
         check('20140203 04:05:06.123', 2014, 2, 3, 4, 5, 6, 123000)
         check('20140203 04:05:06,123', 2014, 2, 3, 4, 5, 6, 123000)
