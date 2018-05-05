@@ -72,6 +72,12 @@ class CISO8601TestCase(unittest.TestCase):
                 datetime.datetime(leap_year, 2, 29, 0, 0, 0, 0)
             )
 
+    def test_special_midnight(self):
+        self.assertEqual(
+            ciso8601.parse_datetime('2014-02-03T24:00:00'),
+            datetime.datetime(2014, 2, 4, 0, 0, 0)
+        )
+
     def test_aware_utc(self):
         expected = datetime.datetime(2014, 12, 5, 12, 30, 45, 123456, pytz.UTC)
         self.assertEqual(

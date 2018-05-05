@@ -170,7 +170,7 @@ Format                              Example             Supported
 ``hh:mm:ss.ssssss``                 ``11:30:59.123456`` ✅ 
 ``hhmmss,ssssss``                   ``113059,123456``   ✅ 
 ``hh:mm:ss,ssssss``                 ``11:30:59,123456`` ✅ 
-Midnight (special case)             ``24:00:00``        ❌               
+Midnight (special case)             ``24:00:00``        ✅               
 ``hh.hhh`` (fractional hours)       ``11.5``            ❌               
 ``hh:mm.mmm`` (fractional minutes)  ``11:30.5``         ❌               
 =================================== =================== ============== 

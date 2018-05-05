@@ -246,6 +246,7 @@ static PyObject* parse_datetime(PyObject* self, PyObject* args)
     char* str = NULL;
     char* c;
     int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, usecond = 0;
+    int time_is_midnight = 0;
 
     if (!PyArg_ParseTuple(args, "s", &str))
         return NULL;
@@ -317,9 +318,14 @@ static PyObject* parse_datetime(PyObject* self, PyObject* args)
             return NULL;
     }
 
+    if (hour == 24 && minute == 0 && second == 0 && usecond == 0){
+        //Special case of 24:00:00, that is allowed in ISO 8601. It is equivalent to 00:00:00 the following day
+        hour = 0, minute = 0, second = 0, usecond = 0;
+        time_is_midnight = 1;
+    }
+
     // Validate hour/minute/second
     // Only needed for Python 2 support (or performance short-circuiting. Python 3 does this validation as part of Datetime's constructor).
-    // TODO: Handle special case of 24:00:00, that is allowed in ISO 8601
     if (hour > 23){
         PyErr_SetString(PyExc_ValueError, "hour must be in 0..23");
         return NULL;
@@ -358,6 +364,13 @@ static PyObject* parse_datetime(PyObject* self, PyObject* args)
 
     if (PyErr_Occurred())
         return NULL;
+
+    if (time_is_midnight){
+        obj = PyNumber_Add(obj, PyDelta_FromDSU(1,0,0)); // 1 day
+        if (PyErr_Occurred())
+            return NULL;
+    }
+    
 
     if (!obj) { //TODO: Can this ever actually be true?
         PyErr_SetString(PyExc_ValueError, "Unable to create datetime object");
