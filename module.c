@@ -4,59 +4,283 @@
 static PyObject* pytz_fixed_offset;
 static PyObject* pytz_utc;
 
-static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
+static void* format_unexpected_character_exception(char* field_name, char c, int index, int expected_character_count){
+    if (c == NULL)
+        PyErr_Format(PyExc_ValueError, "Unexpected end of string while parsing %s. Expected %d more character%s", field_name, expected_character_count, (expected_character_count != 1) ? "s": "");
+    else
+        PyErr_Format(PyExc_ValueError, "Invalid character while parsing %s ('%c', Index: %d)", field_name, c, index);
+    return NULL;
+}
+
+static int parse_integer(char** c, char* str, int length, char* field_name){
+    int i = 0;
+    int result = 0;
+
+    for (i = 0; i < length; i++) {
+        if (**c >= '0' && **c <= '9'){
+            result = 10 * result + **c - '0';
+            (*c)++;
+        } else {
+            return format_unexpected_character_exception(field_name, **c, (*c-str)/sizeof(char), length - i);
+        }
+    }
+    return result;
+}
+
+static int parse_date_separator(char** c, char* str){
+    if (**c == '-'){ // Optional separator
+        (*c)++;
+        return 1;
+    } else {
+        format_unexpected_character_exception("date separator ('-')", **c, (*c-str)/sizeof(char), 1);
+        return 0;
+    }
+}
+
+static int parse_time_separator(char** c, char* str){ //TODO: Merge with parse_date_separator?
+    if (**c == ':'){ // Optional separator
+        (*c)++;
+        return 1;
+    }
+    else {
+        format_unexpected_character_exception("time separator (':')", **c, (*c-str)/sizeof(char), 1);
+        return 0;
+    }
+}
+
+static int is_date_and_time_separator(char c){
+    return c == 'T' || c == ' ';
+}
+
+static void parse_month_day(char** c, char* str, int* month, int* day){
+    if (**c == '-'){
+        (*c)++;\
+        *month = parse_integer(c, str, 2, "month");
+        if (PyErr_Occurred())
+            return NULL;
+
+        if (**c != NULL && !is_date_and_time_separator(**c)){ // Optional day
+            parse_date_separator(c, str);
+            if (PyErr_Occurred())
+                return NULL;
+
+            *day = parse_integer(c, str, 2, "day");
+            if (PyErr_Occurred())
+                return NULL;
+        } else {
+            *day = 1;
+        }
+
+    } else {
+        //Note: Day is mandatory if there were no separators
+        *month = parse_integer(c, str, 2, "month");
+        if (PyErr_Occurred())
+            return NULL;
+
+        *day = parse_integer(c, str, 2, "day");
+        if (PyErr_Occurred())
+            return NULL;
+    }
+}
+
+static void parse_date_and_time_delimiter(char** c, char* str){
+    if (is_date_and_time_separator(**c)){
+        (*c)++;
+    } else {
+        format_unexpected_character_exception("date and time separator (ie. 'T' or ' ')", **c, (*c-str)/sizeof(char), 1);
+    }
+}
+
+static void parse_subsecond(char** c, char* str, int* usecond){
+    int i = 0;
+    (*c)++;
+    for (i = 0; i < 6; i++) {
+        if (**c >= '0' && **c <= '9'){
+            *usecond = 10 * *usecond + **c - '0';
+            (*c)++;
+        } else if (i == 0){
+            //We need at least one digit. Trailing '.'s are not allowed
+            return format_unexpected_character_exception("subsecond", **c, (*c-str)/sizeof(char), 1);
+        } else
+            break;
+    }
+
+    // Omit excessive digits
+    // TODO: Should this do rounding instead?
+    while (**c >= '0' && **c <= '9')
+        (*c)++;
+
+    // If we break early, fully expand the usecond
+    while (i++ < 6)
+        *usecond *= 10;
+}
+
+static void parse_second(char** c, char* str, int* second, int* usecond){
+    *second = parse_integer(c, str, 2, "second");
+    if (PyErr_Occurred())
+            return NULL;
+
+    if (**c == '.' || **c == ','){
+        parse_subsecond(c, str, usecond);
+        if (PyErr_Occurred())
+            return NULL;
+    }
+}
+
+static int is_time_zone_separator(char c){
+    return c == 'Z' || c == '-' || c == '+';
+}
+
+static void parse_minute_second(char** c, char* str, int* minute, int* second, int* usecond){
+    if (**c == ':'){
+        (*c)++;
+        *minute = parse_integer(c, str, 2, "minute");
+        if (PyErr_Occurred())
+            return NULL;
+
+        if (**c != NULL && !is_time_zone_separator(**c)){ // Optional second
+            parse_time_separator(c, str, 1);
+            if (PyErr_Occurred())
+                return NULL;
+
+            parse_second(c, str, second, usecond);
+            if (PyErr_Occurred())
+                return NULL;
+        }
+    } else {
+        *minute = parse_integer(c, str, 2, "minute");
+        if (PyErr_Occurred())
+            return NULL;
+
+        if (**c != NULL && !is_time_zone_separator(**c)){ // Optional second
+            parse_second(c, str, second, usecond);
+            if (PyErr_Occurred())
+                return NULL;
+        }
+    }
+}
+
+static void parse_tzinfo(char** c, char* str, PyObject** tzinfo){
+    // Time zone designator (Z or +hh:mm or -hh:mm)
+    int i = 0;
+    int aware = 0;
+    int tzhour = 0, tzminute = 0, tzsign = 0;
+    if (**c == 'Z')
+    {
+        // UTC
+        (*c)++;
+        aware = 1;
+    }
+    else if (**c == '+')
+    {
+        (*c)++;
+        aware = 1;
+        tzsign = 1;
+    }
+    else if (**c == '-')
+    {
+        (*c)++;
+        aware = 1;
+        tzsign = -1;
+    }
+
+    if (tzsign != 0) {
+        tzhour = parse_integer(c, str, 2, "tz hour");
+        if (PyErr_Occurred())
+            return NULL;
+
+        if (**c == ':') { // Optional separator
+            (*c)++;
+            tzminute = parse_integer(c, str, 2, "tz minute");
+            if (PyErr_Occurred())
+                return NULL;
+        } else if (**c != NULL){ // Optional minute
+            tzminute = parse_integer(c, str, 2, "tz minute");
+            if (PyErr_Occurred())
+                return NULL;
+        }
+    }
+
+    if (aware && pytz_fixed_offset != NULL) {
+        tzminute += 60 * tzhour;
+        tzminute *= tzsign;
+
+        if (tzminute == 0)
+            *tzinfo = pytz_utc;
+        else if (abs(tzminute) >= 1440){
+            // If we don't check this here, the interpreter crashes.
+            PyErr_Format(PyExc_ValueError, "Absolute tz offset is too large (%d)", tzminute);
+            return NULL;
+        }
+        else
+            *tzinfo = PyObject_CallFunction(pytz_fixed_offset, "i", tzminute);
+    }
+}
+
+static void parse_timestamp(char** c, char* str, int* hour, int* minute, int* second, int* usecond, PyObject** tzinfo){
+    parse_date_and_time_delimiter(c, str);
+    if (PyErr_Occurred())
+        return NULL;
+
+    *hour = parse_integer(c, str, 2, "hour");
+    if (PyErr_Occurred())
+        return NULL;
+
+    if (**c != NULL && !is_time_zone_separator(**c)){
+        parse_minute_second(c, str, minute, second, usecond);
+        if (PyErr_Occurred())
+            return NULL;
+    }
+    if (**c != NULL){
+        parse_tzinfo(c, str, tzinfo);
+        if (PyErr_Occurred())
+            return NULL;
+    }
+}
+
+static PyObject* parse_datetime(PyObject* self, PyObject* args)
 {
     PyObject *obj;
     PyObject* tzinfo = Py_None;
 
     char* str = NULL;
     char* c;
-    int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, usecond = 0, i = 0;
-    int aware = 0; // 1 if aware
-    int tzhour = 0, tzminute = 0, tzsign = 0;
+    int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, usecond = 0;
 
     if (!PyArg_ParseTuple(args, "s", &str))
         return NULL;
     c = str;
 
     // Year
-    for (i = 0; i < 4; i++) {
-        if (*c >= '0' && *c <= '9')
-            year = 10 * year + *c++ - '0';
-        else
-            Py_RETURN_NONE;
+    year = parse_integer(&c, str, 4, "year");
+    if (PyErr_Occurred())
+        return NULL;
+    //TODO: Check range of year if necessary
+
+    if (*c != NULL && !is_date_and_time_separator(*c)){
+        parse_month_day(&c, str, &month, &day);
+        if (PyErr_Occurred())
+            return NULL;
     }
 
-    if (*c == '-') // Optional separator
-        c++;
-
-    // Month
-    if (*c >= '0' && *c <= '1')
-        month = *c++ - '0';
-    else
-        Py_RETURN_NONE;
-
-    if (month == 0 && *c > '0' && *c <= '9')
-        month = *c++ - '0';
-    else if (month == 1 && *c >= '0' && *c <= '2')
-        month = 10 + *c++ - '0';
-    else
-        Py_RETURN_NONE;
-
-    if (*c == '-') // Optional separator
-        c++;
-
-    // Day
-    for (i = 0; i < 2; i++) {
-        if (*c >= '0' && *c <= '9')
-            day = 10 * day + *c++ - '0';
-        else
-            break;
+    // Validation of date fields
+    // These checks are needed for Python 2 support. See https://github.com/closeio/ciso8601/pull/30
+    // Python 3 does this validation as part of Datetime's C API constructor.
+    // If ciso8601 were to drop Python 2 support, these might still be useful, since they short-circuit parsing.
+    if (month < 1 || month > 12){
+        PyErr_SetString(PyExc_ValueError, "month must be in 1..12");
+        return NULL;
     }
 
-    if (day == 0) day = 1; // YYYY-MM format
+
+    // Only needed for Python 2 support (or performance short-circuiting. Python 3 does this validation as part of Datetime's constructor).
+    if (day < 1) {
+        PyErr_SetString(PyExc_ValueError, "day is out of range for month");
+        return NULL;
+    }
 
     // Validate max day based on month
+    // Only needed for Python 2 support (or performance short-circuiting. Python 3 does this validation as part of Datetime's constructor).
     switch (month) {
         case 2:
             // In the Gregorian calendar three criteria must be taken into account to identify leap years:
@@ -66,132 +290,54 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
             if (day > 28) {
                 unsigned int leap = (year % 4 == 0) && (year % 100 || (year % 400 == 0));
                 if (leap == 0 || day > 29) {
-                    Py_RETURN_NONE;
+                    PyErr_SetString(PyExc_ValueError, "day is out of range for month");
+                    return NULL;
                 }
             }
             break;
         case 4: case 6: case 9: case 11:
-            if (day > 30)
-                Py_RETURN_NONE;
+            if (day > 30) {
+                PyErr_SetString(PyExc_ValueError, "day is out of range for month");
+                return NULL;
+            }
             break;
         default:
             // For other months i.e. 1, 3, 5, 7, 8, 10 and 12
-            if (day > 31)
-                Py_RETURN_NONE;
+            if (day > 31) {
+                PyErr_SetString(PyExc_ValueError, "day is out of range for month");
+                return NULL;
+            }
             break;
     }
 
-    if (*c == 'T' || *c == ' ') // Time separator
-    {
-        c++;
-        // Hour (00-23)
-        if (*c >= '0' && *c <= '2')
-            hour = *c++ - '0';
-        else
-            Py_RETURN_NONE;
-        if (*c >= '0' && *c <= '9' && (hour < 2 || *c <= '3'))
-            hour = 10 * hour + *c++ - '0';
-        else
-            Py_RETURN_NONE;
 
-        if (*c == ':') // Optional separator
-            c++;
-
-        // Minute (optional) (00-59)
-        if (*c >= '0' && *c <= '5') {
-            minute = *c++ - '0';
-            if (*c >= '0' && *c <= '9')
-                minute = 10 * minute + *c++ - '0';
-            else
-                Py_RETURN_NONE;
-        } else if ((*c >= '6' && *c <= '9') || *c == ':')
-            Py_RETURN_NONE;
-
-        if (*c == ':') // Optional separator
-            c++;
-
-        // Second (optional) (00-59)
-        if (*c >= '0' && *c <= '5') {
-            second = *c++ - '0';
-            if (*c >= '0' && *c <= '9')
-                second = 10 * second + *c++ - '0';
-            else
-                Py_RETURN_NONE;
-        } else if ((*c >= '6' && *c <= '9') || *c == '.' || *c == ',')
-            Py_RETURN_NONE;
-
-        if (*c == '.' || *c == ',') // separator
-        {
-            c++;
-
-            // Parse fraction of second up to 6 places
-            for (i = 0; i < 6; i++) {
-                if (*c >= '0' && *c <= '9')
-                    usecond = 10 * usecond + *c++ - '0';
-                else
-                    break;
-            }
-
-            // Omit excessive digits
-            while (*c >= '0' && *c <= '9')
-                c++;
-
-            // If we break early, fully expand the usecond
-            while (i++ < 6)
-                usecond *= 10;
-        }
+    if (*c != NULL && !is_time_zone_separator(*c)){
+        parse_timestamp(&c, str, &hour, &minute, &second, &usecond, &tzinfo);
+        if (PyErr_Occurred())
+            return NULL;
     }
 
-    if (parse_tzinfo)
-    {
-        // Time zone designator (Z or +hh:mm or -hh:mm)
-        if (*c == 'Z')
-        {
-            // UTC
-            c++;
-            aware = 1;
-        }
-        else if (*c == '+')
-        {
-            c++;
-            aware = 1;
-            tzsign = 1;
-        }
-        else if (*c == '-')
-        {
-            c++;
-            aware = 1;
-            tzsign = -1;
-        }
-
-        if (tzsign != 0) {
-            for (i = 0; i < 2; i++) {
-                if (*c >= '0' && *c <= '9')
-                    tzhour = 10 * tzhour + *c++ - '0';
-                else
-                    break;
-            }
-
-            if (*c == ':') // Optional separator
-                c++;
-
-            for (i = 0; i < 2; i++) {
-                if (*c >= '0' && *c <= '9')
-                    tzminute = 10 * tzminute + *c++ - '0';
-                else
-                    break;
-            }
-        }
+    // Validate hour/minute/second
+    // Only needed for Python 2 support (or performance short-circuiting. Python 3 does this validation as part of Datetime's constructor).
+    // TODO: Handle special case of 24:00:00, that is allowed in ISO 8601
+    if (hour > 23){
+        PyErr_SetString(PyExc_ValueError, "hour must be in 0..23");
+        return NULL;
+    }
+    if (minute > 59){
+        PyErr_SetString(PyExc_ValueError, "minute must be in 0..59");
+        return NULL;
+    }
+    if (second > 59){
+        PyErr_SetString(PyExc_ValueError, "second must be in 0..59");
+        return NULL;
     }
 
-    if (aware && pytz_fixed_offset != NULL) {
-        tzminute += 60*tzhour;
-        tzminute *= tzsign;
-
-        if (tzminute == 0)
-            tzinfo = pytz_utc;
-        else
-            tzinfo = PyObject_CallFunction(pytz_fixed_offset, "i", tzminute);
+    
+    // Make sure that there is no more to parse.
+    if (*c != NULL){
+        PyErr_Format(PyExc_ValueError, "unconverted data remains: '%s'", c);
+        return NULL;
     }
 
     obj = PyDateTimeAPI->DateTime_FromDateAndTime(
@@ -205,30 +351,25 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
         tzinfo,
         PyDateTimeAPI->DateTimeType
     );
+    
 
     if (tzinfo != Py_None && tzinfo != pytz_utc)
         Py_DECREF(tzinfo);
 
-    if (!obj)
-        Py_RETURN_NONE;
+    if (PyErr_Occurred())
+        return NULL;
+
+    if (!obj) { //TODO: Can this ever actually be true?
+        PyErr_SetString(PyExc_ValueError, "Unable to create datetime object");
+        return NULL;
+    }
 
     return obj;
-}
-
-static PyObject* parse_datetime_unaware(PyObject* self, PyObject* args)
-{
-    return _parse(self, args, 0);
-}
-
-static PyObject* parse_datetime(PyObject* self, PyObject* args)
-{
-    return _parse(self, args, 1);
 }
 
 static PyMethodDef CISO8601Methods[] =
 {
      {"parse_datetime", parse_datetime, METH_VARARGS, "Parse a ISO8601 date time string."},
-     {"parse_datetime_unaware", parse_datetime_unaware, METH_VARARGS, "Parse a ISO8601 date time string, ignoring the time zone component."},
      {NULL, NULL, 0, NULL}
 };
 

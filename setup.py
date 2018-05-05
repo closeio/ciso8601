@@ -13,7 +13,10 @@ setup(
     license="MIT",
     ext_modules=[Extension("ciso8601", ["module.c"])],
     test_suite='tests',
-    tests_require=['pytz'],
+    tests_require=[
+        'pytz',
+        "unittest2 ; python_version < '3'"
+    ],
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
