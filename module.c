@@ -5,7 +5,7 @@ static PyObject* pytz_fixed_offset;
 static PyObject* pytz_utc;
 
 static void* format_unexpected_character_exception(char* field_name, char c, int index, int expected_character_count){
-    if (c == NULL)
+    if (c == '\0')
         PyErr_Format(PyExc_ValueError, "Unexpected end of string while parsing %s. Expected %d more character%s", field_name, expected_character_count, (expected_character_count != 1) ? "s": "");
     else
         PyErr_Format(PyExc_ValueError, "Invalid character while parsing %s ('%c', Index: %d)", field_name, c, index);
@@ -59,7 +59,7 @@ static void parse_month_day(char** c, char* str, int* month, int* day){
         if (PyErr_Occurred())
             return NULL;
 
-        if (**c != NULL && !is_date_and_time_separator(**c)){ // Optional day
+        if (**c != '\0' && !is_date_and_time_separator(**c)){ // Optional day
             parse_date_separator(c, str);
             if (PyErr_Occurred())
                 return NULL;
@@ -138,7 +138,7 @@ static void parse_minute_second(char** c, char* str, int* minute, int* second, i
         if (PyErr_Occurred())
             return NULL;
 
-        if (**c != NULL && !is_time_zone_separator(**c)){ // Optional second
+        if (**c != '\0' && !is_time_zone_separator(**c)){ // Optional second
             parse_time_separator(c, str);
             if (PyErr_Occurred())
                 return NULL;
@@ -152,7 +152,7 @@ static void parse_minute_second(char** c, char* str, int* minute, int* second, i
         if (PyErr_Occurred())
             return NULL;
 
-        if (**c != NULL && !is_time_zone_separator(**c)){ // Optional second
+        if (**c != '\0' && !is_time_zone_separator(**c)){ // Optional second
             parse_second(c, str, second, usecond);
             if (PyErr_Occurred())
                 return NULL;
@@ -162,7 +162,6 @@ static void parse_minute_second(char** c, char* str, int* minute, int* second, i
 
 static void parse_tzinfo(char** c, char* str, PyObject** tzinfo){
     // Time zone designator (Z or +hh:mm or -hh:mm)
-    int i = 0;
     int aware = 0;
     int tzhour = 0, tzminute = 0, tzsign = 0;
     if (**c == 'Z')
@@ -194,7 +193,7 @@ static void parse_tzinfo(char** c, char* str, PyObject** tzinfo){
             tzminute = parse_integer(c, str, 2, "tz minute");
             if (PyErr_Occurred())
                 return NULL;
-        } else if (**c != NULL){ // Optional minute
+        } else if (**c != '\0'){ // Optional minute
             tzminute = parse_integer(c, str, 2, "tz minute");
             if (PyErr_Occurred())
                 return NULL;
@@ -226,12 +225,12 @@ static void parse_timestamp(char** c, char* str, int* hour, int* minute, int* se
     if (PyErr_Occurred())
         return NULL;
 
-    if (**c != NULL && !is_time_zone_separator(**c)){
+    if (**c != '\0' && !is_time_zone_separator(**c)){
         parse_minute_second(c, str, minute, second, usecond);
         if (PyErr_Occurred())
             return NULL;
     }
-    if (**c != NULL){
+    if (**c != '\0'){
         parse_tzinfo(c, str, tzinfo);
         if (PyErr_Occurred())
             return NULL;
@@ -258,7 +257,7 @@ static PyObject* parse_datetime(PyObject* self, PyObject* args)
         return NULL;
     //TODO: Check range of year if necessary
 
-    if (*c != NULL && !is_date_and_time_separator(*c)){
+    if (*c != '\0' && !is_date_and_time_separator(*c)){
         parse_month_day(&c, str, &month, &day);
         if (PyErr_Occurred())
             return NULL;
@@ -312,7 +311,7 @@ static PyObject* parse_datetime(PyObject* self, PyObject* args)
     }
 
 
-    if (*c != NULL && !is_time_zone_separator(*c)){
+    if (*c != '\0' && !is_time_zone_separator(*c)){
         parse_timestamp(&c, str, &hour, &minute, &second, &usecond, &tzinfo);
         if (PyErr_Occurred())
             return NULL;
@@ -341,7 +340,7 @@ static PyObject* parse_datetime(PyObject* self, PyObject* args)
 
     
     // Make sure that there is no more to parse.
-    if (*c != NULL){
+    if (*c != '\0'){
         PyErr_Format(PyExc_ValueError, "unconverted data remains: '%s'", c);
         return NULL;
     }
