@@ -139,7 +139,7 @@ static void parse_minute_second(char** c, char* str, int* minute, int* second, i
             return NULL;
 
         if (**c != NULL && !is_time_zone_separator(**c)){ // Optional second
-            parse_time_separator(c, str, 1);
+            parse_time_separator(c, str);
             if (PyErr_Occurred())
                 return NULL;
 
