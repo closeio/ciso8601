@@ -1,40 +1,37 @@
-# Version 2.0
+# Version 2.0.0
 
-This was a major rewrite of `ciso8601`.
+Version 2.0.0 was a major rewrite of `ciso8601`.
+
+Version 1.x.x had a problem with error handling in the case of invalid timestamps.
+
+In 1.x.x, parse_datetime:
+
+* All valid datetime strings within the supported subset of ISO 8601 would result in the correct Python datetime (this was good)
+* Some invalid timestamps will return `None` and others might get truncated and return an incorrect Python datetime (this was bad)
+
+A developer with a given timestamp string, could not predict a priori what `ciso8601` is going to return without looking at the code.
+Fundamentally, this is the problem that version 2 addressed.
 
 Fundamentally, `parse_datetime(dt: String): datetime` was rewritten so that it takes a string and either:
 
-   * Returns a properly parsed Python datetime, **if and only if** that **entire** string conforms to the supported subset of ISO 8601
-   * Raise an Exception (ex. `ValueError`) with a description of the reason why the string doesn't conform to ISO 8601
+* Returns a properly parsed Python datetime, **if and only if** that **entire** string conforms to the supported subset of ISO 8601
+* Raises an `ValueError` with a description of the reason why the string doesn't conform to the supported subset of ISO 8601
 
-This is a departure from the past where `ciso8601` would sometimes return `None` and sometimes return a malformed `datetime`, depending on the nature of your data quality problem.
+## Breaking changes
 
-## Breaking changes:
-
-1. No longer allows you to parse a tz-aware timestamp as tz-naive datetime
-    * In fact, `parse_datetime_unaware` doesn't even exist anymore).
-1. Throws exception when a timestamp does not conform to ISO 8601
+1. Version 2 now raises `ValueError` when a timestamp does not conform to the supported subset of ISO 8601
     * This includes trailing characters in the timestamp
     * No longer accepts single character "day" values
     * See migration guide below for more examples
+1. `parse_datetime_unaware` was renamed to `parse_datetime_as_naive` (See "Migration Guide" below for reasons)
+
+## Other Changes
+
+* Attempting to parse an aware timestamp without having pytz installed raises `ImportError`. Fixes #19
+* Added support for the special case of midnight (24:00:00) that is valid in ISO 8601. Fixes #41
+* Fixed bug where "20140200" would not fail, but produce 2014-02-01. Fixes #42
 
 ## v1.x -> 2.0 Migration guide
-
-### `parse_datetime_unaware` has been removed
-
-`parse_datetime_unaware` existed for the case where your input had `tzinfo`, but you wanted to ignore the tzinfo and therefore could save some cycles by not parsing the tzinfo characters.
-
-The use case was deemed not compelling enough. Ignoring tzinfo on a tz-aware timestamp is almost never what you want to do. If you still want to ignore tzinfo, just use `parse_datetime` and then replace the tzinfo manually:
-
-```python
-    dt = parse_datetime("2018-01-01T00:00:00+05:00").replace(tzinfo=None)
-```
-
-`parse_datetime` now handles both tz-aware and tz-naive timestamps. Instances where you were using `parse_datetime_unaware` to parse tz-naive timestamps, you can simply use `parse_datetime` instead.
-
-```python
-    dt = parse_datetime("2018-01-01T00:00:00")
-```
 
 ### ValueError instead of None
 
@@ -47,7 +44,7 @@ Places where you were checking for a return of `None` from ciso8601:
         raise ValueError(f"Could not parse {timestamp}")
 ```
 
-You should change to now expect ValueError to be thrown:
+You should change to now expect `ValueError` to be thrown:
 
 ```python
     timestamp = "2018-01-01T00:00:00+05:00"
@@ -56,14 +53,20 @@ You should change to now expect ValueError to be thrown:
 
 ### Tightened ISO 8601 conformance
 
-The rules with respect to what `ciso8601` will consider a conforming ISO 8601 string have been tightened.
+The rules with respect to what ciso8601 will consider a conforming ISO 8601 string have been tightened.
 
 Now a timestamp will parse **if and only if** the timestamp is 100% conforming to the supported subset of the ISO 8601 specification.
 
 
 ```python
-    "2014-" # Missing the month
-    "2014-01-" # trailing separator
+    # trailing separator
+    "2014-"
+    "2014-01-"
+    "2014-01-01T"
+    "2014-01-01T00:"
+    "2014-01-01T00:00:"
+    "2014-01-01T00:00:00-"
+    "2014-01-01T00:00:00-00:"
 
     # Mix of no-separator and separator
     "201401-02" 
@@ -74,6 +77,27 @@ Now a timestamp will parse **if and only if** the timestamp is 100% conforming t
     "2014-01-02T01:23:45Zabcdefghij" # Trailing characters
 
     "2014-01-1" # Single digit day
+    "2014-01-01T00:00:00-0:04" # Single digit tzhour
+    "2014-01-01T00:00:00-00:4" # Single digit tzminute
 ```
 
-These could have been considered bugs, but it may be the case that your code was relying on the previously lax parsing rules.
+These should have been considered bugs in ciso8601 1.x.x, but it may be the case that your code was relying on the previously lax parsing rules.
+
+### `parse_datetime_unaware` has been renamed
+
+`parse_datetime_unaware` existed for the case where your input had `tzinfo`, but you wanted to ignore the tzinfo and therefore could save some cycles by not creating the underlying tzinfo object.
+
+It has been renamed to `parse_datetime_as_naive` for 2 reasons:
+
+1. Developers were assuming that `parse_datetime_unaware` was the function to use for parsing naive timestamps, when really it is for parsing aware timestamps as naive datetimes. `parse_datetime` handles both naive and aware timestamps, and should be used unless you actually need this use case.
+1. Python [refers to datetimes without time zone information](https://docs.python.org/3/library/datetime.html) as `naive`, not `unaware` 
+
+Before switching all instances of `parse_datetime_unaware`, make sure to ask yourself whether you actually intended to use `parse_datetime_unaware`.
+
+* If you meant to parse naive timestamps as naive datetimes, use `parse_datetime` instead.
+* If you actually meant to parse **aware** timestamps as **naive** datetimes, use `parse_datetime_as_naive` instead.
+
+|                                    | TZ Aware Input    | TZ Naive Input    |
+| ---------------------------------- | ----------------- | ----------------- |
+| `parse_datetime()` output          | tz aware datetime | tz naive datetime |
+| `parse_datetime_as_naive()` output | tz naive datetime | tz naive datetime |

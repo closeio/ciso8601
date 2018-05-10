@@ -5,22 +5,23 @@ ciso8601
 .. image:: https://circleci.com/gh/closeio/ciso8601/tree/master.svg?style=svg&circle-token=72fc522063916cb1c6c5c9882b97db9d2ed651d8
     :target: https://circleci.com/gh/closeio/ciso8601/tree/master
 
-``ciso8601`` converts ISO8601 date time strings into Python datetime objects.
+``ciso8601`` converts `ISO 8601`_ date time strings into Python datetime objects.
 Since it's written as a C module, it is much faster than other Python libraries.
 Tested with Python 2.7, 3.4, 3.5, 3.6.
 
+.. _ISO 8601: https://en.wikipedia.org/wiki/ISO_8601
 
 (Interested in working on projects like this? `Close.io`_ is looking for `great engineers`_ to join our team)
 
-.. _Close.io: http://close.io
-.. _great engineers: http://jobs.close.io
+.. _Close.io: https://close.io
+.. _great engineers: https://jobs.close.io
 
 
 .. contents:: Contents
 
 
-Usage
------
+Quick Start
+-----------
 
 .. code:: bash
 
@@ -36,20 +37,25 @@ Usage
   In [3]: ciso8601.parse_datetime('20141205T123045')
   Out[3]: datetime.datetime(2014, 12, 5, 12, 30, 45)
 
-If time zone information is provided, an aware datetime object will be returned.
-Otherwise, the datetime is unaware. Please note that it takes more time to parse
-aware datetimes, especially if they're not in UTC.
-
-If parsing fails, an Exception will be raised (typically `ValueError`). The parser will attempt to parse as
-much of the date time as possible.
-
 Migration to v2
 ---------------
 
 Version 2.0.0 of ``ciso8601`` changed the core implementation. This was not entirely backwards compatible, and care should be taken when migrating
-See `CHANGELOG`_ for details.
+See `CHANGELOG`_ for the Migration Guide.
 
 .. _CHANGELOG: https://github.com/closeio/ciso8601/blob/master/CHANGELOG.md
+
+Error Handling
+--------------
+
+Starting in v2.0.0, ``ciso8601`` offers strong guarantees when it comes to parsing strings.
+
+``parse_datetime(dt: String): datetime`` is a function that takes a string and either:
+
+* Returns a properly parsed Python datetime, **if and only if** the **entire** string conforms to the supported subset of ISO 8601
+* Raises an ``ValueError`` with a description of the reason why the string doesn't conform to the supported subset of ISO 8601
+
+If time zone information is provided, an aware datetime object will be returned. Otherwise, a naive datetime is returned.
 
 Benchmark
 ---------
@@ -126,33 +132,53 @@ Tested on Python 2.7.10 on macOS 10.12.6 using the following modules:
   isodate==0.5.4
   python-dateutil==2.6.1
 
-Supported Subset
------------------
+Supported Subset of ISO 8601
+----------------------------
 
-ciso8601 only supports a subset of ISO 8601.
+``ciso8601`` only supports the most common subset of ISO 8601.
 
-Calendar Dates
-^^^^^^^^^^^^^^
+Date Formats
+^^^^^^^^^^^^
 
-The following calendar date formats are supported:
+The following date formats are supported:
 
 .. table:: Supported date formats
    :widths: auto
-============== ============== ==================
-Format         Example        Supported
-============== ============== ==================
-``YYYY-MM-DD`` ``2018-04-29`` ✅
-``YYYY-MM``    ``2018-04``    ✅
-``YYYYMMDD``   ``2018-04``    ✅
-``--MM-DD``    ``--04-29``    ❌              
-``--MMDD``     ``--0429``     ❌              
-============== ============== ==================
+============================= ============== ==================
+Format                        Example        Supported
+============================= ============== ==================
+``YYYY-MM-DD``                ``2018-04-29`` ✅
+``YYYY-MM``                   ``2018-04``    ✅
+``YYYYMMDD``                  ``2018-04``    ✅
+``--MM-DD`` (omitted year)    ``--04-29``    ❌              
+``--MMDD`` (omitted year)     ``--0429``     ❌
+``±YYYYY-MM`` (>4 digit year) ``2018-04-29`` ❌   
+``+YYYY-MM`` (leading +)      ``2018-04-29`` ❌   
+``-YYYY-MM`` (negative -)     ``2018-04-29`` ❌   
+============================= ============== ==================
 
-Times
-^^^^^
+Week dates or ordinal dates are not currently supported.
+
+.. table:: Supported week and ordinal date formats
+   :widths: auto
+============================= ============== ==================
+Format                        Example        Supported
+============================= ============== ==================
+``YYYY-Www`` (week date)      ``2009-W01``   ❌
+``YYYYWww`` (week date)       ``2009W01``    ❌
+``YYYY-Www-D`` (week date)    ``2009-W01-1`` ❌
+``YYYYWwwD`` (week date)      ``2009-W01-1`` ❌
+``YYYY-DDD`` (ordinal date)   ``1981-095``   ❌
+``YYYYDDD`` (ordinal date)    ``1981095``    ❌ 
+============================= ============== ==================
+
+Time Formats
+^^^^^^^^^^^^
 
 Times are optional and are separated from the date by the letter ``T``.
-``ciso860`` extends the ISO 8601 specification slightly by allowing a space character to be used instead of a ``T``.
+``ciso860`` also allows a space character to be used instead of a ``T``. This is consistent with `RFC 3339`_
+
+.. _RFC 3339: https://stackoverflow.com/questions/522251/whats-the-difference-between-iso-8601-and-rfc-3339-date-formats)
 
 The following time formats are supported:
 
@@ -193,3 +219,24 @@ Format     Example    Supported
 ``±hhmm``  ``+1130``  ✅
 ``±hh:mm`` ``+11:30`` ✅
 ========== ========== ===========
+
+While the ISO 8601 specification allows the use of MINUS SIGN (U+2212) in the time zone separator, ``ciso8601`` only supports the use of the HYPHEN-MINUS (U+002D) character.
+
+Ignoring Timezone Information While Parsing
+-------------------------------------------
+
+It takes more time to parse aware datetimes, especially if they're not in UTC. However, there are times when you don't care about time zone information, and wish to produce naive datetimes instead.
+For example, if you are certain that your progrma will only parse timestamps from a single time zone, you might want to strip the time zone information and only output naive datetimes.
+
+In these limited cases, there is a second function provided.
+``parse_datetime_as_naive`` will ignore any time zone information it finds and, as a result, is faster.
+
+```
+  In [1]: import ciso8601
+
+  In [2]: ciso8601.parse_datetime_as_naive('2014-12-05T12:30:45.123456-05:30')
+  Out[2]: datetime.datetime(2014, 12, 5, 12, 30, 45, 123456)
+```
+
+NOTE: ``parse_datetime_as_naive`` is only useful in the case where your timestamps have time zone information, but you want to ignore it. This is somewhat unusual.
+If your timestamps don't have time zone information (ie. are naive), simply use ``parse_datetime``. It is just as fast.
