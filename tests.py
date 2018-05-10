@@ -1,4 +1,4 @@
-import ciso8601michael as ciso8601
+import ciso8601
 import datetime
 from generate_test_timestamps import generate_valid_timestamp_and_datetime, generate_invalid_timestamp
 
