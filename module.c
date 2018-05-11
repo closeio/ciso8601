@@ -2,10 +2,13 @@
 #include <datetime.h>
 
 static PyObject *pytz_fixed_offset;
-static PyObject *pytz_utc;
+static PyObject *utc;
 
 #define PY_VERSION_AT_LEAST_36 \
   ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6) || PY_MAJOR_VERSION > 3)
+#define PY_VERSION_AT_LEAST_37 \
+  ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 7) || PY_MAJOR_VERSION > 3)
+
 static void *format_unexpected_character_exception(
     char *field_name, char c, int index, int expected_character_count) {
   if (c == '\0')
@@ -379,25 +382,33 @@ static PyObject *_parse(PyObject *self, PyObject *args, int parse_any_tzinfo) {
       }
 
       if (aware && parse_any_tzinfo) {
-        if (pytz_fixed_offset == NULL || pytz_utc == NULL) {
+        tzminute += 60 * tzhour;
+        tzminute *= tzsign;
+
+#if !PY_VERSION_AT_LEAST_37
+        if (pytz_fixed_offset == NULL || utc == NULL) {
           PyErr_SetString(PyExc_ImportError,
                           "Cannot parse an aware timestamp without pytz. "
                           "Install it with `pip install pytz`.");
           return NULL;
         }
+#endif
 
-        tzminute += 60 * tzhour;
-        tzminute *= tzsign;
-
-        if (tzminute == 0)
-          tzinfo = pytz_utc;
-        else if (abs(tzminute) >= 1440) {
+        if (tzminute == 0) {
+          tzinfo = utc;
+        } else if (abs(tzminute) >= 1440) {
           // If we don't check this here, the interpreter crashes.
           PyErr_Format(PyExc_ValueError, "Absolute tz offset is too large (%d)",
                        tzminute);
           return NULL;
-        } else
+        } else {
+#if PY_VERSION_AT_LEAST_37
+          // TODO: Perhaps use function pointers to clean this up?
+          tzinfo = PyTimeZone_FromOffset(PyDelta_FromDSU(0, 60 * tzminute, 0));
+#else
           tzinfo = PyObject_CallFunction(pytz_fixed_offset, "i", tzminute);
+#endif
+        }
       }
     }
   }
@@ -412,7 +423,7 @@ static PyObject *_parse(PyObject *self, PyObject *args, int parse_any_tzinfo) {
                                                 second, usecond, tzinfo,
                                                 PyDateTimeAPI->DateTimeType);
 
-  if (tzinfo != Py_None && tzinfo != pytz_utc) Py_DECREF(tzinfo);
+  if (tzinfo != Py_None && tzinfo != utc) Py_DECREF(tzinfo);
 
   if (obj && time_is_midnight)
     obj = PyNumber_Add(obj, PyDelta_FromDSU(1, 0, 0));  // 1 day
@@ -463,13 +474,17 @@ initciso8601(void)
   (void)Py_InitModule("ciso8601", CISO8601Methods);
 #endif
   PyDateTime_IMPORT;
+#if PY_VERSION_AT_LEAST_37
+  utc = PyDateTime_TimeZone_UTC;
+#else
   pytz = PyImport_ImportModule("pytz");
   if (pytz == NULL) {
     PyErr_Clear();
   } else {
     pytz_fixed_offset = PyObject_GetAttrString(pytz, "FixedOffset");
-    pytz_utc = PyObject_GetAttrString(pytz, "UTC");
+    utc = PyObject_GetAttrString(pytz, "UTC");
   }
+#endif
 #if PY_MAJOR_VERSION >= 3
   return module;
 #endif
