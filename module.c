@@ -4,6 +4,8 @@
 static PyObject *pytz_fixed_offset;
 static PyObject *pytz_utc;
 
+#define PY_VERSION_AT_LEAST_36 \
+  ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6) || PY_MAJOR_VERSION > 3)
 static void *format_unexpected_character_exception(
     char *field_name, char c, int index, int expected_character_count) {
   if (c == '\0')
@@ -49,19 +51,19 @@ static PyObject *_parse(PyObject *self, PyObject *args, int parse_any_tzinfo) {
           "year", *c, (c - str) / sizeof(char), 4 - i);
     }
   }
-  // This check is needed for Python <3.6 support.
+
+#if !PY_VERSION_AT_LEAST_36
   // Python 3.6+ does this validation as part of Datetime's C API constructor.
   // See
   // https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
-  // If ciso8601 were to drop Python <3.6 support, it might still be useful,
-  // since it is short-circuit parsing. We skip ` || year < datetime.MAXYEAR)`,
-  // since cio8601 currently doesn't support 5 character years, so it is
-  // impossible.
+  // We skip ` || year < datetime.MAXYEAR)`, since cio8601 currently doesn't
+  // support 5 character years, so it is impossible.
   if (year < 1)  // datetime.MINYEAR = 1, which is not exposed to the C API.
   {
     PyErr_Format(PyExc_ValueError, "year %d is out of range", year);
     return NULL;
   }
+#endif
 
   if (*c == '-') {  // Separated Month and Day (ie. MM-DD)
     c++;
@@ -118,28 +120,23 @@ static PyObject *_parse(PyObject *self, PyObject *args, int parse_any_tzinfo) {
     }
   }
 
+#if !PY_VERSION_AT_LEAST_36
   // Validation of date fields
-  // These checks are needed for Python <3.5 support. See
+  // These checks are needed for Python <3.6 support. See
   // https://github.com/closeio/ciso8601/pull/30 Python 3.6+ does this
   // validation as part of Datetime's C API constructor. See
   // https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
-  // If ciso8601 were to drop Python <3.5 support, these might still be useful,
-  // since they short-circuit parsing.
   if (month < 1 || month > 12) {
     PyErr_SetString(PyExc_ValueError, "month must be in 1..12");
     return NULL;
   }
 
-  // Only needed for Python <3.5 support (or performance short-circuiting.
-  // Python 3.6+ does this validation as part of Datetime's constructor).
   if (day < 1) {
     PyErr_SetString(PyExc_ValueError, "day is out of range for month");
     return NULL;
   }
 
   // Validate max day based on month
-  // Only needed for Python <3.5 support (or performance short-circuiting.
-  // Python 3.6+ does this validation as part of Datetime's constructor).
   switch (month) {
     case 2:
       // In the Gregorian calendar three criteria must be taken into account to
@@ -174,6 +171,7 @@ static PyObject *_parse(PyObject *self, PyObject *args, int parse_any_tzinfo) {
       }
       break;
   }
+#endif
 
   if (*c != '\0') {
     // Date and time separator
@@ -304,8 +302,9 @@ static PyObject *_parse(PyObject *self, PyObject *args, int parse_any_tzinfo) {
       time_is_midnight = 1;
     }
 
+#if !PY_VERSION_AT_LEAST_36
     // Validate hour/minute/second
-    // Only needed for Python <3.5 support (or performance short-circuiting.
+    // Only needed for Python <3.6 support.
     // Python 3.6+ does this validation as part of Datetime's constructor).
     if (hour > 23) {
       PyErr_SetString(PyExc_ValueError, "hour must be in 0..23");
@@ -319,6 +318,7 @@ static PyObject *_parse(PyObject *self, PyObject *args, int parse_any_tzinfo) {
       PyErr_SetString(PyExc_ValueError, "second must be in 0..59");
       return NULL;
     }
+#endif
 
     // Optional tzinfo
     if (IS_TIME_ZONE_SEPARATOR) {
