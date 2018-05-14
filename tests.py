@@ -196,7 +196,6 @@ class InvalidTimestampTestCase(unittest.TestCase):
             ciso8601.parse_datetime,
             '2018-01-01_00:00:00',
         )
-
     def test_invalid_hour_24(self):
         # A value of hour = 24 is only valid in the special case of 24:00:00
         self.assertRaisesRegex(
@@ -204,6 +203,14 @@ class InvalidTimestampTestCase(unittest.TestCase):
             r"hour must be in 0..23",
             ciso8601.parse_datetime,
             '20140203T24:35:27',
+        )
+        self.assertEqual(
+            ciso8601.parse_datetime('2014-12-05T00:00+23:59'),
+            datetime.datetime(2014, 12, 5, 0, 0, 0, 0, pytz.FixedOffset(1439))
+        )
+        self.assertEqual(
+            ciso8601.parse_datetime('2014-12-05T00:00-23:59'),
+            datetime.datetime(2014, 12, 5, 0, 0, 0, 0, pytz.FixedOffset(-1439))
         )
 
     def test_invalid_time_separator(self):
@@ -298,7 +305,7 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             ciso8601.parse_datetime,
             '2014-13-01',
         )
-
+        
     def test_issue_22(self):
         self.assertRaisesRegex(
             ValueError,
