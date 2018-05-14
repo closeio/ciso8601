@@ -452,13 +452,6 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                 if (tzminute == 0) {
                     tzinfo = utc;
                 }
-                else if (abs(tzminute) >= 1440) {
-                    /* If we don't check this here, the interpreter crashes. */
-                    PyErr_Format(PyExc_ValueError,
-                                 "Absolute tz offset is too large (%d)",
-                                 tzminute);
-                    return NULL;
-                }
                 else {
 #if PY_VERSION_AT_LEAST_37
                     /* TODO: Perhaps use function pointers to clean this up? */
@@ -468,6 +461,8 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                     tzinfo = PyObject_CallFunction(pytz_fixed_offset, "i",
                                                    tzminute);
 #endif
+                    if (tzinfo == NULL) /* ie. PyErr_Occurred() */
+                        return NULL;
                 }
             }
         }

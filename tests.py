@@ -8,6 +8,8 @@ if sys.version_info.major == 2:
 else:
     import unittest
 
+PY_VERSION_AT_LEAST_37 = ((sys.version_info.major == 3 and sys.version_info.minor >= 7) or sys.version_info.major > 3)
+
 
 class ValidTimestampTestCase(unittest.TestCase):
     def test_auto_generated_valid_formats(self):
@@ -55,8 +57,12 @@ class InvalidTimestampTestCase(unittest.TestCase):
 
     def test_parse_auto_generated_invalid_formats(self):
         for timestamp in generate_invalid_timestamp():
-            with self.assertRaises(ValueError, msg="Timestamp '{0}' was supposed to be invalid, but parsing it didn't raise ValueError.".format(timestamp)):
-                ciso8601.parse_datetime(timestamp)
+            try:
+                with self.assertRaises(ValueError, msg="Timestamp '{0}' was supposed to be invalid, but parsing it didn't raise ValueError.".format(timestamp)):
+                    ciso8601.parse_datetime(timestamp)
+            except Exception as exc:
+                print("Timestamp '{0}' was supposed to raise ValueError, but raised {1} instead".format(timestamp, type(exc).__name__))
+                raise
 
     def test_invalid_calendar_separator(self):
         self.assertRaisesRegex(
@@ -196,6 +202,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
             ciso8601.parse_datetime,
             '2018-01-01_00:00:00',
         )
+
     def test_invalid_hour_24(self):
         # A value of hour = 24 is only valid in the special case of 24:00:00
         self.assertRaisesRegex(
@@ -203,14 +210,6 @@ class InvalidTimestampTestCase(unittest.TestCase):
             r"hour must be in 0..23",
             ciso8601.parse_datetime,
             '20140203T24:35:27',
-        )
-        self.assertEqual(
-            ciso8601.parse_datetime('2014-12-05T00:00+23:59'),
-            datetime.datetime(2014, 12, 5, 0, 0, 0, 0, pytz.FixedOffset(1439))
-        )
-        self.assertEqual(
-            ciso8601.parse_datetime('2014-12-05T00:00-23:59'),
-            datetime.datetime(2014, 12, 5, 0, 0, 0, 0, pytz.FixedOffset(-1439))
         )
 
     def test_invalid_time_separator(self):
@@ -249,7 +248,8 @@ class InvalidTimestampTestCase(unittest.TestCase):
         # TODO: Determine whether these are valid ISO 8601 values and therefore whether ciso8601 should support them.
         self.assertRaisesRegex(
             ValueError,
-            r"Absolute tz offset is too large \(-5940\)",
+            # Error message differs whether or not we are using pytz or datetime.timezone
+            r"offset must be a timedelta strictly between -timedelta\(hours=24\) and timedelta\(hours=24\), not datetime\.timedelta\(days=-5, seconds=75600\)\." if PY_VERSION_AT_LEAST_37 else r"\('absolute offset is too large', -5940\)",
             ciso8601.parse_datetime,
             '2018-01-01T00:00:00.00-99',
         )
@@ -305,7 +305,7 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             ciso8601.parse_datetime,
             '2014-13-01',
         )
-        
+
     def test_issue_22(self):
         self.assertRaisesRegex(
             ValueError,
