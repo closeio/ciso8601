@@ -165,21 +165,28 @@ static PyObject* _parse(PyObject* self, PyObject* args, int parse_tzinfo)
         }
 
         if (tzsign != 0) {
-            for (i = 0; i < 2; i++) {
-                if (*c >= '0' && *c <= '9')
-                    tzhour = 10 * tzhour + *c++ - '0';
-                else
-                    break;
-            }
+            // TZ offset hour (00-23)
+            if (*c >= '0' && *c <= '2')
+                tzhour = *c++ - '0';
+            else
+                Py_RETURN_NONE;
+            if (*c >= '0' && *c <= '9' && (tzhour < 2 || *c <= '3'))
+                tzhour = 10 * tzhour + *c++ - '0';
+            else
+                Py_RETURN_NONE;
 
             if (*c == ':') // Optional separator
                 c++;
 
-            for (i = 0; i < 2; i++) {
+            // TZ offset minute (optional) (00-59)
+            if (*c >= '0' && *c <= '5') {
+                tzminute = *c++ - '0';
                 if (*c >= '0' && *c <= '9')
                     tzminute = 10 * tzminute + *c++ - '0';
                 else
-                    break;
+                    Py_RETURN_NONE;
+            } else if (*c >= '6' && *c <= '9') {
+                Py_RETURN_NONE;
             }
         }
     }
