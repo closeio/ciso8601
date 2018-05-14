@@ -2,6 +2,7 @@
 # Useful for IDE integration
 BasedOnStyle: Google
 AlwaysBreakAfterReturnType: All
+AllowShortIfStatementsOnASingleLine: false
 AlignAfterOpenBracket: Align
 BreakBeforeBraces: Stroustrup
 ColumnLimit: 79
