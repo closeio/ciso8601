@@ -11,6 +11,39 @@ static PyObject *utc;
 #define PY_VERSION_AT_LEAST_37 \
     ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 7) || PY_MAJOR_VERSION > 3)
 
+#define PARSE_INTEGER(field, length, field_name)                       \
+    for (i = 0; i < length; i++) {                                     \
+        if (*c >= '0' && *c <= '9') {                                  \
+            field = 10 * field + *c++ - '0';                           \
+        }                                                              \
+        else {                                                         \
+            return format_unexpected_character_exception(              \
+                field_name, *c, (c - str) / sizeof(char), length - i); \
+        }                                                              \
+    }
+
+#define PARSE_FRACTIONAL_SECOND()                              \
+    for (i = 0; i < 6; i++) {                                  \
+        if (*c >= '0' && *c <= '9') {                          \
+            usecond = 10 * usecond + *c++ - '0';               \
+        }                                                      \
+        else if (i == 0) {                                     \
+            /* We need at least one digit. */                  \
+            /* Trailing '.' or ',' is not allowed */           \
+            return format_unexpected_character_exception(      \
+                "subsecond", *c, (c - str) / sizeof(char), 1); \
+        }                                                      \
+        else                                                   \
+            break;                                             \
+    }                                                          \
+                                                               \
+    /* Omit excessive digits */                                \
+    /* TODO: Should this do rounding instead? */               \
+    while (*c >= '0' && *c <= '9') c++;                        \
+                                                               \
+    /* If we break early, fully expand the usecond */          \
+    while (i++ < 6) usecond *= 10;
+
 static void *
 format_unexpected_character_exception(char *field_name, char c, int index,
                                       int expected_character_count)
@@ -53,15 +86,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     c = str;
 
     /* Year */
-    for (i = 0; i < 4; i++) {
-        if (*c >= '0' && *c <= '9') {
-            year = 10 * year + *c++ - '0';
-        }
-        else {
-            return format_unexpected_character_exception(
-                "year", *c, (c - str) / sizeof(char), 4 - i);
-        }
-    }
+    PARSE_INTEGER(year, 4, "year")
 
 #if !PY_VERSION_AT_LEAST_36
     /* Python 3.6+ does this validation as part of Datetime's C API
@@ -81,15 +106,8 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     if (*c == '-') { /* Separated Month and Day (ie. MM-DD) */
         c++;
         /* Month */
-        for (i = 0; i < 2; i++) {
-            if (*c >= '0' && *c <= '9') {
-                month = 10 * month + *c++ - '0';
-            }
-            else {
-                return format_unexpected_character_exception(
-                    "month", *c, (c - str) / sizeof(char), 2 - i);
-            }
-        }
+        PARSE_INTEGER(month, 2, "month")
+
         if (*c != '\0' && !IS_DATE_AND_TIME_SEPARATOR) { /* Optional Day */
             if (*c == '-') {
                 c++;
@@ -103,15 +121,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                 return NULL;
             }
             /* Day */
-            for (i = 0; i < 2; i++) {
-                if (*c >= '0' && *c <= '9') {
-                    day = 10 * day + *c++ - '0';
-                }
-                else {
-                    return format_unexpected_character_exception(
-                        "day", *c, (c - str) / sizeof(char), 2 - i);
-                }
-            }
+            PARSE_INTEGER(day, 2, "day")
         }
         else {
             day = 1;
@@ -119,27 +129,11 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     }
     else { /* Non-separated Month and Day (ie. MMDD) */
         /* Month */
-        for (i = 0; i < 2; i++) {
-            if (*c >= '0' && *c <= '9') {
-                month = 10 * month + *c++ - '0';
-            }
-            else {
-                return format_unexpected_character_exception(
-                    "month", *c, (c - str) / sizeof(char), 2 - i);
-            }
-        }
+        PARSE_INTEGER(month, 2, "month")
         /* Note that YYMM is not a valid timestamp. If the calendar date is not
          * separated, a day is required (ie. YYMMDD)
          */
-        for (i = 0; i < 2; i++) {
-            if (*c >= '0' && *c <= '9') {
-                day = 10 * day + *c++ - '0';
-            }
-            else {
-                return format_unexpected_character_exception(
-                    "day", *c, (c - str) / sizeof(char), 2 - i);
-            }
-        }
+        PARSE_INTEGER(day, 2, "day")
     }
 
 #if !PY_VERSION_AT_LEAST_36
@@ -216,30 +210,16 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
         }
 
         /* Hour */
-        for (i = 0; i < 2; i++) {
-            if (*c >= '0' && *c <= '9') {
-                hour = 10 * hour + *c++ - '0';
-            }
-            else {
-                return format_unexpected_character_exception(
-                    "hour", *c, (c - str) / sizeof(char), 2 - i);
-            }
-        }
+        PARSE_INTEGER(hour, 2, "hour")
+
         if (*c != '\0' &&
             !IS_TIME_ZONE_SEPARATOR) { /* Optional minute and second */
 
             if (*c == ':') { /* Separated Minute and Second (ie. mm:ss) */
                 c++;
                 /* Minute */
-                for (i = 0; i < 2; i++) {
-                    if (*c >= '0' && *c <= '9') {
-                        minute = 10 * minute + *c++ - '0';
-                    }
-                    else {
-                        return format_unexpected_character_exception(
-                            "minute", *c, (c - str) / sizeof(char), 2 - i);
-                    }
-                }
+                PARSE_INTEGER(minute, 2, "minute")
+
                 if (*c != '\0' &&
                     !IS_TIME_ZONE_SEPARATOR) { /* Optional Second */
                     if (*c == ':') {
@@ -254,91 +234,27 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                         return NULL;
                     }
                     /* Second */
-                    for (i = 0; i < 2; i++) {
-                        if (*c >= '0' && *c <= '9') {
-                            second = 10 * second + *c++ - '0';
-                        }
-                        else {
-                            return format_unexpected_character_exception(
-                                "second", *c, (c - str) / sizeof(char), 2 - i);
-                        }
-                    }
+                    PARSE_INTEGER(second, 2, "second")
+
                     /* Optional Fractional Second */
                     if (IS_FRACTIONAL_SEPARATOR) {
                         c++;
-                        for (i = 0; i < 6; i++) {
-                            if (*c >= '0' && *c <= '9') {
-                                usecond = 10 * usecond + *c++ - '0';
-                            }
-                            else if (i == 0) {
-                                /* We need at least one digit. Trailing '.' or
-                                 * ',' is not allowed
-                                 */
-                                return format_unexpected_character_exception(
-                                    "subsecond", *c, (c - str) / sizeof(char),
-                                    1);
-                            }
-                            else
-                                break;
-                        }
-
-                        /* Omit excessive digits */
-                        /* TODO: Should this do rounding instead? */
-                        while (*c >= '0' && *c <= '9') c++;
-
-                        /* If we break early, fully expand the usecond */
-                        while (i++ < 6) usecond *= 10;
+                        PARSE_FRACTIONAL_SECOND()
                     }
                 }
             }
             else { /* Non-separated Minute and Second (ie. mmss) */
                 /* Minute */
-                for (i = 0; i < 2; i++) {
-                    if (*c >= '0' && *c <= '9') {
-                        minute = 10 * minute + *c++ - '0';
-                    }
-                    else {
-                        return format_unexpected_character_exception(
-                            "minute", *c, (c - str) / sizeof(char), 2 - i);
-                    }
-                }
+                PARSE_INTEGER(minute, 2, "minute")
                 if (*c != '\0' &&
                     !IS_TIME_ZONE_SEPARATOR) { /* Optional Second */
                     /* Second */
-                    for (i = 0; i < 2; i++) {
-                        if (*c >= '0' && *c <= '9') {
-                            second = 10 * second + *c++ - '0';
-                        }
-                        else {
-                            return format_unexpected_character_exception(
-                                "second", *c, (c - str) / sizeof(char), 2 - i);
-                        }
-                    }
+                    PARSE_INTEGER(second, 2, "second")
+
                     /* Optional Fractional Second */
                     if (IS_FRACTIONAL_SEPARATOR) {
                         c++;
-                        for (i = 0; i < 6; i++) {
-                            if (*c >= '0' && *c <= '9') {
-                                usecond = 10 * usecond + *c++ - '0';
-                            }
-                            else if (i == 0) {
-                                /* We need at least one digit. Trailing '.' or
-                                 * ',' is not allowed
-                                 */
-                                return format_unexpected_character_exception(
-                                    "subsecond", *c, (c - str) / sizeof(char),
-                                    1);
-                            }
-                            else
-                                break;
-                        }
-
-                        /* Omit excessive digits */
-                        /* TODO: Should this do rounding instead? */
-                        while (*c >= '0' && *c <= '9') c++;
-
-                        /* If we break early, fully expand the usecond */
-                        while (i++ < 6) usecond *= 10;
+                        PARSE_FRACTIONAL_SECOND()
                     }
                 }
             }
@@ -390,41 +306,15 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
             }
             if (tzsign != 0) {
                 /* tz hour */
-                for (i = 0; i < 2; i++) {
-                    if (*c >= '0' && *c <= '9') {
-                        tzhour = 10 * tzhour + *c++ - '0';
-                    }
-                    else {
-                        return format_unexpected_character_exception(
-                            "tz hour", *c, (c - str) / sizeof(char), 2 - i);
-                    }
-                }
+                PARSE_INTEGER(tzhour, 2, "tz hour")
 
                 if (*c == ':') { /* Optional separator */
                     c++;
                     /* tz minute */
-                    for (i = 0; i < 2; i++) {
-                        if (*c >= '0' && *c <= '9') {
-                            tzminute = 10 * tzminute + *c++ - '0';
-                        }
-                        else {
-                            return format_unexpected_character_exception(
-                                "tz minute", *c, (c - str) / sizeof(char),
-                                2 - i);
-                        }
-                    }
+                    PARSE_INTEGER(tzminute, 2, "tz minute")
                 }
                 else if (*c != '\0') { /* Optional tz minute */
-                    for (i = 0; i < 2; i++) {
-                        if (*c >= '0' && *c <= '9') {
-                            tzminute = 10 * tzminute + *c++ - '0';
-                        }
-                        else {
-                            return format_unexpected_character_exception(
-                                "tz minute", *c, (c - str) / sizeof(char),
-                                2 - i);
-                        }
-                    }
+                    PARSE_INTEGER(tzminute, 2, "tz minute")
                 }
             }
 
