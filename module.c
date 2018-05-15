@@ -4,6 +4,8 @@
 static PyObject *fixed_offset;
 static PyObject *utc;
 
+#define PY_VERSION_AT_LEAST_32 \
+    ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 2) || PY_MAJOR_VERSION > 3)
 #define PY_VERSION_AT_LEAST_36 \
     ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6) || PY_MAJOR_VERSION > 3)
 #define PY_VERSION_AT_LEAST_37 \
@@ -457,7 +459,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
 #if PY_VERSION_AT_LEAST_37
                     tzinfo = PyTimeZone_FromOffset(
                         PyDelta_FromDSU(0, 60 * tzminute, 0));
-#elif PY_MAJOR_VERSION >= 3
+#elif PY_VERSION_AT_LEAST_32
                     tzinfo = PyObject_CallFunction(
                         fixed_offset, "N",
                         PyDelta_FromDSU(0, 60 * tzminute, 0));
@@ -541,7 +543,7 @@ initciso8601(void)
     PyDateTime_IMPORT;
 #if PY_VERSION_AT_LEAST_37
     utc = PyDateTime_TimeZone_UTC;
-#elif PY_MAJOR_VERSION >= 3
+#elif PY_VERSION_AT_LEAST_32
     datetime = PyImport_ImportModule("datetime");
     if (datetime == NULL)
         return NULL;
