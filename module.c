@@ -369,7 +369,7 @@ parse_datetime_as_naive(PyObject *self, PyObject *args)
     return _parse(self, args, 0);
 }
 
-PyObject *
+static PyObject *
 parse_datetime(PyObject *self, PyObject *args)
 {
     return _parse(self, args, 1);
