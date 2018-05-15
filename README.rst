@@ -132,6 +132,29 @@ Tested on Python 2.7.10 on macOS 10.12.6 using the following modules:
   isodate==0.5.4
   python-dateutil==2.6.1
 
+Dependency on pytz (Python 2)
+-----------------------------
+
+In Python 2, ``ciso8601`` uses the `pytz`_ library while parsing timezone aware timestamps. This means that if you wish to parse such timestamps, you must first install ``pytz``:
+
+.. _pytz: http://pytz.sourceforge.net/
+
+.. code:: python
+  
+  pip install pytz
+
+Otherwise, ``ciso8601`` will raise an exception when you try to parse a timezone aware timestamp:
+
+.. code:: python
+  
+  In [2]: ciso8601.parse_datetime('2014-12-05T12:30:45.123456-05:30')
+  Out[2]: ImportError: Cannot parse an aware timestamp without pytz. Install it with `pip install pytz`.
+
+``pytz`` is intentionally not an explicit dependency of ``ciso8601``. This is because many users use ``ciso8601`` to parse only naive timestamps, and therefore don't need this extra dependency.
+In Python 3, ``ciso8601`` makes use of the built-in `datetime.timezone`_ class instead, so pytz is not necessary.
+
+.. _datetime.timezone: https://docs.python.org/3/library/datetime.html#timezone-objects
+
 Supported Subset of ISO 8601
 ----------------------------
 
