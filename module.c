@@ -44,6 +44,17 @@ static PyObject *utc;
     /* If we break early, fully expand the usecond */          \
     while (i++ < 6) usecond *= 10;
 
+#define PARSE_SEPARATOR(separator, field_name)                               \
+    if (separator) {                                                         \
+        c++;                                                                 \
+    }                                                                        \
+    else {                                                                   \
+        PyErr_Format(PyExc_ValueError,                                       \
+                     "Invalid character while parsing %s ('%c', Index: %d)", \
+                     field_name, *c, (c - str) / sizeof(char));              \
+        return NULL;                                                         \
+    }
+
 static void *
 format_unexpected_character_exception(char *field_name, char c, int index,
                                       int expected_character_count)
@@ -62,7 +73,9 @@ format_unexpected_character_exception(char *field_name, char c, int index,
     return NULL;
 }
 
+#define IS_CALENDAR_DATE_SEPARATOR (*c == '-')
 #define IS_DATE_AND_TIME_SEPARATOR (*c == 'T' || *c == ' ')
+#define IS_TIME_SEPARATOR (*c == ':')
 #define IS_TIME_ZONE_SEPARATOR (*c == 'Z' || *c == '-' || *c == '+')
 #define IS_FRACTIONAL_SEPARATOR (*c == '.' || *c == ',')
 
@@ -102,23 +115,14 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     }
 #endif
 
-    if (*c == '-') { /* Separated Month and Day (ie. MM-DD) */
+    if (IS_CALENDAR_DATE_SEPARATOR) { /* Separated Month and Day (ie. MM-DD) */
         c++;
         /* Month */
         PARSE_INTEGER(month, 2, "month")
 
         if (*c != '\0' && !IS_DATE_AND_TIME_SEPARATOR) { /* Optional Day */
-            if (*c == '-') {
-                c++;
-            }
-            else {
-                PyErr_Format(
-                    PyExc_ValueError,
-                    "Invalid character while parsing date separator ('-') "
-                    "('%c', Index: %d)",
-                    *c, (c - str) / sizeof(char));
-                return NULL;
-            }
+            PARSE_SEPARATOR(IS_CALENDAR_DATE_SEPARATOR, "date separator ('-')")
+
             /* Day */
             PARSE_INTEGER(day, 2, "day")
         }
@@ -196,17 +200,8 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
 
     if (*c != '\0') {
         /* Date and time separator */
-        if (IS_DATE_AND_TIME_SEPARATOR) {
-            c++;
-        }
-        else {
-            PyErr_Format(
-                PyExc_ValueError,
-                "Invalid character while parsing date and time separator "
-                "(ie. 'T' or ' ') ('%c', Index: %d)",
-                *c, (c - str) / sizeof(char));
-            return NULL;
-        }
+        PARSE_SEPARATOR(IS_DATE_AND_TIME_SEPARATOR,
+                        "date and time separator (ie. 'T' or ' ')")
 
         /* Hour */
         PARSE_INTEGER(hour, 2, "hour")
@@ -214,24 +209,17 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
         if (*c != '\0' &&
             !IS_TIME_ZONE_SEPARATOR) { /* Optional minute and second */
 
-            if (*c == ':') { /* Separated Minute and Second (ie. mm:ss) */
+            if (IS_TIME_SEPARATOR) { /* Separated Minute and Second (ie. mm:ss)
+                                      */
                 c++;
+
                 /* Minute */
                 PARSE_INTEGER(minute, 2, "minute")
 
                 if (*c != '\0' &&
                     !IS_TIME_ZONE_SEPARATOR) { /* Optional Second */
-                    if (*c == ':') {
-                        c++;
-                    }
-                    else {
-                        PyErr_Format(PyExc_ValueError,
-                                     "Invalid character while parsing time "
-                                     "separator (':') "
-                                     "('%c', Index: %d)",
-                                     *c, (c - str) / sizeof(char));
-                        return NULL;
-                    }
+                    PARSE_SEPARATOR(IS_TIME_SEPARATOR, "time separator (':')")
+
                     /* Second */
                     PARSE_INTEGER(second, 2, "second")
 
@@ -300,7 +288,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                 /* tz hour */
                 PARSE_INTEGER(tzhour, 2, "tz hour")
 
-                if (*c == ':') { /* Optional separator */
+                if (IS_TIME_SEPARATOR) { /* Optional separator */
                     c++;
                     /* tz minute */
                     PARSE_INTEGER(tzminute, 2, "tz minute")
