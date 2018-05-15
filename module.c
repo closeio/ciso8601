@@ -78,7 +78,6 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0,
         usecond = 0;
     int time_is_midnight = 0;
-    int aware = 0;
     int tzhour = 0, tzminute = 0, tzsign = 0;
 
     if (!PyArg_ParseTuple(args, "s", &str))
@@ -289,21 +288,14 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
 
         /* Optional tzinfo */
         if (IS_TIME_ZONE_SEPARATOR) {
-            if (*c == 'Z') {
-                /* UTC */
-                c++;
-                aware = 1;
-            }
-            else if (*c == '+') {
-                c++;
-                aware = 1;
+            if (*c == '+') {
                 tzsign = 1;
             }
             else if (*c == '-') {
-                c++;
-                aware = 1;
                 tzsign = -1;
             }
+            c++;
+
             if (tzsign != 0) {
                 /* tz hour */
                 PARSE_INTEGER(tzhour, 2, "tz hour")
@@ -328,11 +320,11 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                 return NULL;
             }
 
-            if (aware && parse_any_tzinfo) {
+            if (parse_any_tzinfo) {
                 tzminute += 60 * tzhour;
                 tzminute *= tzsign;
 
-#if !PY_VERSION_AT_LEAST_37
+#if !PY_VERSION_AT_LEAST_32
                 if (fixed_offset == NULL || utc == NULL) {
                     PyErr_SetString(
                         PyExc_ImportError,
