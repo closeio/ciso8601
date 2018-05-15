@@ -1,7 +1,7 @@
 #include <Python.h>
 #include <datetime.h>
 
-static PyObject *pytz_fixed_offset;
+static PyObject *fixed_offset;
 static PyObject *utc;
 
 #define PY_VERSION_AT_LEAST_36 \
@@ -46,7 +46,8 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     int aware = 0;
     int tzhour = 0, tzminute = 0, tzsign = 0;
 
-    if (!PyArg_ParseTuple(args, "s", &str)) return NULL;
+    if (!PyArg_ParseTuple(args, "s", &str))
+        return NULL;
     c = str;
 
     /* Year */
@@ -440,7 +441,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                 tzminute *= tzsign;
 
 #if !PY_VERSION_AT_LEAST_37
-                if (pytz_fixed_offset == NULL || utc == NULL) {
+                if (fixed_offset == NULL || utc == NULL) {
                     PyErr_SetString(
                         PyExc_ImportError,
                         "Cannot parse an aware timestamp without pytz. "
@@ -454,12 +455,15 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                 }
                 else {
 #if PY_VERSION_AT_LEAST_37
-                    /* TODO: Perhaps use function pointers to clean this up? */
                     tzinfo = PyTimeZone_FromOffset(
                         PyDelta_FromDSU(0, 60 * tzminute, 0));
+#elif PY_MAJOR_VERSION >= 3
+                    tzinfo = PyObject_CallFunction(
+                        fixed_offset, "N",
+                        PyDelta_FromDSU(0, 60 * tzminute, 0));
 #else
-                    tzinfo = PyObject_CallFunction(pytz_fixed_offset, "i",
-                                                   tzminute);
+                    tzinfo =
+                        PyObject_CallFunction(fixed_offset, "i", tzminute);
 #endif
                     if (tzinfo == NULL) /* ie. PyErr_Occurred() */
                         return NULL;
@@ -478,7 +482,8 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
         year, month, day, hour, minute, second, usecond, tzinfo,
         PyDateTimeAPI->DateTimeType);
 
-    if (tzinfo != Py_None && tzinfo != utc) Py_DECREF(tzinfo);
+    if (tzinfo != Py_None && tzinfo != utc)
+        Py_DECREF(tzinfo);
 
     if (obj && time_is_midnight)
         obj = PyNumber_Add(obj, PyDelta_FromDSU(1, 0, 0)); /* 1 day */
@@ -527,6 +532,7 @@ initciso8601(void)
 #endif
 {
     PyObject *pytz;
+    PyObject *datetime;
 #if PY_MAJOR_VERSION >= 3
     PyObject *module = PyModule_Create(&moduledef);
 #else
@@ -535,13 +541,23 @@ initciso8601(void)
     PyDateTime_IMPORT;
 #if PY_VERSION_AT_LEAST_37
     utc = PyDateTime_TimeZone_UTC;
+#elif PY_MAJOR_VERSION >= 3
+    datetime = PyImport_ImportModule("datetime");
+    if (datetime == NULL)
+        return NULL;
+    fixed_offset = PyObject_GetAttrString(datetime, "timezone");
+    if (fixed_offset == NULL)
+        return NULL;
+    utc = PyObject_GetAttrString(fixed_offset, "utc");
+    if (utc == NULL)
+        return NULL;
 #else
     pytz = PyImport_ImportModule("pytz");
     if (pytz == NULL) {
         PyErr_Clear();
     }
     else {
-        pytz_fixed_offset = PyObject_GetAttrString(pytz, "FixedOffset");
+        fixed_offset = PyObject_GetAttrString(pytz, "FixedOffset");
         utc = PyObject_GetAttrString(pytz, "UTC");
     }
 #endif

@@ -1,14 +1,14 @@
 import ciso8601
 import datetime
+import sys
+
 from generate_test_timestamps import generate_valid_timestamp_and_datetime, generate_invalid_timestamp
 
-import sys  # TODO: Clean this up
+# TODO: Clean this up
 if sys.version_info.major == 2:
     import unittest2 as unittest
 else:
     import unittest
-
-PY_VERSION_AT_LEAST_37 = ((sys.version_info.major == 3 and sys.version_info.minor >= 7) or sys.version_info.major > 3)
 
 
 class ValidTimestampTestCase(unittest.TestCase):
@@ -249,7 +249,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
         self.assertRaisesRegex(
             ValueError,
             # Error message differs whether or not we are using pytz or datetime.timezone
-            r"offset must be a timedelta strictly between -timedelta\(hours=24\) and timedelta\(hours=24\), not datetime\.timedelta\(days=-5, seconds=75600\)\." if PY_VERSION_AT_LEAST_37 else r"\('absolute offset is too large', -5940\)",
+            r"^offset must be a timedelta strictly between" if sys.version_info.major >= 3 else r"\('absolute offset is too large', -5940\)",
             ciso8601.parse_datetime,
             '2018-01-01T00:00:00.00-99',
         )
