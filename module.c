@@ -38,7 +38,6 @@ static PyObject *utc;
     }                                                          \
                                                                \
     /* Omit excessive digits */                                \
-    /* TODO: Should this do rounding instead? */               \
     while (*c >= '0' && *c <= '9') c++;                        \
                                                                \
     /* If we break early, fully expand the usecond */          \

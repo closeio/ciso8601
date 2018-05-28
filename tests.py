@@ -4,7 +4,6 @@ import sys
 
 from generate_test_timestamps import generate_valid_timestamp_and_datetime, generate_invalid_timestamp
 
-# TODO: Clean this up
 if sys.version_info.major == 2:
     import unittest2 as unittest
 else:
