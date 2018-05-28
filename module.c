@@ -73,9 +73,10 @@ format_unexpected_character_exception(char *field_name, char c, int index,
 }
 
 #define IS_CALENDAR_DATE_SEPARATOR (*c == '-')
-#define IS_DATE_AND_TIME_SEPARATOR (*c == 'T' || *c == ' ')
+#define IS_DATE_AND_TIME_SEPARATOR (*c == 'T' || *c == ' ' || *c == 't')
 #define IS_TIME_SEPARATOR (*c == ':')
-#define IS_TIME_ZONE_SEPARATOR (*c == 'Z' || *c == '-' || *c == '+')
+#define IS_TIME_ZONE_SEPARATOR \
+    (*c == 'Z' || *c == '-' || *c == '+' || *c == 'z')
 #define IS_FRACTIONAL_SEPARATOR (*c == '.' || *c == ',')
 
 static PyObject *

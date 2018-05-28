@@ -50,6 +50,7 @@ def __generate_valid_formats(year=2014, month=2, day=3, hour=1, minute=23, secon
     valid_date_and_time_separators = [
         None,
         'T',
+        't',
         ' '
     ]
 
@@ -70,6 +71,7 @@ def __generate_valid_formats(year=2014, month=2, day=3, hour=1, minute=23, secon
     valid_tz_info_formats = [
         ("", set(), {}),
         ("Z", set(), {"tzinfo": pytz.UTC}),
+        ("z", set(), {"tzinfo": pytz.UTC}),
         ("-{tzhour}", set(["tzhour"]), {"tzinfo": pytz.FixedOffset(-1 * tzhour * 60)}),
         ("+{tzhour}", set(["tzhour"]), {"tzinfo": pytz.FixedOffset(1 * tzhour * 60)}),
         ("-{tzhour}{tzminute}", set(["tzhour", "tzminute"]), {"tzinfo": pytz.FixedOffset(-1 * ((tzhour * 60) + tzminute))}),

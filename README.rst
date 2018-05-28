@@ -199,7 +199,8 @@ Time Formats
 ^^^^^^^^^^^^
 
 Times are optional and are separated from the date by the letter ``T``.
-``ciso860`` also allows a space character to be used instead of a ``T``. This is consistent with `RFC 3339`_
+
+Consistent with `RFC 3339`_, ``ciso860`` also allows either a space character, or a lower-case ``t``, to be used instead of a ``T``.
 
 .. _RFC 3339: https://stackoverflow.com/questions/522251/whats-the-difference-between-iso-8601-and-rfc-3339-date-formats)
 
@@ -237,12 +238,15 @@ Time zone information may be provided in one of the following formats:
 Format     Example    Supported          
 ========== ========== =========== 
 ``Z``      ``Z``      ✅
+``z``      ``z``      ✅
 ``±hh``    ``+11``    ✅
 ``±hhmm``  ``+1130``  ✅
 ``±hh:mm`` ``+11:30`` ✅
 ========== ========== ===========
 
 While the ISO 8601 specification allows the use of MINUS SIGN (U+2212) in the time zone separator, ``ciso8601`` only supports the use of the HYPHEN-MINUS (U+002D) character.
+
+Consistent with `RFC 3339`_, ``ciso860`` also allows a lower-case ``z`` to be used instead of a ``Z``.
 
 Ignoring Timezone Information While Parsing
 -------------------------------------------
@@ -253,12 +257,12 @@ For example, if you are certain that your program will only parse timestamps fro
 In these limited cases, there is a second function provided.
 ``parse_datetime_as_naive`` will ignore any time zone information it finds and, as a result, is faster for timestamps containing time zone information.
 
-```
+.. code:: python
+
   In [1]: import ciso8601
 
   In [2]: ciso8601.parse_datetime_as_naive('2014-12-05T12:30:45.123456-05:30')
   Out[2]: datetime.datetime(2014, 12, 5, 12, 30, 45, 123456)
-```
 
 NOTE: ``parse_datetime_as_naive`` is only useful in the case where your timestamps have time zone information, but you want to ignore it. This is somewhat unusual.
 If your timestamps don't have time zone information (i.e. are naive), simply use ``parse_datetime``. It is just as fast.
