@@ -314,10 +314,10 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
 
 #if !PY_VERSION_AT_LEAST_32
                 if (fixed_offset == NULL || utc == NULL) {
-                    PyErr_SetString(
-                        PyExc_ImportError,
-                        "Cannot parse an aware timestamp without pytz. "
-                        "Install it with `pip install pytz`.");
+                    PyErr_SetString(PyExc_ImportError,
+                                    "Cannot parse a timestamp with time zone "
+                                    "information without the pytz dependency. "
+                                    "Install it with `pip install pytz`.");
                     return NULL;
                 }
 #endif

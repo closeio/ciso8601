@@ -53,7 +53,7 @@ Starting in v2.0.0, ``ciso8601`` offers strong guarantees when it comes to parsi
 ``parse_datetime(dt: String): datetime`` is a function that takes a string and either:
 
 * Returns a properly parsed Python datetime, **if and only if** the **entire** string conforms to the supported subset of ISO 8601
-* Raises an ``ValueError`` with a description of the reason why the string doesn't conform to the supported subset of ISO 8601
+* Raises a ``ValueError`` with a description of the reason why the string doesn't conform to the supported subset of ISO 8601
 
 If time zone information is provided, an aware datetime object will be returned. Otherwise, a naive datetime is returned.
 
@@ -135,7 +135,7 @@ Tested on Python 2.7.10 on macOS 10.12.6 using the following modules:
 Dependency on pytz (Python 2)
 -----------------------------
 
-In Python 2, ``ciso8601`` uses the `pytz`_ library while parsing timezone aware timestamps. This means that if you wish to parse such timestamps, you must first install ``pytz``:
+In Python 2, ``ciso8601`` uses the `pytz`_ library while parsing timestamps with time zone information. This means that if you wish to parse such timestamps, you must first install ``pytz``:
 
 .. _pytz: http://pytz.sourceforge.net/
 
@@ -143,12 +143,12 @@ In Python 2, ``ciso8601`` uses the `pytz`_ library while parsing timezone aware 
   
   pip install pytz
 
-Otherwise, ``ciso8601`` will raise an exception when you try to parse a timezone aware timestamp:
+Otherwise, ``ciso8601`` will raise an exception when you try to parse a timestamp with time zone information:
 
 .. code:: python
   
   In [2]: ciso8601.parse_datetime('2014-12-05T12:30:45.123456-05:30')
-  Out[2]: ImportError: Cannot parse an aware timestamp without pytz. Install it with `pip install pytz`.
+  Out[2]: ImportError: Cannot parse a timestamp with time zone information without the pytz dependency. Install it with `pip install pytz`.
 
 ``pytz`` is intentionally not an explicit dependency of ``ciso8601``. This is because many users use ``ciso8601`` to parse only naive timestamps, and therefore don't need this extra dependency.
 In Python 3, ``ciso8601`` makes use of the built-in `datetime.timezone`_ class instead, so pytz is not necessary.
@@ -225,7 +225,6 @@ Midnight (special case)             ``24:00:00``        ✅
 =================================== =================== ============== 
 
 **Note:** Python datetime objects only have microsecond precision (6 digits). Any additional precision will be truncated.
-If you need greater precision than microsecond precision, please do not use `ciso8601`.
 
 Time Zone Information
 ^^^^^^^^^^^^^^^^^^^^^
@@ -248,11 +247,11 @@ While the ISO 8601 specification allows the use of MINUS SIGN (U+2212) in the ti
 Ignoring Timezone Information While Parsing
 -------------------------------------------
 
-It takes more time to parse aware datetimes, especially if they're not in UTC. However, there are times when you don't care about time zone information, and wish to produce naive datetimes instead.
-For example, if you are certain that your progrma will only parse timestamps from a single time zone, you might want to strip the time zone information and only output naive datetimes.
+It takes more time to parse timestamps with time zone information, especially if they're not in UTC. However, there are times when you don't care about time zone information, and wish to produce naive datetimes instead.
+For example, if you are certain that your program will only parse timestamps from a single time zone, you might want to strip the time zone information and only output naive datetimes.
 
 In these limited cases, there is a second function provided.
-``parse_datetime_as_naive`` will ignore any time zone information it finds and, as a result, is faster.
+``parse_datetime_as_naive`` will ignore any time zone information it finds and, as a result, is faster for timestamps containing time zone information.
 
 ```
   In [1]: import ciso8601
@@ -262,4 +261,4 @@ In these limited cases, there is a second function provided.
 ```
 
 NOTE: ``parse_datetime_as_naive`` is only useful in the case where your timestamps have time zone information, but you want to ignore it. This is somewhat unusual.
-If your timestamps don't have time zone information (ie. are naive), simply use ``parse_datetime``. It is just as fast.
+If your timestamps don't have time zone information (i.e. are naive), simply use ``parse_datetime``. It is just as fast.

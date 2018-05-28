@@ -27,7 +27,7 @@ Fundamentally, `parse_datetime(dt: String): datetime` was rewritten so that it t
 
 ## Other Changes
 
-* Attempting to parse an aware timestamp without having pytz installed raises `ImportError`. Fixes #19
+* Attempting to parse a timestamp with time zone information without having pytz installed raises `ImportError` (Only affects Python 2.7). Fixes #19
 * Added support for the special case of midnight (24:00:00) that is valid in ISO 8601. Fixes #41
 * Fixed bug where "20140200" would not fail, but produce 2014-02-01. Fixes #42
 
@@ -85,19 +85,19 @@ These should have been considered bugs in ciso8601 1.x.x, but it may be the case
 
 ### `parse_datetime_unaware` has been renamed
 
-`parse_datetime_unaware` existed for the case where your input had `tzinfo`, but you wanted to ignore the tzinfo and therefore could save some cycles by not creating the underlying tzinfo object.
+`parse_datetime_unaware` existed for the case where your input timestamp had time zone information, but you wanted to ignore the time zone information and therefore could save some cycles by not creating the underlying `tzinfo` object.
 
 It has been renamed to `parse_datetime_as_naive` for 2 reasons:
 
-1. Developers were assuming that `parse_datetime_unaware` was the function to use for parsing naive timestamps, when really it is for parsing aware timestamps as naive datetimes. `parse_datetime` handles both naive and aware timestamps, and should be used unless you actually need this use case.
-1. Python [refers to datetimes without time zone information](https://docs.python.org/3/library/datetime.html) as `naive`, not `unaware` 
+1. Developers were assuming that `parse_datetime_unaware` was the function to use for parsing naive timestamps, when really it is for parsing timestamps with time zone information as naive datetimes. `parse_datetime` handles parsing both timestamps with and without time zone information and should be used for all parsing, unless you actually need this use case. See additional description in [the README](https://github.com/closeio/ciso8601/tree/raise-valueerror-on-invalid-dates#ignoring-timezone-information-while-parsing) for a more detailed description of this use case.
+2. Python [refers to datetimes without time zone information](https://docs.python.org/3/library/datetime.html) as `naive`, not `unaware` 
 
 Before switching all instances of `parse_datetime_unaware`, make sure to ask yourself whether you actually intended to use `parse_datetime_unaware`.
 
 * If you meant to parse naive timestamps as naive datetimes, use `parse_datetime` instead.
-* If you actually meant to parse **aware** timestamps as **naive** datetimes, use `parse_datetime_as_naive` instead.
+* If you actually meant to parse **timestamps with time zone information** as **naive** datetimes, use `parse_datetime_as_naive` instead.
 
-|                                    | TZ Aware Input    | TZ Naive Input    |
-| ---------------------------------- | ----------------- | ----------------- |
-| `parse_datetime()` output          | tz aware datetime | tz naive datetime |
-| `parse_datetime_as_naive()` output | tz naive datetime | tz naive datetime |
+|                                    | Input with TZ Info | Input without TZ Info |
+| ---------------------------------- | ------------------ | --------------------- |
+| `parse_datetime()` output          | tz aware datetime  | tz naive datetime     |
+| `parse_datetime_as_naive()` output | tz naive datetime  | tz naive datetime     |
