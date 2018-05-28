@@ -175,9 +175,9 @@ Format                        Example        Supported
 ``YYYYMMDD``                  ``2018-04``    ✅
 ``--MM-DD`` (omitted year)    ``--04-29``    ❌              
 ``--MMDD`` (omitted year)     ``--0429``     ❌
-``±YYYYY-MM`` (>4 digit year) ``2018-04-29`` ❌   
-``+YYYY-MM`` (leading +)      ``2018-04-29`` ❌   
-``-YYYY-MM`` (negative -)     ``2018-04-29`` ❌   
+``±YYYYY-MM`` (>4 digit year) ``+10000-04``  ❌   
+``+YYYY-MM`` (leading +)      ``+2018-04``   ❌   
+``-YYYY-MM`` (negative -)     ``-2018-04``   ❌   
 ============================= ============== ==================
 
 Week dates or ordinal dates are not currently supported.
