@@ -9,6 +9,7 @@ workflows:
       - test-3.5
       - test-3.6
       - test-3.7
+      - lint-rst
 
 defaults: &defaults
   working_directory: ~/code
@@ -39,3 +40,21 @@ jobs:
     <<: *defaults
     docker:
     - image: circleci/python:3.7.0b4
+    
+  lint-rst:
+    working_directory: ~/code
+    steps:
+    - checkout
+    - run:
+        name: Install lint tools
+        command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install Pygments restructuredtext-lint
+    - run:
+        name: Lint
+        command:  |
+            . venv/bin/activate
+            rst-lint --encoding=utf-8 README.rst
+    docker:
+    - image: circleci/python:3.6
