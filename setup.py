@@ -7,13 +7,16 @@ with open('README.rst', encoding='utf-8') as file:
 
 setup(
     name="ciso8601",
-    version="1.0.8",
+    version="2.0.0",
     description='Fast ISO8601 date time parser for Python written in C',
     long_description=long_description,
     license="MIT",
     ext_modules=[Extension("ciso8601", ["module.c"])],
     test_suite='tests',
-    tests_require=['pytz'],
+    tests_require=[
+        'pytz',
+        "unittest2 ; python_version < '3'"
+    ],
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
@@ -25,6 +28,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ]
 )
