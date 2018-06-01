@@ -101,6 +101,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
         usecond = 0;
     int time_is_midnight = 0;
     int tzhour = 0, tzminute = 0, tzsign = 0;
+    int tz_index = NULL;
 
     if (!PyArg_ParseTuple(args, "s", &str))
         return NULL;
@@ -335,23 +336,25 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                     tzinfo = utc;
                 }
                 else {
-                    if (tz_cache[tzminute + 1439] == NULL) {
+                    tz_index = tzminute + 1439;
+                    if (tz_index < 0 || tz_index > 2878 ||
+                        tz_cache[tz_index] == NULL) {
 #if PY_VERSION_AT_LEAST_37
-                        tz_cache[tzminute + 1439] = PyTimeZone_FromOffset(
+                        tzinfo = PyTimeZone_FromOffset(
                             PyDelta_FromDSU(0, 60 * tzminute, 0));
 #elif PY_VERSION_AT_LEAST_32
-                        tz_cache[tzminute + 1439] = PyObject_CallFunction(
+                        tzinfo = PyObject_CallFunction(
                             fixed_offset, "N",
                             PyDelta_FromDSU(0, 60 * tzminute, 0));
 #else
-                        tz_cache[tzminute + 1439] =
+                        tzinfo =
                             PyObject_CallFunction(fixed_offset, "i", tzminute);
 #endif
+                        if (tzinfo == NULL) /* ie. PyErr_Occurred() */
+                            return NULL;
+                        tz_cache[tz_index] = tzinfo;
                     }
-                    if (tzinfo == NULL) /* ie. PyErr_Occurred() */
-                        return NULL;
-
-                    tzinfo = tz_cache[tzminute + 1439];
+                    tzinfo = tz_cache[tz_index];
                     Py_INCREF(tzinfo);
                 }
             }
