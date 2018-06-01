@@ -165,35 +165,37 @@ Date Formats
 
 The following date formats are supported:
 
-.. table:: Supported date formats
+.. table::
    :widths: auto
-============================= ============== ==================
-Format                        Example        Supported
-============================= ============== ==================
-``YYYY-MM-DD``                ``2018-04-29`` ✅
-``YYYY-MM``                   ``2018-04``    ✅
-``YYYYMMDD``                  ``2018-04``    ✅
-``--MM-DD`` (omitted year)    ``--04-29``    ❌              
-``--MMDD`` (omitted year)     ``--0429``     ❌
-``±YYYYY-MM`` (>4 digit year) ``+10000-04``  ❌   
-``+YYYY-MM`` (leading +)      ``+2018-04``   ❌   
-``-YYYY-MM`` (negative -)     ``-2018-04``   ❌   
-============================= ============== ==================
+
+   ============================= ============== ==================
+   Format                        Example        Supported
+   ============================= ============== ==================
+   ``YYYY-MM-DD``                ``2018-04-29`` ✅
+   ``YYYY-MM``                   ``2018-04``    ✅
+   ``YYYYMMDD``                  ``2018-04``    ✅
+   ``--MM-DD`` (omitted year)    ``--04-29``    ❌              
+   ``--MMDD`` (omitted year)     ``--0429``     ❌
+   ``±YYYYY-MM`` (>4 digit year) ``+10000-04``  ❌   
+   ``+YYYY-MM`` (leading +)      ``+2018-04``   ❌   
+   ``-YYYY-MM`` (negative -)     ``-2018-04``   ❌   
+   ============================= ============== ==================
 
 Week dates or ordinal dates are not currently supported.
 
-.. table:: Supported week and ordinal date formats
+.. table::
    :widths: auto
-============================= ============== ==================
-Format                        Example        Supported
-============================= ============== ==================
-``YYYY-Www`` (week date)      ``2009-W01``   ❌
-``YYYYWww`` (week date)       ``2009W01``    ❌
-``YYYY-Www-D`` (week date)    ``2009-W01-1`` ❌
-``YYYYWwwD`` (week date)      ``2009-W01-1`` ❌
-``YYYY-DDD`` (ordinal date)   ``1981-095``   ❌
-``YYYYDDD`` (ordinal date)    ``1981095``    ❌ 
-============================= ============== ==================
+
+   ============================= ============== ==================
+   Format                        Example        Supported
+   ============================= ============== ==================
+   ``YYYY-Www`` (week date)      ``2009-W01``   ❌
+   ``YYYYWww`` (week date)       ``2009W01``    ❌
+   ``YYYY-Www-D`` (week date)    ``2009-W01-1`` ❌
+   ``YYYYWwwD`` (week date)      ``2009-W01-1`` ❌
+   ``YYYY-DDD`` (ordinal date)   ``1981-095``   ❌
+   ``YYYYDDD`` (ordinal date)    ``1981095``    ❌ 
+   ============================= ============== ==================
 
 Time Formats
 ^^^^^^^^^^^^
@@ -206,24 +208,25 @@ Consistent with `RFC 3339`_, ``ciso860`` also allows either a space character, o
 
 The following time formats are supported:
 
-.. table:: Supported time formats
+.. table::
    :widths: auto
-=================================== =================== ==============  
-Format                              Example             Supported          
-=================================== =================== ============== 
-``hh``                              ``11``              ✅ 
-``hhmm``                            ``1130``            ✅ 
-``hh:mm``                           ``11:30``           ✅ 
-``hhmmss``                          ``113059``          ✅ 
-``hh:mm:ss``                        ``11:30:59``        ✅ 
-``hhmmss.ssssss``                   ``113059.123456``   ✅ 
-``hh:mm:ss.ssssss``                 ``11:30:59.123456`` ✅ 
-``hhmmss,ssssss``                   ``113059,123456``   ✅ 
-``hh:mm:ss,ssssss``                 ``11:30:59,123456`` ✅ 
-Midnight (special case)             ``24:00:00``        ✅               
-``hh.hhh`` (fractional hours)       ``11.5``            ❌               
-``hh:mm.mmm`` (fractional minutes)  ``11:30.5``         ❌               
-=================================== =================== ============== 
+
+   =================================== =================== ==============  
+   Format                              Example             Supported          
+   =================================== =================== ============== 
+   ``hh``                              ``11``              ✅ 
+   ``hhmm``                            ``1130``            ✅ 
+   ``hh:mm``                           ``11:30``           ✅ 
+   ``hhmmss``                          ``113059``          ✅ 
+   ``hh:mm:ss``                        ``11:30:59``        ✅ 
+   ``hhmmss.ssssss``                   ``113059.123456``   ✅ 
+   ``hh:mm:ss.ssssss``                 ``11:30:59.123456`` ✅ 
+   ``hhmmss,ssssss``                   ``113059,123456``   ✅ 
+   ``hh:mm:ss,ssssss``                 ``11:30:59,123456`` ✅ 
+   Midnight (special case)             ``24:00:00``        ✅               
+   ``hh.hhh`` (fractional hours)       ``11.5``            ❌               
+   ``hh:mm.mmm`` (fractional minutes)  ``11:30.5``         ❌               
+   =================================== =================== ============== 
 
 **Note:** Python datetime objects only have microsecond precision (6 digits). Any additional precision will be truncated.
 
@@ -232,17 +235,18 @@ Time Zone Information
 
 Time zone information may be provided in one of the following formats:
 
-.. table:: Supported time zone formats
+.. table::
    :widths: auto
-========== ========== =========== 
-Format     Example    Supported          
-========== ========== =========== 
-``Z``      ``Z``      ✅
-``z``      ``z``      ✅
-``±hh``    ``+11``    ✅
-``±hhmm``  ``+1130``  ✅
-``±hh:mm`` ``+11:30`` ✅
-========== ========== ===========
+
+   ========== ========== =========== 
+   Format     Example    Supported          
+   ========== ========== =========== 
+   ``Z``      ``Z``      ✅
+   ``z``      ``z``      ✅
+   ``±hh``    ``+11``    ✅
+   ``±hhmm``  ``+1130``  ✅
+   ``±hh:mm`` ``+11:30`` ✅
+   ========== ========== ===========
 
 While the ISO 8601 specification allows the use of MINUS SIGN (U+2212) in the time zone separator, ``ciso8601`` only supports the use of the HYPHEN-MINUS (U+002D) character.
 
