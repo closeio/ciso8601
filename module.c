@@ -4,6 +4,15 @@
 static PyObject *fixed_offset;
 static PyObject *utc;
 
+/* 2879 = (1439 * 2) + 1, number of offsets from UTC possible in
+ * Python (ie. [-1439, 1439]).
+ *
+ * 0 - 1438 = Negative offsets [-1439..-1]
+ * 1439 = Zero offset
+ * 1440 - 2878 = Positive offsets [1...1439]
+ */
+static PyObject *tz_cache[2879] = {NULL};
+
 #define PY_VERSION_AT_LEAST_32 \
     ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 2) || PY_MAJOR_VERSION > 3)
 #define PY_VERSION_AT_LEAST_36 \
@@ -326,19 +335,24 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                     tzinfo = utc;
                 }
                 else {
+                    if (tz_cache[tzminute + 1439] == NULL) {
 #if PY_VERSION_AT_LEAST_37
-                    tzinfo = PyTimeZone_FromOffset(
-                        PyDelta_FromDSU(0, 60 * tzminute, 0));
+                        tz_cache[tzminute + 1439] = PyTimeZone_FromOffset(
+                            PyDelta_FromDSU(0, 60 * tzminute, 0));
 #elif PY_VERSION_AT_LEAST_32
-                    tzinfo = PyObject_CallFunction(
-                        fixed_offset, "N",
-                        PyDelta_FromDSU(0, 60 * tzminute, 0));
+                        tz_cache[tzminute + 1439] = PyObject_CallFunction(
+                            fixed_offset, "N",
+                            PyDelta_FromDSU(0, 60 * tzminute, 0));
 #else
-                    tzinfo =
-                        PyObject_CallFunction(fixed_offset, "i", tzminute);
+                        tz_cache[tzminute + 1439] =
+                            PyObject_CallFunction(fixed_offset, "i", tzminute);
 #endif
+                    }
                     if (tzinfo == NULL) /* ie. PyErr_Occurred() */
                         return NULL;
+
+                    tzinfo = tz_cache[tzminute + 1439];
+                    Py_INCREF(tzinfo);
                 }
             }
         }
