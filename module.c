@@ -366,7 +366,6 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
         obj = PyNumber_Add(temp, delta);
         Py_DECREF(delta);
         Py_DECREF(temp);
-        // printf("After: %ld\n", obj->ob_refcnt);
     }
 
     return obj;
