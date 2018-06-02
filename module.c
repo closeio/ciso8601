@@ -358,7 +358,6 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                         tz_cache[tz_index] = tzinfo;
                     }
                     tzinfo = tz_cache[tz_index];
-                    Py_INCREF(tzinfo);
                 }
             }
         }
@@ -381,9 +380,6 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
         Py_DECREF(delta);
         Py_DECREF(temp);
     }
-
-    if (obj && time_is_midnight)
-        obj = PyNumber_Add(obj, PyDelta_FromDSU(1, 0, 0)); /* 1 day */
 
     return obj;
 }
