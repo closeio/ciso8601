@@ -102,6 +102,8 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     int time_is_midnight = 0;
     int tzhour = 0, tzminute = 0, tzsign = 0;
     int tz_index = NULL;
+    PyObject *delta;
+    PyObject *temp;
 
     if (!PyArg_ParseTuple(args, "s", &str))
         return NULL;
@@ -340,8 +342,9 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                     if (tz_index < 0 || tz_index > 2878 ||
                         tz_cache[tz_index] == NULL) {
 #if PY_VERSION_AT_LEAST_37
-                        tzinfo = PyTimeZone_FromOffset(
-                            PyDelta_FromDSU(0, 60 * tzminute, 0));
+                        delta = PyDelta_FromDSU(0, 60 * tzminute, 0);
+                        tzinfo = PyTimeZone_FromOffset(delta);
+                        Py_DECREF(delta);
 #elif PY_VERSION_AT_LEAST_32
                         tzinfo = PyObject_CallFunction(
                             fixed_offset, "N",
@@ -371,8 +374,13 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
         year, month, day, hour, minute, second, usecond, tzinfo,
         PyDateTimeAPI->DateTimeType);
 
-    if (tzinfo != Py_None && tzinfo != utc)
-        Py_DECREF(tzinfo);
+    if (obj && time_is_midnight) {
+        delta = PyDelta_FromDSU(1, 0, 0); /* 1 day */
+        temp = obj;
+        obj = PyNumber_Add(temp, delta);
+        Py_DECREF(delta);
+        Py_DECREF(temp);
+    }
 
     if (obj && time_is_midnight)
         obj = PyNumber_Add(obj, PyDelta_FromDSU(1, 0, 0)); /* 1 day */
