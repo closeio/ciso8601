@@ -355,7 +355,10 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
 #endif
                         if (tzinfo == NULL) /* ie. PyErr_Occurred() */
                             return NULL;
-                        tz_cache[tz_index] = tzinfo;
+
+                        if (tz_index < 0 || tz_index > 2878) {
+                            tz_cache[tz_index] = tzinfo;
+                        }
                     }
                     tzinfo = tz_cache[tz_index];
                 }
