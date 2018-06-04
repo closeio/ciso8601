@@ -58,7 +58,7 @@ static PyObject *utc;
     }
 
 static void *
-format_unexpected_character_exception(char *field_name, char c, int index,
+format_unexpected_character_exception(char *field_name, char c, size_t index,
                                       int expected_character_count)
 {
     if (c == '\0')
@@ -70,7 +70,7 @@ format_unexpected_character_exception(char *field_name, char c, int index,
             (expected_character_count != 1) ? "s" : "");
     else
         PyErr_Format(PyExc_ValueError,
-                     "Invalid character while parsing %s ('%c', Index: %d)",
+                     "Invalid character while parsing %s ('%c', Index: %zu)",
                      field_name, c, index);
     return NULL;
 }
