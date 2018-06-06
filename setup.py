@@ -32,8 +32,6 @@ setup(
     version="2.0.1",
     description='Fast ISO8601 date time parser for Python written in C',
     long_description=long_description,
-    author="Thomas Steinacher, Michael Overmeyer",
-    author_email="ciso8601@movermeyer.com",
     url="https://github.com/closeio/ciso8601",
     license="MIT",
     ext_modules=[Extension("ciso8601", ["module.c"])],
