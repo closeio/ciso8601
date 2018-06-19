@@ -1,15 +1,18 @@
 #include <Python.h>
 #include <datetime.h>
 
-static PyObject *fixed_offset;
-static PyObject *utc;
-
 #define PY_VERSION_AT_LEAST_32 \
     ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 2) || PY_MAJOR_VERSION > 3)
 #define PY_VERSION_AT_LEAST_36 \
     ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6) || PY_MAJOR_VERSION > 3)
 #define PY_VERSION_AT_LEAST_37 \
     ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 7) || PY_MAJOR_VERSION > 3)
+
+#if !PY_VERSION_AT_LEAST_37
+static PyObject *fixed_offset;
+#endif
+
+static PyObject *utc;
 
 #define PARSE_INTEGER(field, length, field_name)                       \
     for (i = 0; i < length; i++) {                                     \
@@ -43,19 +46,19 @@ static PyObject *utc;
     /* If we break early, fully expand the usecond */          \
     while (i++ < 6) usecond *= 10;
 
-#define PARSE_SEPARATOR(separator, field_name)                               \
-    if (separator) {                                                         \
-        c++;                                                                 \
-    }                                                                        \
-    else {                                                                   \
-        PyErr_Format(PyExc_ValueError,                                       \
-                     "Invalid character while parsing %s ('%c', Index: %d)", \
-                     field_name, *c, (c - str) / sizeof(char));              \
-        return NULL;                                                         \
+#define PARSE_SEPARATOR(separator, field_name)                                \
+    if (separator) {                                                          \
+        c++;                                                                  \
+    }                                                                         \
+    else {                                                                    \
+        PyErr_Format(PyExc_ValueError,                                        \
+                     "Invalid character while parsing %s ('%c', Index: %lu)", \
+                     field_name, *c, (c - str) / sizeof(char));               \
+        return NULL;                                                          \
     }
 
 static void *
-format_unexpected_character_exception(char *field_name, char c, int index,
+format_unexpected_character_exception(char *field_name, char c, size_t index,
                                       int expected_character_count)
 {
     if (c == '\0')
@@ -67,7 +70,7 @@ format_unexpected_character_exception(char *field_name, char c, int index,
             (expected_character_count != 1) ? "s" : "");
     else
         PyErr_Format(PyExc_ValueError,
-                     "Invalid character while parsing %s ('%c', Index: %d)",
+                     "Invalid character while parsing %s ('%c', Index: %zu)",
                      field_name, c, index);
     return NULL;
 }
@@ -411,8 +414,12 @@ PyInit_ciso8601(void)
 initciso8601(void)
 #endif
 {
+#if !PY_VERSION_AT_LEAST_32
     PyObject *pytz;
+#elif !PY_VERSION_AT_LEAST_37
     PyObject *datetime;
+#endif
+
 #if PY_MAJOR_VERSION >= 3
     PyObject *module = PyModule_Create(&moduledef);
 #else
