@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import copy
 import datetime
+import pickle
+import re
 import sys
 
-from ciso8601 import parse_datetime, parse_datetime_as_naive, parse_rfc3339
+from ciso8601 import FixedOffset, parse_datetime, parse_datetime_as_naive, parse_rfc3339
 from generate_test_timestamps import generate_valid_timestamp_and_datetime, generate_invalid_timestamp
 
 if sys.version_info.major == 2:
@@ -53,6 +56,13 @@ class ValidTimestampTestCase(unittest.TestCase):
             datetime.datetime(2014, 2, 4, 0, 0, 0),
         )
 
+    def test_returns_built_in_utc_if_available(self):
+        # Python 3.7 added a built-in UTC object
+        timestamp = '2018-01-01T00:00:00.00Z'
+        if sys.version_info >= (3, 7):
+            self.assertIs(parse_datetime(timestamp).tzinfo, datetime.timezone.utc)
+        else:
+            self.assertIsInstance(parse_datetime(timestamp).tzinfo, FixedOffset)
 
 class InvalidTimestampTestCase(unittest.TestCase):
     # Many invalid test cases are covered by `test_parse_auto_generated_invalid_formats`,
@@ -275,12 +285,21 @@ class InvalidTimestampTestCase(unittest.TestCase):
         )
 
     def test_invalid_tz_offsets_too_large(self):
-        # The Python interpreter crashes if you give the datetime constructor a TZ offset with an absolute value >= 1440
-        # TODO: Determine whether these are valid ISO 8601 values and therefore whether ciso8601 should support them.
+        # The TZ offsets with an absolute value >= 1440 minutes are not supported by the tzinfo spec.
+        # See https://docs.python.org/3/library/datetime.html#datetime.tzinfo.utcoffset
+
+        # Error message differs whether or not we are using pytz or datetime.timezone
+        # (and also by which Python version. Python 3.7 has different timedelta.repr())
+        # Of course we no longer use either, but for backwards compatibility
+        # with v2.0.x, we did not change the error messages.
+        if sys.version_info.major >= 3:
+            expected_error_message = re.escape("offset must be a timedelta strictly between -timedelta(hours=24) and timedelta(hours=24), not {0}.".format(repr(datetime.timedelta(minutes=-5940))))
+        else:
+            expected_error_message = r"\('absolute offset is too large', -5940\)"
+
         self.assertRaisesRegex(
             ValueError,
-            # Error message differs whether or not we are using pytz or datetime.timezone
-            r"^offset must be a timedelta strictly between" if sys.version_info.major >= 3 else r"\('absolute offset is too large', -5940\)",
+            expected_error_message,
             parse_datetime,
             "2018-01-01T00:00:00.00-99",
         )
@@ -357,6 +376,23 @@ class Rfc3339TestCase(unittest.TestCase):
         ]:
             with self.assertRaisesRegex(ValueError, r"RFC 3339", msg="Timestamp '{0}' was supposed to be invalid, but parsing it didn't raise ValueError.".format(timestamp)):
                 parse_rfc3339(timestamp)
+
+
+class PicklingTestCase(unittest.TestCase):
+    # Found as a result of https://github.com/movermeyer/backports.datetime_fromisoformat/issues/12
+    def test_basic_pickle_and_copy(self):
+        dt = parse_datetime('2018-11-01 20:42:09')
+        dt2 = pickle.loads(pickle.dumps(dt))
+        self.assertEqual(dt, dt2)
+        dt3 = copy.deepcopy(dt)
+        self.assertEqual(dt, dt3)
+
+        # FixedOffset
+        dt = parse_datetime('2018-11-01 20:42:09+01:30')
+        dt2 = pickle.loads(pickle.dumps(dt))
+        self.assertEqual(dt, dt2)
+        dt3 = copy.deepcopy(dt)
+        self.assertEqual(dt, dt3)
 
 
 class GithubIssueRegressionTestCase(unittest.TestCase):
