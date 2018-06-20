@@ -5,13 +5,18 @@ from io import open
 with open('README.rst', encoding='utf-8') as file:
     long_description = file.read()
 
+VERSION = "2.0.1"
+
 setup(
     name="ciso8601",
-    version="2.0.1",
+    version=VERSION,
     description='Fast ISO8601 date time parser for Python written in C',
     long_description=long_description,
     license="MIT",
-    ext_modules=[Extension("ciso8601", ["module.c"])],
+    ext_modules=[Extension("ciso8601",
+                           sources=["module.c"],
+                           define_macros=[("CISO8601_VERSION", '"%s"' % VERSION)]
+                           )],
     test_suite='tests',
     tests_require=[
         'pytz',
