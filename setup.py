@@ -43,7 +43,7 @@ setup(
     ext_modules=[
         Extension(
             "ciso8601",
-            sources=["module.c"],
+            sources=["module.c", "timezone.c"],
             define_macros=[("CISO8601_VERSION", VERSION)],
         )
     ],
