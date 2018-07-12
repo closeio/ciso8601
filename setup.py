@@ -35,6 +35,8 @@ setup(
     url="https://github.com/closeio/ciso8601",
     license="MIT",
     ext_modules=[Extension("ciso8601", ["module.c"])],
+    packages=["ciso8601"],
+    package_data={"ciso8601": ["__init__.pyi", "py.typed"]},
     test_suite='tests',
     tests_require=[
         'pytz',
