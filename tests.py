@@ -264,6 +264,54 @@ class InvalidTimestampTestCase(unittest.TestCase):
         )
 
 
+class Rfc3339TestCase(unittest.TestCase):
+    def test_valid_rfc3339_timestamps(self):
+        """
+        Validate that valid RFC 3339 datetimes are parseable by parse_rfc3339
+        and produce the same result as parse_datetime.
+        """
+        for string in [
+            '2018-01-02T03:04:05Z',
+            '2018-01-02t03:04:05z',
+            '2018-01-02 03:04:05z',
+            '2018-01-02T03:04:05+00:00',
+            '2018-01-02T03:04:05-00:00',
+            '2018-01-02T03:04:05.12345Z',
+            '2018-01-02T03:04:05+01:23',
+            '2018-01-02T03:04:05-12:34',
+            '2018-01-02T03:04:05-12:34',
+        ]:
+            self.assertEqual(ciso8601.parse_datetime(string),
+                             ciso8601.parse_rfc3339(string))
+
+    def test_invalid_rfc3339_timestamps(self):
+        """
+        Validate that datetime strings that are valid ISO 8601 but invalid RFC
+        3339 trigger a ValueError when passed to RFC 3339, and that this
+        ValueError explicitly mentions RFC 3339.
+        """
+        for string in [
+            "2018-01-02",
+            "2018-01-02T03",
+            "2018-01-02T03Z",
+            "2018-01-02T03:04",
+            "2018-01-02T03:04Z",
+            "2018-01-02T03:04:05",
+            "2018-01-02T03:04:05.12345",
+            "2018-01-02T24:00:00Z",
+            '20180102T03:04:05-12:34',
+            '2018-01-02T030405-12:34',
+            '2018-01-02T03:04:05-1234',
+
+        ]:
+            self.assertRaisesRegex(
+                ValueError,
+                r"RFC 3339",
+                ciso8601.parse_rfc3339,
+                string
+            )
+
+
 class GithubIssueRegressionTestCase(unittest.TestCase):
     # These are test cases that were provided in GitHub issues submitted to ciso8601.
     # They are kept here as regression tests.

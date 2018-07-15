@@ -5,11 +5,12 @@ ciso8601
 .. image:: https://circleci.com/gh/closeio/ciso8601/tree/master.svg?style=svg&circle-token=72fc522063916cb1c6c5c9882b97db9d2ed651d8
     :target: https://circleci.com/gh/closeio/ciso8601/tree/master
 
-``ciso8601`` converts `ISO 8601`_ date time strings into Python datetime objects.
+``ciso8601`` converts `ISO 8601`_ or `RFC 3339`_ date time strings into Python datetime objects.
 Since it's written as a C module, it is much faster than other Python libraries.
 Tested with Python 2.7, 3.4, 3.5, 3.6, 3.7b.
 
 .. _ISO 8601: https://en.wikipedia.org/wiki/ISO_8601
+.. _RFC 3339: https://tools.ietf.org/html/rfc3339
 
 (Interested in working on projects like this? `Close.io`_ is looking for `great engineers`_ to join our team)
 
@@ -36,6 +37,9 @@ Quick Start
 
   In [3]: ciso8601.parse_datetime('20141205T123045')
   Out[3]: datetime.datetime(2014, 12, 5, 12, 30, 45)
+
+  In [4]: ciso8601.parse_rfc3339('2014-12-05T12:30:45.123456-05:30')
+  Out[4]: datetime.datetime(2014, 12, 5, 12, 30, 45, 123456, tzinfo=pytz.FixedOffset(330))
 
 Migration to v2
 ---------------
@@ -202,9 +206,9 @@ Time Formats
 
 Times are optional and are separated from the date by the letter ``T``.
 
-Consistent with `RFC 3339`_, ``ciso860`` also allows either a space character, or a lower-case ``t``, to be used instead of a ``T``.
+Consistent with `RFC 3339`__, ``ciso860`` also allows either a space character, or a lower-case ``t``, to be used instead of a ``T``.
 
-.. _RFC 3339: https://stackoverflow.com/questions/522251/whats-the-difference-between-iso-8601-and-rfc-3339-date-formats)
+__ https://stackoverflow.com/questions/522251/whats-the-difference-between-iso-8601-and-rfc-3339-date-formats)
 
 The following time formats are supported:
 

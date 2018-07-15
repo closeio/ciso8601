@@ -83,7 +83,7 @@ format_unexpected_character_exception(char *field_name, char c, size_t index,
 #define IS_FRACTIONAL_SEPARATOR (*c == '.' || *c == ',')
 
 static PyObject *
-_parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
+_parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
 {
     PyObject *obj;
     PyObject *tzinfo = Py_None;
@@ -131,9 +131,19 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
             /* Day */
             PARSE_INTEGER(day, 2, "day")
         }
+        else if (rfc3339_only) {
+            PyErr_SetString(PyExc_ValueError,
+                            "Datetime string not in RFC 3339 format.");
+            return NULL;
+        }
         else {
             day = 1;
         }
+    }
+    else if (rfc3339_only) {
+        PyErr_SetString(PyExc_ValueError,
+                        "Datetime string not in RFC 3339 format.");
+        return NULL;
     }
     else { /* Non-separated Month and Day (ie. MMDD) */
         /* Month */
@@ -234,6 +244,18 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                         PARSE_FRACTIONAL_SECOND()
                     }
                 }
+                else if (rfc3339_only) {
+                    PyErr_SetString(PyExc_ValueError,
+                                    "RFC 3339 requires the second to be "
+                                    "specified.");
+                    return NULL;
+                }
+            }
+            else if (rfc3339_only) {
+                PyErr_SetString(PyExc_ValueError,
+                                "Colons separating time components are "
+                                "mandatory in RFC 3339.");
+                return NULL;
             }
             else { /* Non-separated Minute and Second (ie. mmss) */
                 /* Minute */
@@ -251,11 +273,23 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                 }
             }
         }
+        else if (rfc3339_only) {
+            PyErr_SetString(PyExc_ValueError,
+                            "Minute and second are mandatory in RFC 3339");
+            return NULL;
+        }
 
         if (hour == 24 && minute == 0 && second == 0 && usecond == 0) {
             /* Special case of 24:00:00, that is allowed in ISO 8601. It is
              * equivalent to 00:00:00 the following day
              */
+            if (rfc3339_only) {
+                PyErr_SetString(PyExc_ValueError,
+                                "An hour value of 24, while sometimes legal "
+                                "in ISO 8601, is explicitly forbidden by RFC "
+                                "3339.");
+                return NULL;
+            }
             hour = 0, minute = 0, second = 0, usecond = 0;
             time_is_midnight = 1;
         }
@@ -297,6 +331,12 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                     c++;
                     /* tz minute */
                     PARSE_INTEGER(tzminute, 2, "tz minute")
+                }
+                else if (rfc3339_only) {
+                    PyErr_SetString(PyExc_ValueError,
+                                    "Separator between hour and minute in UTC "
+                                    "offset is mandatory in RFC 3339");
+                    return NULL;
                 }
                 else if (*c != '\0') { /* Optional tz minute */
                     PARSE_INTEGER(tzminute, 2, "tz minute")
@@ -348,6 +388,16 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                 }
             }
         }
+        else if (rfc3339_only) {
+            PyErr_SetString(PyExc_ValueError,
+                            "UTC offset is mandatory in RFC 3339 format.");
+            return NULL;
+        }
+    }
+    else if (rfc3339_only) {
+        PyErr_SetString(PyExc_ValueError,
+                        "Time is mandatory in RFC 3339 format.");
+        return NULL;
     }
 
     /* Make sure that there is no more to parse. */
@@ -377,13 +427,19 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
 static PyObject *
 parse_datetime_as_naive(PyObject *self, PyObject *args)
 {
-    return _parse(self, args, 0);
+    return _parse(self, args, 0, 0);
 }
 
 static PyObject *
 parse_datetime(PyObject *self, PyObject *args)
 {
-    return _parse(self, args, 1);
+    return _parse(self, args, 1, 0);
+}
+
+static PyObject *
+parse_rfc3339(PyObject *self, PyObject *args)
+{
+    return _parse(self, args, 1, 1);
 }
 
 static PyMethodDef CISO8601Methods[] = {
@@ -391,6 +447,8 @@ static PyMethodDef CISO8601Methods[] = {
      "Parse a ISO8601 date time string."},
     {"parse_datetime_as_naive", parse_datetime_as_naive, METH_VARARGS,
      "Parse a ISO8601 date time string, ignoring the time zone component."},
+    {"parse_rfc3339", parse_rfc3339, METH_VARARGS,
+     "Parse an RFC 3339 date time string."},
     {NULL, NULL, 0, NULL}};
 
 #if PY_MAJOR_VERSION >= 3
