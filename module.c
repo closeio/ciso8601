@@ -106,10 +106,10 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     PARSE_INTEGER(year, 4, "year")
 
 #if !PY_VERSION_AT_LEAST_36
-    /* Python 3.6+ does this validation as part of Datetime's C API
+    /* Python 3.6+ does this validation as part of datetime's C API
      * constructor. See
      * https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
-     * We skip ` || year < datetime.MAXYEAR)`, since cio8601 currently doesn't
+     * We skip ` || year < datetime.MAXYEAR)`, since ciso8601 currently doesn't
      * support 5 character years, so it is impossible.
      */
     if (year <
@@ -148,7 +148,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     /* Validation of date fields
      * These checks are needed for Python <3.6 support. See
      * https://github.com/closeio/ciso8601/pull/30 Python 3.6+ does this
-     * validation as part of Datetime's C API constructor. See
+     * validation as part of datetime's C API constructor. See
      * https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
      */
     if (month < 1 || month > 12) {
@@ -263,7 +263,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
 #if !PY_VERSION_AT_LEAST_36
         /* Validate hour/minute/second
          * Only needed for Python <3.6 support.
-         * Python 3.6+ does this validation as part of Datetime's constructor).
+         * Python 3.6+ does this validation as part of datetime's constructor).
          */
         if (hour > 23) {
             PyErr_SetString(PyExc_ValueError, "hour must be in 0..23");
@@ -304,8 +304,8 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
             }
 
             /* It's not entirely clear whether this validation check is
-             * necessary under ISO 8601. For now, we will error on the side of
-             * caution and prevent suspected invalid timestamps If we need to
+             * necessary under ISO 8601. For now, we will err on the side of
+             * caution and prevent suspected invalid timestamps. If we need to
              * loosen this restriction later, we can.
              */
             if (tzminute > 59) {

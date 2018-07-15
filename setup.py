@@ -1,7 +1,7 @@
 import os
 
 from setuptools import setup, Extension
-# workaround for open() with encoding='' python2/3 compability
+# workaround for open() with encoding='' python2/3 compatibility
 from io import open
 
 with open('README.rst', encoding='utf-8') as file:
