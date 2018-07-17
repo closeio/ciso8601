@@ -13,6 +13,8 @@ workflows:
 
 defaults: &defaults
   working_directory: ~/code
+  environment:
+    STRICT_WARNINGS: '1'
   steps:
   - checkout
   - run:
