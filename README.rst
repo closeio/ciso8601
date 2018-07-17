@@ -2,8 +2,14 @@
 ciso8601
 ========
 
-.. image:: https://circleci.com/gh/closeio/ciso8601/tree/master.svg?style=svg&circle-token=72fc522063916cb1c6c5c9882b97db9d2ed651d8
+.. image:: https://img.shields.io/circleci/project/github/closeio/ciso8601.svg
     :target: https://circleci.com/gh/closeio/ciso8601/tree/master
+
+.. image:: https://img.shields.io/pypi/v/ciso8601.svg
+    :target: https://pypi.org/project/ciso8601/
+
+.. image:: https://img.shields.io/pypi/pyversions/ciso8601.svg
+    :target: https://pypi.org/project/ciso8601/
 
 ``ciso8601`` converts `ISO 8601`_ date time strings into Python datetime objects.
 Since it's written as a C module, it is much faster than other Python libraries.
