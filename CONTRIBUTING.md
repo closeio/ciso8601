@@ -4,13 +4,11 @@
 
 The following is a set of guidelines for contributing to ciso8601, which are hosted in the [Close.io Organization](https://github.com/closeio) on GitHub. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
-#### Table Of Contents
+## Table Of Contents
 
-[I don't want to read this whole thing, I just have a question!!!](#i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
-
+* [I don't want to read this whole thing, I just have a question!!!](#i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
 * [Design Philosophy](#design-philosophy)
-
-[How Can I Contribute?](#how-can-i-contribute)
+* [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
   * [Suggesting Enhancements](#suggesting-enhancements)
   * [Developing ciso8601 code](#developing-ciso8601-code)
@@ -22,6 +20,8 @@ The following is a set of guidelines for contributing to ciso8601, which are hos
     * [Performance Benchmarking](#performance-benchmarking)
     * [Documentation](#documentation)
     * [Pull Requests](#pull-requests)
+* [Releasing ciso8601](#releasing-ciso8601)
+  * [Semantic Versioning](#semantic-versioning)
 
 ## I don't want to read this whole thing I just have a question!!!
 
@@ -166,3 +166,12 @@ rst-lint --encoding=utf-8 README.rst
 * Follow the [C Code](#c-coding-style) style guide.
 * Document new code and functionality [See "Documentation"](#documentation)
 
+## Releasing ciso8601
+
+### Semantic Versioning
+
+ciso8601 follows [Semantic Versioning](https://semver.org/). If you are not familiar with its guidelines, please take a few minutes to become familiar with them.
+
+In practice this means that users of the `ciso8601` library should be able to "pin" a major version (ex. `ciso8601>=2,<3`) and never have their programs fail due to breaking changes in the library.
+
+This means ensuring that a new major version is minted whenever existing users of the `ciso8601` library would be impacted.
