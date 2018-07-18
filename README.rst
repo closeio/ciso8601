@@ -10,6 +10,9 @@ ciso8601
 
 .. image:: https://img.shields.io/pypi/pyversions/ciso8601.svg
     :target: https://pypi.org/project/ciso8601/
+    
+.. image:: https://img.shields.io/badge/Semantic%20Versioning%3F-%E2%9C%85-green.svg
+    :target: https://semver.org/
 
 ``ciso8601`` converts `ISO 8601`_ date time strings into Python datetime objects.
 Since it's written as a C module, it is much faster than other Python libraries.
@@ -257,6 +260,13 @@ Time zone information may be provided in one of the following formats:
 While the ISO 8601 specification allows the use of MINUS SIGN (U+2212) in the time zone separator, ``ciso8601`` only supports the use of the HYPHEN-MINUS (U+002D) character.
 
 Consistent with `RFC 3339`_, ``ciso860`` also allows a lower-case ``z`` to be used instead of a ``Z``.
+
+Other Nice Features
+-------------------
+
+* `Semantic Versioning`_
+
+.. _Semantic Versioning: https://semver.org
 
 Ignoring Timezone Information While Parsing
 -------------------------------------------
