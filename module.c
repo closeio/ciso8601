@@ -80,7 +80,7 @@ format_unexpected_character_exception(char *field_name, char c, size_t index,
 #define IS_TIME_SEPARATOR (*c == ':')
 #define IS_TIME_ZONE_SEPARATOR \
     (*c == 'Z' || *c == '-' || *c == '+' || *c == 'z')
-#define IS_FRACTIONAL_SEPARATOR (*c == '.' || *c == ',')
+#define IS_FRACTIONAL_SEPARATOR (*c == '.' || (*c == ',' && !rfc3339_only))
 
 static PyObject *
 _parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
