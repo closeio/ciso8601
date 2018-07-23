@@ -38,9 +38,6 @@ Quick Start
   In [3]: ciso8601.parse_datetime('20141205T123045')
   Out[3]: datetime.datetime(2014, 12, 5, 12, 30, 45)
 
-  In [4]: ciso8601.parse_rfc3339('2014-12-05T12:30:45.123456-05:30')
-  Out[4]: datetime.datetime(2014, 12, 5, 12, 30, 45, 123456, tzinfo=pytz.FixedOffset(330))
-
 Migration to v2
 ---------------
 
@@ -208,7 +205,7 @@ Times are optional and are separated from the date by the letter ``T``.
 
 Consistent with `RFC 3339`__, ``ciso860`` also allows either a space character, or a lower-case ``t``, to be used instead of a ``T``.
 
-__ https://stackoverflow.com/questions/522251/whats-the-difference-between-iso-8601-and-rfc-3339-date-formats)
+__ https://stackoverflow.com/questions/522251/whats-the-difference-between-iso-8601-and-rfc-3339-date-formats
 
 The following time formats are supported:
 
@@ -255,6 +252,18 @@ Time zone information may be provided in one of the following formats:
 While the ISO 8601 specification allows the use of MINUS SIGN (U+2212) in the time zone separator, ``ciso8601`` only supports the use of the HYPHEN-MINUS (U+002D) character.
 
 Consistent with `RFC 3339`_, ``ciso860`` also allows a lower-case ``z`` to be used instead of a ``Z``.
+
+Strict RFC 3339 Parsing
+-----------------------
+
+``ciso8601`` parses ISO 8601 datetimes, which can be thought of as a superset of `RFC 3339`_ (`roughly`_). In cases where you might want strict RFC 3339 parsing, ``ciso8601`` offers a ``parse_rfc3339`` method, which behaves in a similar manner to ``parse_datetime``:
+
+.. _roughly: https://stackoverflow.com/questions/522251/whats-the-difference-between-iso-8601-and-rfc-3339-date-formats
+
+``parse_rfc3339(dt: String): datetime`` is a function that takes a string and either:
+
+* Returns a properly parsed Python datetime, **if and only if** the **entire** string conforms to RFC 3339.
+* Raises a ``ValueError`` with a description of the reason why the string doesn't conform to RFC 3339.
 
 Ignoring Timezone Information While Parsing
 -------------------------------------------
