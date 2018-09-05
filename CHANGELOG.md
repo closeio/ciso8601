@@ -2,6 +2,7 @@
 <!-- TOC anchorMode:github.com -->
 
 - [2.x.x](#2xx)
+    - [Version 2.1.0](#version-210)
     - [Version 2.0.1](#version-201)
     - [Version 2.0.0](#version-200)
         - [Breaking changes](#breaking-changes)
@@ -14,6 +15,14 @@
 <!-- /TOC -->
 
 # 2.x.x
+
+## Version 2.1.0
+
+* Added [Mypy](http://mypy-lang.org/)/[PEP 484](https://www.python.org/dev/peps/pep-0484/) typing information (#68, Thanks @NickG123).
+* Added a new function: `parse_rfc3339`, which strictly parses RFC 3339 (#70).
+* No longer accept mixed "basic" and "extended" format timestamps (#73).
+    * ex. `20140203T23:35:27` and `2014-02-03T233527` are not valid in ISO 8601, but were not raising `ValueError`.
+    * Attempting to parse such timestamps now raises `ValueError`
 
 ## Version 2.0.1
 
@@ -44,7 +53,7 @@ Fundamentally, `parse_datetime(dt: String): datetime` was rewritten so that it t
     * This includes trailing characters in the timestamp
     * No longer accepts single character "day" values
     * See migration guide below for more examples
-1. `parse_datetime_unaware` was renamed to `parse_datetime_as_naive` (See "Migration Guide" below for reasons)
+2. `parse_datetime_unaware` was renamed to `parse_datetime_as_naive` (See "Migration Guide" below for reasons)
 
 ### Other Changes
 
