@@ -41,7 +41,7 @@ jobs:
   test-3.7:
     <<: *defaults
     docker:
-    - image: circleci/python:3.7.0b4
+    - image: circleci/python:3.7
     
   lint-rst:
     working_directory: ~/code
@@ -59,4 +59,4 @@ jobs:
             . venv/bin/activate
             rst-lint --encoding=utf-8 README.rst
     docker:
-    - image: circleci/python:3.6
+    - image: circleci/python:3.7
