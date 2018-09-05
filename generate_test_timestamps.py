@@ -41,10 +41,13 @@ def __generate_valid_formats(year=2014, month=2, day=3, hour=1, minute=23, secon
     # Returns a Python format string, the fields in the format string, and the corresponding parameters you could pass to the datetime constructor
     # These can be used by generate_valid_timestamp_and_datetime and generate_invalid_timestamp_and_datetime to produce test cases
 
-    valid_calendar_date_formats = [
+    valid_basic_calendar_date_formats = [
+        ("{year}{month}{day}", set(["year", "month", "day"]), {"year": year, "month": month, "day": day})
+    ]
+
+    valid_extended_calendar_date_formats = [
         ("{year}-{month}", set(["year", "month"]), {"year": year, "month": month, "day": 1}),
         ("{year}-{month}-{day}", set(["year", "month", "day"]), {"year": year, "month": month, "day": day}),
-        ("{year}{month}{day}", set(["year", "month", "day"]), {"year": year, "month": month, "day": day})
     ]
 
     valid_date_and_time_separators = [
@@ -54,12 +57,16 @@ def __generate_valid_formats(year=2014, month=2, day=3, hour=1, minute=23, secon
         ' '
     ]
 
-    valid_time_formats = [
+    valid_basic_time_formats = [
+        ("{hour}", set(["hour"]), {"hour": hour}),
+        ("{hour}{minute}", set(["hour", "minute"]), {"hour": hour, "minute": minute}),
+        ("{hour}{minute}{second}", set(["hour", "minute", "second"]), {"hour": hour, "minute": minute, "second": second})
+    ]
+
+    valid_extended_time_formats = [
         ("{hour}", set(["hour"]), {"hour": hour}),
         ("{hour}:{minute}", set(["hour", "minute"]), {"hour": hour, "minute": minute}),
-        ("{hour}{minute}", set(["hour", "minute"]), {"hour": hour, "minute": minute}),
         ("{hour}:{minute}:{second}", set(["hour", "minute", "second"]), {"hour": hour, "minute": minute, "second": second}),
-        ("{hour}{minute}{second}", set(["hour", "minute", "second"]), {"hour": hour, "minute": minute, "second": second})
     ]
 
     valid_subseconds = [
@@ -80,30 +87,31 @@ def __generate_valid_formats(year=2014, month=2, day=3, hour=1, minute=23, secon
         ("+{tzhour}:{tzminute}", set(["tzhour", "tzminute"]), {"tzinfo": pytz.FixedOffset(1 * ((tzhour * 60) + tzminute))})
     ]
 
-    for calendar_format, calendar_fields, calendar_params in valid_calendar_date_formats:
-        for date_and_time_separator in valid_date_and_time_separators:
-            if date_and_time_separator is None:
-                full_format = calendar_format
-                datetime_params = calendar_params
-                yield (full_format, calendar_fields, datetime_params)
-            else:
-                for time_format, time_fields, time_params in valid_time_formats:
-                    for subsecond_format, subsecond_fields, subsecond_params in valid_subseconds:
-                        for tz_info_format, tz_info_fields, tz_info_params in valid_tz_info_formats:
-                            if "second" in time_fields:
-                                # Add subsecond
-                                full_format = calendar_format + date_and_time_separator + time_format + subsecond_format + tz_info_format
-                                fields = set().union(calendar_fields, time_fields, subsecond_fields, tz_info_fields)
-                                datetime_params = __merge_dicts(calendar_params, time_params, subsecond_params, tz_info_params)
-                            elif subsecond_format == "":  # Arbitrary choice of subsecond format. We don't want duplicates, so we only yield for one of them.
-                                full_format = calendar_format + date_and_time_separator + time_format + tz_info_format
-                                fields = set().union(calendar_fields, time_fields, tz_info_fields)
-                                datetime_params = __merge_dicts(calendar_params, time_params, tz_info_params)
-                            else:
-                                # Ignore other subsecond formats
-                                continue
+    for valid_calendar_date_formats, valid_time_formats in [(valid_basic_calendar_date_formats, valid_basic_time_formats), (valid_extended_calendar_date_formats, valid_extended_time_formats)]:
+        for calendar_format, calendar_fields, calendar_params in valid_calendar_date_formats:
+            for date_and_time_separator in valid_date_and_time_separators:
+                if date_and_time_separator is None:
+                    full_format = calendar_format
+                    datetime_params = calendar_params
+                    yield (full_format, calendar_fields, datetime_params)
+                else:
+                    for time_format, time_fields, time_params in valid_time_formats:
+                        for subsecond_format, subsecond_fields, subsecond_params in valid_subseconds:
+                            for tz_info_format, tz_info_fields, tz_info_params in valid_tz_info_formats:
+                                if "second" in time_fields:
+                                    # Add subsecond
+                                    full_format = calendar_format + date_and_time_separator + time_format + subsecond_format + tz_info_format
+                                    fields = set().union(calendar_fields, time_fields, subsecond_fields, tz_info_fields)
+                                    datetime_params = __merge_dicts(calendar_params, time_params, subsecond_params, tz_info_params)
+                                elif subsecond_format == "":  # Arbitrary choice of subsecond format. We don't want duplicates, so we only yield for one of them.
+                                    full_format = calendar_format + date_and_time_separator + time_format + tz_info_format
+                                    fields = set().union(calendar_fields, time_fields, tz_info_fields)
+                                    datetime_params = __merge_dicts(calendar_params, time_params, tz_info_params)
+                                else:
+                                    # Ignore other subsecond formats
+                                    continue
 
-                            yield (full_format, fields, datetime_params)
+                                yield (full_format, fields, datetime_params)
 
 
 def __pad_params(**kwargs):

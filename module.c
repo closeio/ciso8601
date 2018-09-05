@@ -80,10 +80,10 @@ format_unexpected_character_exception(char *field_name, char c, size_t index,
 #define IS_TIME_SEPARATOR (*c == ':')
 #define IS_TIME_ZONE_SEPARATOR \
     (*c == 'Z' || *c == '-' || *c == '+' || *c == 'z')
-#define IS_FRACTIONAL_SEPARATOR (*c == '.' || *c == ',')
+#define IS_FRACTIONAL_SEPARATOR (*c == '.' || (*c == ',' && !rfc3339_only))
 
 static PyObject *
-_parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
+_parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
 {
     PyObject *obj;
     PyObject *tzinfo = Py_None;
@@ -97,6 +97,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     int tzhour = 0, tzminute = 0, tzsign = 0;
     PyObject *delta;
     PyObject *temp;
+    int extended_date_format = 0;
 
     if (!PyArg_ParseTuple(args, "s", &str))
         return NULL;
@@ -106,10 +107,10 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     PARSE_INTEGER(year, 4, "year")
 
 #if !PY_VERSION_AT_LEAST_36
-    /* Python 3.6+ does this validation as part of Datetime's C API
+    /* Python 3.6+ does this validation as part of datetime's C API
      * constructor. See
      * https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
-     * We skip ` || year < datetime.MAXYEAR)`, since cio8601 currently doesn't
+     * We skip ` || year < datetime.MAXYEAR)`, since ciso8601 currently doesn't
      * support 5 character years, so it is impossible.
      */
     if (year <
@@ -122,6 +123,8 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
 
     if (IS_CALENDAR_DATE_SEPARATOR) { /* Separated Month and Day (ie. MM-DD) */
         c++;
+        extended_date_format = 1;
+
         /* Month */
         PARSE_INTEGER(month, 2, "month")
 
@@ -131,9 +134,19 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
             /* Day */
             PARSE_INTEGER(day, 2, "day")
         }
+        else if (rfc3339_only) {
+            PyErr_SetString(PyExc_ValueError,
+                            "Datetime string not in RFC 3339 format.");
+            return NULL;
+        }
         else {
             day = 1;
         }
+    }
+    else if (rfc3339_only) {
+        PyErr_SetString(PyExc_ValueError,
+                        "Datetime string not in RFC 3339 format.");
+        return NULL;
     }
     else { /* Non-separated Month and Day (ie. MMDD) */
         /* Month */
@@ -148,7 +161,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
     /* Validation of date fields
      * These checks are needed for Python <3.6 support. See
      * https://github.com/closeio/ciso8601/pull/30 Python 3.6+ does this
-     * validation as part of Datetime's C API constructor. See
+     * validation as part of datetime's C API constructor. See
      * https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
      */
     if (month < 1 || month > 12) {
@@ -234,6 +247,27 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                         PARSE_FRACTIONAL_SECOND()
                     }
                 }
+                else if (rfc3339_only) {
+                    PyErr_SetString(PyExc_ValueError,
+                                    "RFC 3339 requires the second to be "
+                                    "specified.");
+                    return NULL;
+                }
+
+                if (!extended_date_format) {
+                    PyErr_SetString(
+                        PyExc_ValueError,
+                        "Cannot combine \"basic\" date format with"
+                        " \"extended\" time format (Should be either "
+                        "`YYYY-MM-DDThh:mm:ss` or `YYYYMMDDThhmmss`).");
+                    return NULL;
+                }
+            }
+            else if (rfc3339_only) {
+                PyErr_SetString(PyExc_ValueError,
+                                "Colons separating time components are "
+                                "mandatory in RFC 3339.");
+                return NULL;
             }
             else { /* Non-separated Minute and Second (ie. mmss) */
                 /* Minute */
@@ -249,13 +283,34 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                         PARSE_FRACTIONAL_SECOND()
                     }
                 }
+
+                if (extended_date_format) {
+                    PyErr_SetString(
+                        PyExc_ValueError,
+                        "Cannot combine \"extended\" date format with"
+                        " \"basic\" time format (Should be either "
+                        "`YYYY-MM-DDThh:mm:ss` or `YYYYMMDDThhmmss`).");
+                    return NULL;
+                }
             }
+        }
+        else if (rfc3339_only) {
+            PyErr_SetString(PyExc_ValueError,
+                            "Minute and second are mandatory in RFC 3339");
+            return NULL;
         }
 
         if (hour == 24 && minute == 0 && second == 0 && usecond == 0) {
             /* Special case of 24:00:00, that is allowed in ISO 8601. It is
              * equivalent to 00:00:00 the following day
              */
+            if (rfc3339_only) {
+                PyErr_SetString(PyExc_ValueError,
+                                "An hour value of 24, while sometimes legal "
+                                "in ISO 8601, is explicitly forbidden by RFC "
+                                "3339.");
+                return NULL;
+            }
             hour = 0, minute = 0, second = 0, usecond = 0;
             time_is_midnight = 1;
         }
@@ -263,7 +318,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
 #if !PY_VERSION_AT_LEAST_36
         /* Validate hour/minute/second
          * Only needed for Python <3.6 support.
-         * Python 3.6+ does this validation as part of Datetime's constructor).
+         * Python 3.6+ does this validation as part of datetime's constructor).
          */
         if (hour > 23) {
             PyErr_SetString(PyExc_ValueError, "hour must be in 0..23");
@@ -298,14 +353,20 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                     /* tz minute */
                     PARSE_INTEGER(tzminute, 2, "tz minute")
                 }
+                else if (rfc3339_only) {
+                    PyErr_SetString(PyExc_ValueError,
+                                    "Separator between hour and minute in UTC "
+                                    "offset is mandatory in RFC 3339");
+                    return NULL;
+                }
                 else if (*c != '\0') { /* Optional tz minute */
                     PARSE_INTEGER(tzminute, 2, "tz minute")
                 }
             }
 
             /* It's not entirely clear whether this validation check is
-             * necessary under ISO 8601. For now, we will error on the side of
-             * caution and prevent suspected invalid timestamps If we need to
+             * necessary under ISO 8601. For now, we will err on the side of
+             * caution and prevent suspected invalid timestamps. If we need to
              * loosen this restriction later, we can.
              */
             if (tzminute > 59) {
@@ -348,6 +409,16 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
                 }
             }
         }
+        else if (rfc3339_only) {
+            PyErr_SetString(PyExc_ValueError,
+                            "UTC offset is mandatory in RFC 3339 format.");
+            return NULL;
+        }
+    }
+    else if (rfc3339_only) {
+        PyErr_SetString(PyExc_ValueError,
+                        "Time is mandatory in RFC 3339 format.");
+        return NULL;
     }
 
     /* Make sure that there is no more to parse. */
@@ -377,13 +448,19 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo)
 static PyObject *
 parse_datetime_as_naive(PyObject *self, PyObject *args)
 {
-    return _parse(self, args, 0);
+    return _parse(self, args, 0, 0);
 }
 
 static PyObject *
 parse_datetime(PyObject *self, PyObject *args)
 {
-    return _parse(self, args, 1);
+    return _parse(self, args, 1, 0);
+}
+
+static PyObject *
+parse_rfc3339(PyObject *self, PyObject *args)
+{
+    return _parse(self, args, 1, 1);
 }
 
 static PyMethodDef CISO8601Methods[] = {
@@ -391,6 +468,8 @@ static PyMethodDef CISO8601Methods[] = {
      "Parse a ISO8601 date time string."},
     {"parse_datetime_as_naive", parse_datetime_as_naive, METH_VARARGS,
      "Parse a ISO8601 date time string, ignoring the time zone component."},
+    {"parse_rfc3339", parse_rfc3339, METH_VARARGS,
+     "Parse an RFC 3339 date time string."},
     {NULL, NULL, 0, NULL}};
 
 #if PY_MAJOR_VERSION >= 3

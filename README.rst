@@ -2,14 +2,22 @@
 ciso8601
 ========
 
-.. image:: https://circleci.com/gh/closeio/ciso8601/tree/master.svg?style=svg&circle-token=72fc522063916cb1c6c5c9882b97db9d2ed651d8
+.. image:: https://img.shields.io/circleci/project/github/closeio/ciso8601.svg
     :target: https://circleci.com/gh/closeio/ciso8601/tree/master
 
-``ciso8601`` converts `ISO 8601`_ date time strings into Python datetime objects.
+.. image:: https://img.shields.io/pypi/v/ciso8601.svg
+    :target: https://pypi.org/project/ciso8601/
+
+.. image:: https://img.shields.io/pypi/pyversions/ciso8601.svg
+    :target: https://pypi.org/project/ciso8601/
+
+``ciso8601`` converts `ISO 8601`_ or `RFC 3339`_ date time strings into Python datetime objects.
+
 Since it's written as a C module, it is much faster than other Python libraries.
 Tested with Python 2.7, 3.4, 3.5, 3.6, 3.7b.
 
 .. _ISO 8601: https://en.wikipedia.org/wiki/ISO_8601
+.. _RFC 3339: https://tools.ietf.org/html/rfc3339
 
 (Interested in working on projects like this? `Close.io`_ is looking for `great engineers`_ to join our team)
 
@@ -202,9 +210,9 @@ Time Formats
 
 Times are optional and are separated from the date by the letter ``T``.
 
-Consistent with `RFC 3339`_, ``ciso860`` also allows either a space character, or a lower-case ``t``, to be used instead of a ``T``.
+Consistent with `RFC 3339`__, ``ciso860`` also allows either a space character, or a lower-case ``t``, to be used instead of a ``T``.
 
-.. _RFC 3339: https://stackoverflow.com/questions/522251/whats-the-difference-between-iso-8601-and-rfc-3339-date-formats)
+__ https://stackoverflow.com/questions/522251/whats-the-difference-between-iso-8601-and-rfc-3339-date-formats
 
 The following time formats are supported:
 
@@ -251,6 +259,18 @@ Time zone information may be provided in one of the following formats:
 While the ISO 8601 specification allows the use of MINUS SIGN (U+2212) in the time zone separator, ``ciso8601`` only supports the use of the HYPHEN-MINUS (U+002D) character.
 
 Consistent with `RFC 3339`_, ``ciso860`` also allows a lower-case ``z`` to be used instead of a ``Z``.
+
+Strict RFC 3339 Parsing
+-----------------------
+
+``ciso8601`` parses ISO 8601 datetimes, which can be thought of as a superset of `RFC 3339`_ (`roughly`_). In cases where you might want strict RFC 3339 parsing, ``ciso8601`` offers a ``parse_rfc3339`` method, which behaves in a similar manner to ``parse_datetime``:
+
+.. _roughly: https://stackoverflow.com/questions/522251/whats-the-difference-between-iso-8601-and-rfc-3339-date-formats
+
+``parse_rfc3339(dt: String): datetime`` is a function that takes a string and either:
+
+* Returns a properly parsed Python datetime, **if and only if** the **entire** string conforms to RFC 3339.
+* Raises a ``ValueError`` with a description of the reason why the string doesn't conform to RFC 3339.
 
 Ignoring Timezone Information While Parsing
 -------------------------------------------
