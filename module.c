@@ -97,6 +97,7 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
     int tzhour = 0, tzminute = 0, tzsign = 0;
     PyObject *delta;
     PyObject *temp;
+    int extended_date_format = 0;
 
     if (!PyArg_ParseTuple(args, "s", &str))
         return NULL;
@@ -122,6 +123,8 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
 
     if (IS_CALENDAR_DATE_SEPARATOR) { /* Separated Month and Day (ie. MM-DD) */
         c++;
+        extended_date_format = 1;
+
         /* Month */
         PARSE_INTEGER(month, 2, "month")
 
@@ -250,6 +253,15 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
                                     "specified.");
                     return NULL;
                 }
+
+                if (!extended_date_format) {
+                    PyErr_SetString(
+                        PyExc_ValueError,
+                        "Cannot combine \"basic\" date format with"
+                        " \"extended\" time format (Should be either "
+                        "`YYYY-MM-DDThh:mm:ss` or `YYYYMMDDThhmmss`).");
+                    return NULL;
+                }
             }
             else if (rfc3339_only) {
                 PyErr_SetString(PyExc_ValueError,
@@ -270,6 +282,15 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
                         c++;
                         PARSE_FRACTIONAL_SECOND()
                     }
+                }
+
+                if (extended_date_format) {
+                    PyErr_SetString(
+                        PyExc_ValueError,
+                        "Cannot combine \"extended\" date format with"
+                        " \"basic\" time format (Should be either "
+                        "`YYYY-MM-DDThh:mm:ss` or `YYYYMMDDThhmmss`).");
+                    return NULL;
                 }
             }
         }

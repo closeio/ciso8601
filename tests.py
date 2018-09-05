@@ -211,7 +211,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
             ValueError,
             r"hour must be in 0..23",
             ciso8601.parse_datetime,
-            '20140203T24:35:27',
+            '2014-02-03T24:35:27',
         )
 
     def test_invalid_time_separator(self):
@@ -237,7 +237,6 @@ class InvalidTimestampTestCase(unittest.TestCase):
         )
 
     def test_invalid_tz_minute(self):
-        # TODO: Determine whether this is a valid ISO 8601 value and therefore whether ciso8601 should support it.
         self.assertRaisesRegex(
             ValueError,
             r"tzminute must be in 0..59",
@@ -261,6 +260,26 @@ class InvalidTimestampTestCase(unittest.TestCase):
             r"tzminute must be in 0..59",
             ciso8601.parse_datetime,
             '2018-01-01T00:00:00.00-23:60',
+        )
+
+    def test_mixed_basic_and_extended_formats(self):
+        """
+        Both dates and times have "basic" and "extended" formats.
+        But when you combine them into a datetime, the date and time components
+        must have the same format.
+        """
+        self.assertRaisesRegex(
+            ValueError,
+            r"Cannot combine \"extended\" date format with \"basic\" time format",
+            ciso8601.parse_datetime,
+            '2014-01-02T010203',
+        ),
+
+        self.assertRaisesRegex(
+            ValueError,
+            r"Cannot combine \"basic\" date format with \"extended\" time format",
+            ciso8601.parse_datetime,
+            '20140102T01:02:03',
         )
 
 
@@ -317,17 +336,17 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
     def test_issue_5(self):
         self.assertRaisesRegex(
             ValueError,
-            r"Invalid character while parsing minute \(':', Index: 12\)",
+            r"Invalid character while parsing minute \(':', Index: 14\)",
             ciso8601.parse_datetime,
-            '20140203T10::27',
+            '2014-02-03T10::27',
         )
 
     def test_issue_6(self):
         self.assertRaisesRegex(
             ValueError,
-            r"Invalid character while parsing second \('.', Index: 15\)",
+            r"Invalid character while parsing second \('.', Index: 17\)",
             ciso8601.parse_datetime,
-            '20140203 04:05:.123456',
+            '2014-02-03 04:05:.123456',
         )
 
     def test_issue_8(self):
@@ -375,6 +394,21 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             r"day is out of range for month",
             ciso8601.parse_datetime,
             '20140200',
+        )
+
+    def test_issue_71(self):
+        self.assertRaisesRegex(
+            ValueError,
+            r"Cannot combine \"basic\" date format with \"extended\" time format",
+            ciso8601.parse_datetime,
+            '20010203T04:05:06Z',
+        )
+
+        self.assertRaisesRegex(
+            ValueError,
+            r"Cannot combine \"basic\" date format with \"extended\" time format",
+            ciso8601.parse_datetime,
+            '20010203T04:05',
         )
 
 
