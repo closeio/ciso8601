@@ -502,8 +502,11 @@ initciso8601(void)
 #if PY_MAJOR_VERSION >= 3
     PyObject *module = PyModule_Create(&moduledef);
 #else
-    (void)Py_InitModule("ciso8601", CISO8601Methods);
+    PyObject *module = Py_InitModule("ciso8601", CISO8601Methods);
 #endif
+    /* CISO8601_VERSION is defined in setup.py */
+    PyModule_AddStringConstant(module, "__version__", CISO8601_VERSION);
+
     PyDateTime_IMPORT;
 #if PY_VERSION_AT_LEAST_37
     utc = PyDateTime_TimeZone_UTC;

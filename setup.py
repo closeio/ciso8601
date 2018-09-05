@@ -30,14 +30,19 @@ if os.environ.get("STRICT_WARNINGS", '0') == '1':
         os.environ['_CL_'] = ""
     os.environ['_CL_'] += " /WX"
 
+VERSION = "2.0.1"
+
 setup(
     name="ciso8601",
-    version="2.0.1",
+    version=VERSION,
     description='Fast ISO8601 date time parser for Python written in C',
     long_description=long_description,
     url="https://github.com/closeio/ciso8601",
     license="MIT",
-    ext_modules=[Extension("ciso8601", ["module.c"])],
+    ext_modules=[Extension("ciso8601",
+                           sources=["module.c"],
+                           define_macros=[("CISO8601_VERSION", '"%s"' % VERSION)]
+                           )],
     packages=["ciso8601"],
     package_data={"ciso8601": ["__init__.pyi", "py.typed"]},
     test_suite='tests',
