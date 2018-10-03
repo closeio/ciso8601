@@ -30,7 +30,7 @@ if os.environ.get("STRICT_WARNINGS", '0') == '1':
         os.environ['_CL_'] = ""
     os.environ['_CL_'] += " /WX"
 
-VERSION = "2.1.0"
+VERSION = "2.1.1"
 
 setup(
     name="ciso8601",

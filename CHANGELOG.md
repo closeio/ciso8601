@@ -2,7 +2,7 @@
 <!-- TOC anchorMode:github.com -->
 
 - [2.x.x](#2xx)
-    - [Version 2.1.1 (Unreleased)](#version-211-unreleased)
+    - [Version 2.1.1](#version-211)
     - [Version 2.1.0](#version-210)
     - [Version 2.0.1](#version-201)
     - [Version 2.0.0](#version-200)
@@ -17,9 +17,9 @@
 
 # 2.x.x
 
-## Version 2.1.1 (Unreleased)
+## Version 2.1.1
 
-* Fixed a problem where builds on Windows were not working (#76).
+* Fixed a problem where builds on Windows were not working (#76). Thanks @alexandrul and @gillesdouaire, and sorry.
 
 ## Version 2.1.0
 
