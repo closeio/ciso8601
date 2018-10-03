@@ -1,6 +1,8 @@
 #include <Python.h>
 #include <datetime.h>
 
+#define STRINGIZE(x) #x
+
 #define PY_VERSION_AT_LEAST_32 \
     ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 2) || PY_MAJOR_VERSION > 3)
 #define PY_VERSION_AT_LEAST_36 \
@@ -505,7 +507,8 @@ initciso8601(void)
     PyObject *module = Py_InitModule("ciso8601", CISO8601Methods);
 #endif
     /* CISO8601_VERSION is defined in setup.py */
-    PyModule_AddStringConstant(module, "__version__", CISO8601_VERSION);
+    PyModule_AddStringConstant(module, "__version__",
+                               STRINGIZE(CISO8601_VERSION));
 
     PyDateTime_IMPORT;
 #if PY_VERSION_AT_LEAST_37

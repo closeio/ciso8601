@@ -2,6 +2,7 @@
 <!-- TOC anchorMode:github.com -->
 
 - [2.x.x](#2xx)
+    - [Version 2.1.1 (Unreleased)](#version-211-unreleased)
     - [Version 2.1.0](#version-210)
     - [Version 2.0.1](#version-201)
     - [Version 2.0.0](#version-200)
@@ -15,6 +16,10 @@
 <!-- /TOC -->
 
 # 2.x.x
+
+## Version 2.1.1 (Unreleased)
+
+* Fixed a problem where builds on Windows were not working (#76).
 
 ## Version 2.1.0
 
