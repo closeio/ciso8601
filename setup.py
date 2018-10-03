@@ -41,7 +41,7 @@ setup(
     license="MIT",
     ext_modules=[Extension("ciso8601",
                            sources=["module.c"],
-                           define_macros=[("CISO8601_VERSION", '"%s"' % VERSION)]
+                           define_macros=[("CISO8601_VERSION", VERSION)]
                            )],
     packages=["ciso8601"],
     package_data={"ciso8601": ["__init__.pyi", "py.typed"]},
