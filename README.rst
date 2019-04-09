@@ -19,10 +19,10 @@ Tested with Python 2.7, 3.4, 3.5, 3.6, 3.7.
 .. _ISO 8601: https://en.wikipedia.org/wiki/ISO_8601
 .. _RFC 3339: https://tools.ietf.org/html/rfc3339
 
-(Interested in working on projects like this? `Close.io`_ is looking for `great engineers`_ to join our team)
+(Interested in working on projects like this? `Close`_ is looking for `great engineers`_ to join our team)
 
-.. _Close.io: https://close.io
-.. _great engineers: https://jobs.close.io
+.. _Close: https://close.com
+.. _great engineers: https://jobs.close.com
 
 
 .. contents:: Contents
