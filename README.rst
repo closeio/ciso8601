@@ -22,7 +22,7 @@ Tested with Python 2.7, 3.4, 3.5, 3.6, 3.7.
 (Interested in working on projects like this? `Close.io`_ is looking for `great engineers`_ to join our team)
 
 .. _Close.io: https://close.io
-.. _great engineers: https://jobs.close.io
+.. _great engineers: https://jobs.lever.co/close.io/
 
 
 .. contents:: Contents
