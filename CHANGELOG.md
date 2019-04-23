@@ -2,20 +2,25 @@
 <!-- TOC anchorMode:github.com -->
 
 - [2.x.x](#2xx)
-    - [Version 2.1.1](#version-211)
-    - [Version 2.1.0](#version-210)
-    - [Version 2.0.1](#version-201)
-    - [Version 2.0.0](#version-200)
-        - [Breaking changes](#breaking-changes)
-        - [Other Changes](#other-changes)
-        - [v1.x.x -> 2.0.0 Migration guide](#v1xx---200-migration-guide)
-            - [ValueError instead of None](#valueerror-instead-of-none)
-            - [Tightened ISO 8601 conformance](#tightened-iso-8601-conformance)
-            - [`parse_datetime_unaware` has been renamed](#parse_datetime_unaware-has-been-renamed)
+  - [Version 2.1.2](#version-212)
+  - [Version 2.1.1](#version-211)
+  - [Version 2.1.0](#version-210)
+  - [Version 2.0.1](#version-201)
+  - [Version 2.0.0](#version-200)
+    - [Breaking changes](#breaking-changes)
+    - [Other Changes](#other-changes)
+    - [v1.x.x -> 2.0.0 Migration guide](#v1xx---200-migration-guide)
+      - [ValueError instead of None](#valueerror-instead-of-none)
+      - [Tightened ISO 8601 conformance](#tightened-iso-8601-conformance)
+      - [`parse_datetime_unaware` has been renamed](#parsedatetimeunaware-has-been-renamed)
 
 <!-- /TOC -->
 
 # 2.x.x
+
+## Version 2.1.2
+
+* Fixed a problem where `ciso8601.__version__` was not working (#80). Thanks @ianhoffman.
 
 ## Version 2.1.1
 
