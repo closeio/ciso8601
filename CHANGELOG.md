@@ -1,6 +1,7 @@
 <!-- Generated with "Markdown T​O​C" extension for Visual Studio Code -->
 <!-- TOC anchorMode:github.com -->
 
+- [Unreleased](#unreleased)
 - [2.x.x](#2xx)
   - [Version 2.1.2](#version-212)
   - [Version 2.1.1](#version-211)
@@ -16,11 +17,16 @@
 
 <!-- /TOC -->
 
+# Unreleased
+
+* N/A
+
 # 2.x.x
 
 ## Version 2.1.2
 
 * Fixed a problem where `ciso8601.__version__` was not working (#80). Thanks @ianhoffman.
+* Added Python 3.8 support
 
 ## Version 2.1.1
 
