@@ -9,6 +9,7 @@ workflows:
       - test-3.5
       - test-3.6
       - test-3.7
+      - test-3.8
       - lint-rst
 
 defaults: &defaults
@@ -42,7 +43,11 @@ jobs:
     <<: *defaults
     docker:
     - image: circleci/python:3.7
-    
+  test-3.8:
+    <<: *defaults
+    docker:
+    - image: circleci/python:3.8
+
   lint-rst:
     working_directory: ~/code
     steps:
@@ -59,4 +64,4 @@ jobs:
             . venv/bin/activate
             rst-lint --encoding=utf-8 README.rst
     docker:
-    - image: circleci/python:3.7
+    - image: circleci/python:3.8
