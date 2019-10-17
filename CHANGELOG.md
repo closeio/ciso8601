@@ -26,7 +26,8 @@
 ## Version 2.1.2
 
 * Fixed a problem where `ciso8601.__version__` was not working (#80). Thanks @ianhoffman.
-* Added Python 3.8 support
+* Added Python 3.8 support (#83)
+* Added benchmarking scripts (#55)
 
 ## Version 2.1.1
 
