@@ -14,7 +14,7 @@ ciso8601
 ``ciso8601`` converts `ISO 8601`_ or `RFC 3339`_ date time strings into Python datetime objects.
 
 Since it's written as a C module, it is much faster than other Python libraries.
-Tested with Python 2.7, 3.4, 3.5, 3.6, 3.7.
+Tested with Python 2.7, 3.4, 3.5, 3.6, 3.7, 3.8.
 
 .. _ISO 8601: https://en.wikipedia.org/wiki/ISO_8601
 .. _RFC 3339: https://tools.ietf.org/html/rfc3339
