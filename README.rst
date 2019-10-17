@@ -16,8 +16,12 @@ ciso8601
 Since it's written as a C module, it is much faster than other Python libraries.
 Tested with Python 2.7, 3.4, 3.5, 3.6, 3.7, 3.8.
 
+**Note:** ciso8601 doesn't support the entirety of the ISO 8601 spec, `only a popular subset`_.
+
 .. _ISO 8601: https://en.wikipedia.org/wiki/ISO_8601
 .. _RFC 3339: https://tools.ietf.org/html/rfc3339
+
+.. _`only a popular subset`: https://github.com/closeio/ciso8601#supported-subset-of-iso-8601
 
 (Interested in working on projects like this? `Close`_ is looking for `great engineers`_ to join our team)
 
@@ -68,77 +72,118 @@ If time zone information is provided, an aware datetime object will be returned.
 Benchmark
 ---------
 
-Date time string with no time zone information:
+Parsing a timestamp with no time zone information (ex. ``2014-01-09T21:48:00``):
+
+.. <include:benchmark_with_no_time_zone.rst>
+
+.. table:: 
+
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |    Module     |Python 3.8|Python 3.7|Python 3.6|Python 3.5|Python 3.4|          Python 2.7           |Relative Slowdown (versus ciso8601, Python 3.8)|
+    +===============+==========+==========+==========+==========+==========+===============================+===============================================+
+    |ciso8601       |201 nsec  |157 nsec  |160 nsec  |139 nsec  |148 nsec  |147 nsec                       |N/A                                            |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |pendulum       |215 nsec  |232 nsec  |234 nsec  |205 nsec  |192 nsec  |9.44 usec                      |1.1x                                           |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |udatetime      |906 nsec  |1.06 usec |767 nsec  |702 nsec  |819 nsec  |923 nsec                       |4.5x                                           |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |str2date       |5.96 usec |7.75 usec |7.27 usec |6.84 usec |7.6 usec  |**Incorrect Result** (``None``)|29.7x                                          |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |isodate        |10.3 usec |10 usec   |11.1 usec |11.9 usec |12.3 usec |43.6 usec                      |51.3x                                          |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |iso8601utils   |10.3 usec |8.63 usec |9.16 usec |10.3 usec |9.58 usec |11.1 usec                      |51.5x                                          |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |iso8601        |10.9 usec |11.1 usec |10.5 usec |11.2 usec |11.5 usec |25.6 usec                      |54.2x                                          |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |PySO8601       |13.9 usec |21.9 usec |20.2 usec |15.9 usec |23.7 usec |16.4 usec                      |69.4x                                          |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |aniso8601      |14.5 usec |15 usec   |15.8 usec |15.9 usec |16.1 usec |17.2 usec                      |72.5x                                          |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |zulu           |25.3 usec |29.9 usec |28.2 usec |27.4 usec |33 usec   |N/A                            |126.3x                                         |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |maya           |42.9 usec |57.4 usec |58.2 usec |67.5 usec |87.6 usec |100 usec                       |213.7x                                         |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |arrow          |85.7 usec |81.8 usec |75.7 usec |78.7 usec |N/A       |93.9 usec                      |427.1x                                         |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |python-dateutil|122 usec  |82.7 usec |72.2 usec |77.1 usec |74.4 usec |131 usec                       |609.5x                                         |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+    |moment         |3.81 msec |4.46 msec |3.12 msec |3.66 msec |N/A       |3.59 msec                      |19011.9x                                       |
+    +---------------+----------+----------+----------+----------+----------+-------------------------------+-----------------------------------------------+
+
+ciso8601 takes 201 nsec, which is **1.1x faster than pendulum**, the next fastest ISO 8601 parser in this comparison.
+
+.. </include:benchmark_with_no_time_zone.rst>
+
+Parsing a timestamp with time zone information (ex. ``2014-01-09T21:48:00-05:30``):
+
+.. <include:benchmark_with_time_zone.rst>
+
+.. table:: 
+
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |    Module     |          Python 3.8           |          Python 3.7           |          Python 3.6           |          Python 3.5           |Python 3.4|          Python 2.7           |Relative Slowdown (versus ciso8601, Python 3.8)|
+    +===============+===============================+===============================+===============================+===============================+==========+===============================+===============================================+
+    |ciso8601       |207 nsec                       |219 nsec                       |282 nsec                       |262 nsec                       |264 nsec  |360 nsec                       |N/A                                            |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |pendulum       |249 nsec                       |225 nsec                       |209 nsec                       |212 nsec                       |209 nsec  |12.9 usec                      |1.2x                                           |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |udatetime      |806 nsec                       |866 nsec                       |817 nsec                       |827 nsec                       |792 nsec  |835 nsec                       |3.9x                                           |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |str2date       |7.57 usec                      |10.7 usec                      |7.98 usec                      |8.48 usec                      |9.06 usec |**Incorrect Result** (``None``)|36.7x                                          |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |isodate        |12 usec                        |13.5 usec                      |14.7 usec                      |15.4 usec                      |18.8 usec |47.6 usec                      |58.3x                                          |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |iso8601        |12.8 usec                      |14.6 usec                      |14.6 usec                      |15.2 usec                      |17.7 usec |30 usec                        |61.8x                                          |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |aniso8601      |19.4 usec                      |30.4 usec                      |22.1 usec                      |20.5 usec                      |21.9 usec |20.1 usec                      |94.0x                                          |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |iso8601utils   |22.5 usec                      |25.3 usec                      |26.4 usec                      |25.7 usec                      |27 usec   |26.9 usec                      |108.9x                                         |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |zulu           |25.6 usec                      |31.2 usec                      |30 usec                        |32.3 usec                      |30.7 usec |N/A                            |124.1x                                         |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |PySO8601       |25.9 usec                      |35.4 usec                      |25.6 usec                      |29.5 usec                      |27.7 usec |25.7 usec                      |125.2x                                         |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |maya           |48.5 usec                      |46.6 usec                      |51.3 usec                      |63.2 usec                      |68.1 usec |125 usec                       |234.9x                                         |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |python-dateutil|79.3 usec                      |88.5 usec                      |101 usec                       |89.8 usec                      |91.9 usec |160 usec                       |384.2x                                         |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |arrow          |86.2 usec                      |95.2 usec                      |95 usec                        |101 usec                       |N/A       |103 usec                       |417.2x                                         |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+    |moment         |**Incorrect Result** (``None``)|**Incorrect Result** (``None``)|**Incorrect Result** (``None``)|**Incorrect Result** (``None``)|N/A       |**Incorrect Result** (``None``)|3442935.3x                                     |
+    +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+----------+-------------------------------+-----------------------------------------------+
+
+ciso8601 takes 207 nsec, which is **1.2x faster than pendulum**, the next fastest ISO 8601 parser in this comparison.
+
+.. </include:benchmark_with_time_zone.rst>
+
+.. <include:benchmark_module_versions.rst>
+
+Tested on Darwin 18.7.0 using the following modules:
 
 .. code:: python
 
-  In [1]: import datetime, aniso8601, iso8601, isodate, dateutil.parser, arrow, ciso8601
-
-  In [2]: ds = u'2014-01-09T21:48:00.921000'
-
-  In [3]: %timeit ciso8601.parse_datetime(ds)
-  1000000 loops, best of 3: 204 ns per loop
-
-  In [4]: %timeit datetime.datetime.strptime(ds, "%Y-%m-%dT%H:%M:%S.%f")
-  100000 loops, best of 3: 15 µs per loop
-
-  In [5]: %timeit dateutil.parser.parse(ds)
-  10000 loops, best of 3: 122 µs per loop
-
-  In [6]: %timeit aniso8601.parse_datetime(ds)
-  10000 loops, best of 3: 28.9 µs per loop
-
-  In [7]: %timeit iso8601.parse_date(ds)
-  10000 loops, best of 3: 42 µs per loop
-
-  In [8]: %timeit isodate.parse_datetime(ds)
-  10000 loops, best of 3: 69.4 µs per loop
-
-  In [9]: %timeit arrow.get(ds).datetime
-  10000 loops, best of 3: 87 µs per loop
-
-ciso8601 takes 0.204us, which is 73x faster than datetime's strptime, which is
-not a full ISO8601 parser. It is **141x faster than aniso8601**, the next fastest
-ISO8601 parser in this comparison.
-
-Date time string with time zone information:
-
-.. code:: python
-
-  In [1]: import datetime, aniso8601, iso8601, isodate, dateutil.parser, arrow, ciso8601
-
-  In [2]: ds = u'2014-01-09T21:48:00.921000+05:30'
-
-  In [3]: %timeit ciso8601.parse_datetime(ds)
-  1000000 loops, best of 3: 525 ns per loop
-
-  In [4]: %timeit dateutil.parser.parse(ds)
-  10000 loops, best of 3: 162 µs per loop
-
-  In [5]: %timeit aniso8601.parse_datetime(ds)
-  10000 loops, best of 3: 36.8 µs per loop
-
-  In [6]: %timeit iso8601.parse_date(ds)
-  10000 loops, best of 3: 53.5 µs per loop
-
-  In [7]: %timeit isodate.parse_datetime(ds)
-  10000 loops, best of 3: 82.6 µs per loop
-
-  In [8]: %timeit arrow.get(ds).datetime
-  10000 loops, best of 3: 104 µs per loop
-
-Even with time zone information, ``ciso8601`` is 70x as fast as ``aniso8601``.
-
-Tested on Python 2.7.10 on macOS 10.12.6 using the following modules:
-
-.. code:: python
-
-  aniso8601==1.2.1
-  arrow==0.10.0
-  ciso8601==1.0.4
+  aniso8601==8.0.0
+  arrow==0.15.2
+  ciso8601==2.1.2
   iso8601==0.1.12
-  isodate==0.5.4
-  python-dateutil==2.6.1
+  iso8601utils==0.1.2
+  isodate==0.6.0
+  maya==0.6.1
+  moment==0.8.2
+  pendulum==2.0.5
+  PySO8601==0.2.0
+  python-dateutil==2.8.0
+  str2date==0.905
+  udatetime==0.0.16
+  zulu==1.1.1
+
+.. </include:benchmark_module_versions.rst>
+
+**Note:** ciso8601 doesn't support the entirety of the ISO 8601 spec, `only a popular subset`_.
+
+For full benchmarking details (or to run the benchmark yourself), see `benchmarking/README.rst`_
+
+.. _`benchmarking/README.rst`: https://github.com/closeio/ciso8601/blob/master/benchmarking/README.rst
 
 Dependency on pytz (Python 2)
 -----------------------------
@@ -159,7 +204,7 @@ Otherwise, ``ciso8601`` will raise an exception when you try to parse a timestam
   Out[2]: ImportError: Cannot parse a timestamp with time zone information without the pytz dependency. Install it with `pip install pytz`.
 
 ``pytz`` is intentionally not an explicit dependency of ``ciso8601``. This is because many users use ``ciso8601`` to parse only naive timestamps, and therefore don't need this extra dependency.
-In Python 3, ``ciso8601`` makes use of the built-in `datetime.timezone`_ class instead, so pytz is not necessary.
+In Python 3, ``ciso8601`` makes use of the built-in `datetime.timezone`_ class instead, so ``pytz`` is not necessary.
 
 .. _datetime.timezone: https://docs.python.org/3/library/datetime.html#timezone-objects
 
