@@ -3,6 +3,7 @@
 
 - [Unreleased](#unreleased)
 - [2.x.x](#2xx)
+  - [Version 2.1.3](#version-213)
   - [Version 2.1.2](#version-212)
   - [Version 2.1.1](#version-211)
   - [Version 2.1.0](#version-210)
@@ -22,6 +23,10 @@
 * N/A
 
 # 2.x.x
+
+## Version 2.1.3
+
+* Fixed a problem where non-ASCII characters would give bad error messages (#84). Thanks @olliemath.
 
 ## Version 2.1.2
 
@@ -116,11 +121,11 @@ Now a timestamp will parse **if and only if** the timestamp is 100% conforming t
     "2014-01-01T00:00:00-00:"
 
     # Mix of no-separator and separator
-    "201401-02" 
+    "201401-02"
     "2014-0102"
-    "2014-01-02T00:0000" 
+    "2014-01-02T00:0000"
     "2014-01-02T0000:00"
-    
+
     "2014-01-02T01:23:45Zabcdefghij" # Trailing characters
 
     "2014-01-1" # Single digit day
@@ -137,7 +142,7 @@ These should have been considered bugs in ciso8601 1.x.x, but it may be the case
 It has been renamed to `parse_datetime_as_naive` for 2 reasons:
 
 1. Developers were assuming that `parse_datetime_unaware` was the function to use for parsing naive timestamps, when really it is for parsing timestamps with time zone information as naive datetimes. `parse_datetime` handles parsing both timestamps with and without time zone information and should be used for all parsing, unless you actually need this use case. See additional description in [the README](https://github.com/closeio/ciso8601/tree/raise-valueerror-on-invalid-dates#ignoring-timezone-information-while-parsing) for a more detailed description of this use case.
-2. Python [refers to datetimes without time zone information](https://docs.python.org/3/library/datetime.html) as `naive`, not `unaware` 
+2. Python [refers to datetimes without time zone information](https://docs.python.org/3/library/datetime.html) as `naive`, not `unaware`
 
 Before switching all instances of `parse_datetime_unaware`, make sure to ask yourself whether you actually intended to use `parse_datetime_unaware`.
 
