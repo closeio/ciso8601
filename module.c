@@ -1,4 +1,5 @@
 #include <Python.h>
+#include <ctype.h>
 #include <datetime.h>
 
 #define STRINGIZE(x)            #x
@@ -6,6 +7,8 @@
 
 #define PY_VERSION_AT_LEAST_32 \
     ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 2) || PY_MAJOR_VERSION > 3)
+#define PY_VERSION_AT_LEAST_33 \
+    ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 3) || PY_MAJOR_VERSION > 3)
 #define PY_VERSION_AT_LEAST_36 \
     ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6) || PY_MAJOR_VERSION > 3)
 #define PY_VERSION_AT_LEAST_37 \
@@ -24,7 +27,7 @@ static PyObject *utc;
         }                                                              \
         else {                                                         \
             return format_unexpected_character_exception(              \
-                field_name, *c, (c - str) / sizeof(char), length - i); \
+                field_name, c, (c - str) / sizeof(char), length - i);  \
         }                                                              \
     }
 
@@ -37,7 +40,7 @@ static PyObject *utc;
             /* We need at least one digit. */                  \
             /* Trailing '.' or ',' is not allowed */           \
             return format_unexpected_character_exception(      \
-                "subsecond", *c, (c - str) / sizeof(char), 1); \
+                "subsecond", c, (c - str) / sizeof(char), 1);  \
         }                                                      \
         else                                                   \
             break;                                             \
@@ -49,32 +52,75 @@ static PyObject *utc;
     /* If we break early, fully expand the usecond */          \
     while (i++ < 6) usecond *= 10;
 
-#define PARSE_SEPARATOR(separator, field_name)                                \
-    if (separator) {                                                          \
-        c++;                                                                  \
-    }                                                                         \
-    else {                                                                    \
-        PyErr_Format(PyExc_ValueError,                                        \
-                     "Invalid character while parsing %s ('%c', Index: %lu)", \
-                     field_name, *c, (c - str) / sizeof(char));               \
-        return NULL;                                                          \
-    }
+#if PY_VERSION_AT_LEAST_33
+    #define PARSE_SEPARATOR(separator, field_name)                                \
+        if (separator) {                                                          \
+            c++;                                                                  \
+        }                                                                         \
+        else {                                                                    \
+            PyObject *unicode_str = PyUnicode_FromString(c);                      \
+            PyObject *unicode_char = PyUnicode_Substring(unicode_str, 0, 1);      \
+            PyErr_Format(PyExc_ValueError,                                        \
+                        "Invalid character while parsing %s ('%U', Index: %lu)",  \
+                        field_name, unicode_char, (c - str) / sizeof(char));      \
+            Py_DECREF(unicode_str);                                               \
+            Py_DECREF(unicode_char);                                              \
+            return NULL;                                                          \
+        }
+#else
+    #define PARSE_SEPARATOR(separator, field_name)                                \
+        if (separator) {                                                          \
+            c++;                                                                  \
+        }                                                                         \
+        else {                                                                    \
+            if (isascii((int) *c)) {                                              \
+                PyErr_Format(PyExc_ValueError,                                    \
+                        "Invalid character while parsing %s ('%c', Index: %lu)",  \
+                        field_name, *c, (c - str) / sizeof(char));                \
+            }                                                                     \
+            else {                                                                \
+                PyErr_Format(PyExc_ValueError,                                    \
+                        "Invalid character while parsing %s (Index: %lu)",        \
+                        field_name, (c - str) / sizeof(char));                    \
+            }                                                                     \
+            return NULL;                                                          \
+        }
+#endif
 
 static void *
-format_unexpected_character_exception(char *field_name, char c, size_t index,
+format_unexpected_character_exception(char *field_name, char *c, size_t index,
                                       int expected_character_count)
 {
-    if (c == '\0')
+    if (*c == '\0') {
         PyErr_Format(
             PyExc_ValueError,
             "Unexpected end of string while parsing %s. Expected %d more "
             "character%s",
             field_name, expected_character_count,
             (expected_character_count != 1) ? "s" : "");
-    else
-        PyErr_Format(PyExc_ValueError,
-                     "Invalid character while parsing %s ('%c', Index: %zu)",
-                     field_name, c, index);
+    }
+    else {
+        #if PY_VERSION_AT_LEAST_33
+            PyObject *unicode_str = PyUnicode_FromString(c);
+            PyObject *unicode_char = PyUnicode_Substring(unicode_str, 0, 1);
+            PyErr_Format(PyExc_ValueError,
+                        "Invalid character while parsing %s ('%U', Index: %zu)",
+                        field_name, unicode_char, index);
+            Py_DECREF(unicode_str);
+            Py_DECREF(unicode_char);
+        #else
+            if (isascii((int) *c)) {
+                PyErr_Format(PyExc_ValueError,
+                        "Invalid character while parsing %s ('%c', Index: %zu)",
+                        field_name, *c, index);
+            }
+            else {
+                PyErr_Format(PyExc_ValueError,
+                        "Invalid character while parsing %s (Index: %zu)",
+                        field_name, index);
+            }
+        #endif
+    }
     return NULL;
 }
 

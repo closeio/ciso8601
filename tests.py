@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import ciso8601
 import datetime
 import sys
@@ -65,6 +67,34 @@ class InvalidTimestampTestCase(unittest.TestCase):
             except Exception as exc:
                 print("Timestamp '{0}' was supposed to raise ValueError, but raised {1} instead".format(timestamp, type(exc).__name__))
                 raise
+
+    def test_non_ascii_characters(self):
+        if sys.version_info >= (3, 3):
+            self.assertRaisesRegex(
+                ValueError,
+                r"Invalid character while parsing date separator \('-'\) \('🐵', Index: 7\)",
+                ciso8601.parse_datetime,
+                '2019-01🐵01',
+            )
+            self.assertRaisesRegex(
+                ValueError,
+                r"Invalid character while parsing day \('🐵', Index: 8\)",
+                ciso8601.parse_datetime,
+                '2019-01-🐵',
+            )
+        else:
+            self.assertRaisesRegex(
+                ValueError,
+                r"Invalid character while parsing date separator \('-'\) \(Index: 7\)",
+                ciso8601.parse_datetime,
+                '2019-01🐵01',
+            )
+            self.assertRaisesRegex(
+                ValueError,
+                r"Invalid character while parsing day \(Index: 8\)",
+                ciso8601.parse_datetime,
+                '2019-01-🐵',
+            )
 
     def test_invalid_calendar_separator(self):
         self.assertRaisesRegex(
