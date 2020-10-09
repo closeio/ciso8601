@@ -14,13 +14,13 @@
     - [v1.x.x -> 2.0.0 Migration guide](#v1xx---200-migration-guide)
       - [ValueError instead of None](#valueerror-instead-of-none)
       - [Tightened ISO 8601 conformance](#tightened-iso-8601-conformance)
-      - [`parse_datetime_unaware` has been renamed](#parsedatetimeunaware-has-been-renamed)
+      - [`parse_datetime_unaware` has been renamed](#parse_datetime_unaware-has-been-renamed)
 
 <!-- /TOC -->
 
 # Unreleased
 
-* N/A
+* Added Python 3.9 support
 
 # 2.x.x
 
