@@ -33,10 +33,20 @@ This runs the benchmarks and generates reStructuredText files. The contents of t
 
 .. _`README.rst`: https://github.com/closeio/ciso8601/blob/master/README.rst
 
+Running benchmarks for all Python versions
+------------------------------------------
+
+To make it easier to run the benchmarks for all supported Python versions, there is a Dockerfile you can build:
+
+.. code:: bash
+
+  % docker build -t ciso8601_benchmarking .
+  % docker run -it --rm=true -v $(dirname `pwd`):/ciso8601 ciso8601_benchmarking
+
 Running custom benchmarks
 -------------------------
 
-Running a custom benchmark is done by supplying `tox`_ with your custom timestamp: 
+Running a custom benchmark is done by supplying `tox`_ with your custom timestamp:
 
 .. code:: bash
 
@@ -46,7 +56,7 @@ Running a custom benchmark is done by supplying `tox`_ with your custom timestam
   % tox '2014-01-09T21:48:00'
 
 It calls `perform_comparison.py`_ in each of the supported Python interpreters on your machine.
-This in turn calls `timeit`_ for each of the modules defined in ``ISO_8601_MODULES``. 
+This in turn calls `timeit`_ for each of the modules defined in ``ISO_8601_MODULES``.
 
 .. _`tox`: https://tox.readthedocs.io/en/latest/index.html
 .. _`timeit`: https://docs.python.org/3/library/timeit.html
