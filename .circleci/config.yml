@@ -1,7 +1,12 @@
 version: 2.1
 
+parameters:
+  build_wheels:
+    type: boolean
+    default: false
+
 workflows:
-  workflow:
+  test:
     jobs:
       - test:
           matrix:
@@ -12,6 +17,17 @@ workflows:
             parameters:
               python_version: ["2.7", "3.7"]
       - lint-rst
+  build_wheels:
+    when: << pipeline.parameters.build_wheels >>
+    jobs:
+      - build_manylinux:
+          matrix:
+            parameters:
+              manylinux_tag: ["manylinux1", "manylinux2010", "manylinux2014"]
+              architecture: ["x86_64", "i686"]
+      - store_artifacts:
+          requires:
+            - build_manylinux
 
 jobs:
   test:
@@ -37,6 +53,50 @@ jobs:
           command: pypy setup.py test
     docker:
       - image: pypy:<<parameters.python_version>>
+
+  build_manylinux:
+    parameters:
+      manylinux_tag:
+        type: string
+      architecture:
+        type: string
+    steps:
+      - checkout
+      - run:
+          name: Build wheels
+          command: /root/project/build_manylinux.sh
+      - persist_to_workspace:
+          root: /root/project
+          paths:
+            - wheelhouse
+    environment:
+      PLAT: <<parameters.manylinux_tag>>_<<parameters.architecture>>
+    docker:
+      - image: quay.io/pypa/<<parameters.manylinux_tag>>_<<parameters.architecture>>
+
+  store_artifacts:
+    # Each of the `build_manylinux` jobs produce the wheels into their own directories,
+    # then persist the wheels to the workspace.
+    # This job combines all of the wheels in the workspace into a single directory.
+    # Note: The filenames are not unique.
+    # For example, both `manylinux2010_i686` and `manylinux1_i686` produce `ciso8601-2.1.3-cp27-cp27mu-manylinux1_i686.whl`
+    # We take the wheel that was produced by the more modern build chain, by overwriting the files
+    # created by the less modern chain with files created by the more modern chain
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: |
+          for manylinux in "manylinux1" "manylinux2010" "manylinux2014"; do # Increasing modernity
+            for tag_dir in /tmp/workspace/wheelhouse/${manylinux}_*; do
+              mv $tag_dir/*.whl /tmp/workspace/wheelhouse/
+              rm -rf "$tag_dir"
+            done
+          done
+      - store_artifacts:
+          path: /tmp/workspace/wheelhouse
+          destination: wheelhouse
+    docker:
+      - image: circleci/python:3.9
 
   lint-rst:
     working_directory: ~/code
