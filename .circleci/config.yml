@@ -16,57 +16,57 @@ workflows:
 defaults: &defaults
   working_directory: ~/code
   environment:
-    STRICT_WARNINGS: '1'
+    STRICT_WARNINGS: "1"
   steps:
-  - checkout
-  - run:
-      name: Test
-      command: python setup.py test
+    - checkout
+    - run:
+        name: Test
+        command: python setup.py test
 
 jobs:
   test-2.7:
     <<: *defaults
     docker:
-    - image: circleci/python:2.7
+      - image: circleci/python:2.7
   test-3.4:
     <<: *defaults
     docker:
-    - image: circleci/python:3.4
+      - image: circleci/python:3.4
   test-3.5:
     <<: *defaults
     docker:
-    - image: circleci/python:3.5
+      - image: circleci/python:3.5
   test-3.6:
     <<: *defaults
     docker:
-    - image: circleci/python:3.6
+      - image: circleci/python:3.6
   test-3.7:
     <<: *defaults
     docker:
-    - image: circleci/python:3.7
+      - image: circleci/python:3.7
   test-3.8:
     <<: *defaults
     docker:
-    - image: circleci/python:3.8
+      - image: circleci/python:3.8
   test-3.9:
     <<: *defaults
     docker:
-    - image: circleci/python:3.9
+      - image: circleci/python:3.9
 
   lint-rst:
     working_directory: ~/code
     steps:
-    - checkout
-    - run:
-        name: Install lint tools
-        command: |
+      - checkout
+      - run:
+          name: Install lint tools
+          command: |
             python3 -m venv venv
             . venv/bin/activate
             pip install Pygments restructuredtext-lint
-    - run:
-        name: Lint
-        command:  |
+      - run:
+          name: Lint
+          command: |
             . venv/bin/activate
             rst-lint --encoding=utf-8 README.rst
     docker:
-    - image: circleci/python:3.9
+      - image: circleci/python:3.9
