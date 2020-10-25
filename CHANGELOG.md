@@ -20,6 +20,7 @@
 
 # Unreleased
 
+* Added pre-built wheels for `x86_64` and `i686` architectures for most Linux distributions using [`manylinux`](https://github.com/pypa/manylinux).
 * Added Python 3.9 support
 * Switched to using a C implementation of `timezone` objects.
     * Much faster parse times for timestamps with timezone information

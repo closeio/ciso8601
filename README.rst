@@ -15,11 +15,13 @@ ciso8601
 
 Since it's written as a C module, it is much faster than other Python libraries.
 Tested with cPython 2.7, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9.
+Wheels are provided for ``x86_64`` and ``i686`` architectures for most Linux distributions using `manylinux`_.
 
 **Note:** ciso8601 doesn't support the entirety of the ISO 8601 spec, `only a popular subset`_.
 
 .. _ISO 8601: https://en.wikipedia.org/wiki/ISO_8601
 .. _RFC 3339: https://tools.ietf.org/html/rfc3339
+.. _manylinux: https://github.com/pypa/manylinux
 
 .. _`only a popular subset`: https://github.com/closeio/ciso8601#supported-subset-of-iso-8601
 
