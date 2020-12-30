@@ -15,6 +15,17 @@
 
 static PyObject *utc;
 
+#if CISO8601_CACHING_ENABLED
+/* 2879 = (1439 * 2) + 1, number of offsets from UTC possible in
+ * Python (ie. [-1439, 1439]).
+ *
+ * 0 - 1438 = Negative offsets [-1439..-1]
+ * 1439 = Zero offset
+ * 1440 - 2878 = Positive offsets [1...1439]
+ */
+static PyObject *tz_cache[2879] = {NULL};
+#endif
+
 #define PARSE_INTEGER(field, length, field_name)                       \
     for (i = 0; i < length; i++) {                                     \
         if (*c >= '0' && *c <= '9') {                                  \
@@ -139,6 +150,9 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
         usecond = 0;
     int time_is_midnight = 0;
     int tzhour = 0, tzminute = 0, tzsign = 0;
+#if CISO8601_CACHING_ENABLED
+    int tz_index = 0;
+#endif
     PyObject *delta;
     PyObject *temp;
     int extended_date_format = 0;
@@ -449,9 +463,23 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
                     return NULL;
                 }
                 else {
+#if CISO8601_CACHING_ENABLED
+                    tz_index = tzminute + 1439;
+                    if (tz_cache[tz_index] == NULL) {
+                        tzinfo = new_fixed_offset(60 * tzminute);
+
+                        if (tzinfo == NULL) /* ie. PyErr_Occurred() */
+                            return NULL;
+                        tz_cache[tz_index] = tzinfo;
+                    }
+                    else {
+                        tzinfo = tz_cache[tz_index];
+                    }
+#else
                     tzinfo = new_fixed_offset(60 * tzminute);
                     if (tzinfo == NULL) /* ie. PyErr_Occurred() */
                         return NULL;
+#endif
                 }
             }
         }
@@ -477,8 +505,10 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
         year, month, day, hour, minute, second, usecond, tzinfo,
         PyDateTimeAPI->DateTimeType);
 
+#if !CISO8601_CACHING_ENABLED
     if (tzinfo != Py_None && tzinfo != utc)
         Py_DECREF(tzinfo);
+#endif
 
     if (obj && time_is_midnight) {
         delta = PyDelta_FromDSU(1, 0, 0); /* 1 day */
