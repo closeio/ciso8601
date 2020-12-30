@@ -80,6 +80,15 @@ Disclaimer
 Because of the way that ``tox`` works (and the way the benchmark is structured more generally), it doesn't make sense to compare the results for a given module across different Python versions.
 Comparisons between modules within the same Python version are still valid, and indeed, are the goal of the benchmarks.
 
+Caching
+-------
+
+`ciso8601` caches the ``tzinfo`` objects it creates, allowing it to reuse those objects for faster creation of subsequent ``datetime`` objects.
+For example, for some types of profiling, it makes sense not to have a cache.
+Caching can be disabled by modifying the `tox.ini`_ and changing ``CISO8601_CACHING_ENABLED`` to ``0``.
+
+.. _`tox.ini`: https://github.com/closeio/ciso8601/blob/master/benchmarking/tox.ini
+
 FAQs
 ----
 
