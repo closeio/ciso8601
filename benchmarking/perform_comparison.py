@@ -25,7 +25,7 @@ ISO_8601_MODULES = {
     "str2date": ('from str2date import str2date', "str2date('{timestamp}')"),
 }
 
-if os.name != 'nt':
+if os.name != 'nt' and (sys.version_info.major, sys.version_info.minor) < (3, 9):
     # udatetime doesn't support Windows.
     ISO_8601_MODULES["udatetime"] = ('import udatetime', "udatetime.from_string('{timestamp}')")
 
@@ -86,6 +86,7 @@ def run_tests(timestamp, results_directory, compare_to):
                         timer = timeit.Timer(stmt=stmt.format(timestamp=timestamp), setup=setup)
                         count, time_taken = timer.autorange()
                 except Exception as exc:
+                    count = 1
                     parse_result = None
                     exception = type(exc)
 
