@@ -40,7 +40,7 @@ setup(
     url="https://github.com/closeio/ciso8601",
     license="MIT",
     ext_modules=[Extension("ciso8601",
-                           sources=["module.c"],
+                           sources=["module.c", "timezone.c"],
                            define_macros=[("CISO8601_VERSION", VERSION)]
                            )],
     packages=["ciso8601"],
