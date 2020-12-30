@@ -26,6 +26,9 @@
         * ~2.5x faster on Python 2.7, ~10% faster on Python 3.9
     * Thanks to [`pendulum`](https://github.com/sdispater/pendulum) and @sdispater for the code.
     * Python 2.7 users no longer need to install `pytz` dependency :smiley:
+* Added caching of tzinfo objects
+  * Parsing is ~1.1x faster for subsequent timestamps that have the same time zone offset.
+  * Caching can be disabled at compile time by setting the `CISO8601_CACHING_ENABLED=0` environment variable
 
 # 2.x.x
 

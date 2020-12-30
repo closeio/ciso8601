@@ -32,6 +32,7 @@ if os.environ.get("STRICT_WARNINGS", "0") == "1":
     os.environ["_CL_"] += " /WX"
 
 VERSION = "2.1.3"
+CISO8601_CACHING_ENABLED = int(os.environ.get('CISO8601_CACHING_ENABLED', '1') == '1')
 
 setup(
     name="ciso8601",
@@ -44,7 +45,10 @@ setup(
         Extension(
             "ciso8601",
             sources=["module.c", "timezone.c"],
-            define_macros=[("CISO8601_VERSION", VERSION)],
+            define_macros=[
+                ("CISO8601_VERSION", VERSION),
+                ("CISO8601_CACHING_ENABLED", CISO8601_CACHING_ENABLED),
+            ],
         )
     ],
     packages=["ciso8601"],

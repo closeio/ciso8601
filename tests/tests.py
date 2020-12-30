@@ -288,21 +288,23 @@ class InvalidTimestampTestCase(unittest.TestCase):
         # The TZ offsets with an absolute value >= 1440 minutes are not supported by the tzinfo spec.
         # See https://docs.python.org/3/library/datetime.html#datetime.tzinfo.utcoffset
 
-        # Error message differs whether or not we are using pytz or datetime.timezone
-        # (and also by which Python version. Python 3.7 has different timedelta.repr())
-        # Of course we no longer use either, but for backwards compatibility
-        # with v2.0.x, we did not change the error messages.
-        if sys.version_info.major >= 3:
-            expected_error_message = re.escape("offset must be a timedelta strictly between -timedelta(hours=24) and timedelta(hours=24), not {0}.".format(repr(datetime.timedelta(minutes=-5940))))
-        else:
-            expected_error_message = r"\('absolute offset is too large', -5940\)"
+        invalid_offsets = [("-24", -1440), ("+24", 1440), ("-99", -5940), ("+99", 5940)]
+        for offset_string, offset_minutes in invalid_offsets:
+            # Error message differs whether or not we are using pytz or datetime.timezone
+            # (and also by which Python version. Python 3.7 has different timedelta.repr())
+            # Of course we no longer use either, but for backwards compatibility
+            # with v2.0.x, we did not change the error messages.
+            if sys.version_info.major >= 3:
+                expected_error_message = re.escape("offset must be a timedelta strictly between -timedelta(hours=24) and timedelta(hours=24), not {0}.".format(repr(datetime.timedelta(minutes=offset_minutes))))
+            else:
+                expected_error_message = re.escape("'absolute offset is too large', {0}".format(offset_minutes))
 
-        self.assertRaisesRegex(
-            ValueError,
-            expected_error_message,
-            parse_datetime,
-            "2018-01-01T00:00:00.00-99",
-        )
+            self.assertRaisesRegex(
+                ValueError,
+                expected_error_message,
+                parse_datetime,
+                "2018-01-01T00:00:00.00{0}".format(offset_string),
+            )
 
         self.assertRaisesRegex(
             ValueError,
@@ -376,6 +378,17 @@ class Rfc3339TestCase(unittest.TestCase):
         ]:
             with self.assertRaisesRegex(ValueError, r"RFC 3339", msg="Timestamp '{0}' was supposed to be invalid, but parsing it didn't raise ValueError.".format(timestamp)):
                 parse_rfc3339(timestamp)
+
+
+class FixedOffsetTestCase(unittest.TestCase):
+    def test_all_valid_offsets(self):
+        [FixedOffset(i * 60) for i in range(-1439, 1440)]
+
+    def test_offsets_outside_valid_range(self):
+        invalid_offsets = [-1440, 1440, 10000, -10000]
+        for invalid_offset in invalid_offsets:
+            with self.assertRaises(ValueError, msg="Fixed offset of {0} minutes was supposed to be invalid, but it didn't raise ValueError.".format(invalid_offset)):
+                FixedOffset(invalid_offset * 60)
 
 
 class PicklingTestCase(unittest.TestCase):
