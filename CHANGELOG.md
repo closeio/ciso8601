@@ -1,57 +1,104 @@
-<!-- Generated with "Markdown T​O​C" extension for Visual Studio Code -->
-<!-- TOC anchorMode:github.com -->
+# CHANGELOG <!-- omit in toc -->
 
+All notable changes to this project will be documented in this file.
+This project adheres to [Semantic Versioning](http://semver.org/) and [Keep a Changelog](http://keepachangelog.com/).
+
+This CHANGELOG is modified programmatically using the [`changelog-cli`](https://github.com/mc706/changelog-cli) tool.
+
+## Timeline <!-- omit in toc -->
+<!-- Generated with "Markdown All-in-One" extension for Visual Studio Code -->
 - [Unreleased](#unreleased)
-- [2.x.x](#2xx)
-  - [Version 2.1.3](#version-213)
-  - [Version 2.1.2](#version-212)
-  - [Version 2.1.1](#version-211)
-  - [Version 2.1.0](#version-210)
-  - [Version 2.0.1](#version-201)
-  - [Version 2.0.0](#version-200)
-    - [Breaking changes](#breaking-changes)
-    - [Other Changes](#other-changes)
-    - [v1.x.x -> 2.0.0 Migration guide](#v1xx---200-migration-guide)
-      - [ValueError instead of None](#valueerror-instead-of-none)
-      - [Tightened ISO 8601 conformance](#tightened-iso-8601-conformance)
-      - [`parse_datetime_unaware` has been renamed](#parse_datetime_unaware-has-been-renamed)
+  - [Added](#added)
+  - [Deprecated](#deprecated)
+  - [Removed](#removed)
+  - [Fixed](#fixed)
+  - [Security](#security)
+- [2.1.3 - (2020-02-06)](#213---2020-02-06)
+  - [Fixed](#fixed-1)
+- [2.1.2 - (2019-10-18)](#212---2019-10-18)
+  - [Added](#added-1)
+  - [Fixed](#fixed-2)
+- [2.1.1 - (2018-10-03)](#211---2018-10-03)
+  - [Fixed](#fixed-3)
+- [2.1.0 - (2018-10-03)](#210---2018-10-03)
+  - [Added](#added-2)
+  - [Fixed](#fixed-4)
+- [2.0.1 - (2018-06-04)](#201---2018-06-04)
+  - [Security](#security-1)
+- [2.0.0 - (2018-06-01)](#200---2018-06-01)
+  - [Breaking changes](#breaking-changes)
+  - [Other Changes](#other-changes)
+  - [v1.x.x -> 2.0.0 Migration guide](#v1xx---200-migration-guide)
+    - [ValueError instead of None](#valueerror-instead-of-none)
+    - [Tightened ISO 8601 conformance](#tightened-iso-8601-conformance)
+    - [`parse_datetime_unaware` has been renamed](#parse_datetime_unaware-has-been-renamed)
 
-<!-- /TOC -->
+## Unreleased
+---
 
-# Unreleased
-
+### Added
 * Added Python 3.9 support
 
-# 2.x.x
+### Deprecated
 
-## Version 2.1.3
 
+### Removed
+
+
+### Fixed
+
+
+### Security
+
+
+## 2.1.3 - (2020-02-06)
+---
+
+### Fixed
 * Fixed a problem where non-ASCII characters would give bad error messages (#84). Thanks @olliemath.
 
-## Version 2.1.2
 
-* Fixed a problem where `ciso8601.__version__` was not working (#80). Thanks @ianhoffman.
+## 2.1.2 - (2019-10-18)
+---
+
+### Added
 * Added Python 3.8 support (#83)
 * Added benchmarking scripts (#55)
 
-## Version 2.1.1
 
+### Fixed
+* Fixed a problem where `ciso8601.__version__` was not working (#80). Thanks @ianhoffman.
+
+
+## 2.1.1 - (2018-10-03)
+---
+
+### Fixed
 * Fixed a problem where builds on Windows were not working (#76). Thanks @alexandrul and @gillesdouaire, and sorry.
 
-## Version 2.1.0
 
+## 2.1.0 - (2018-10-03)
+---
+
+### Added
 * Added [Mypy](http://mypy-lang.org/)/[PEP 484](https://www.python.org/dev/peps/pep-0484/) typing information (#68, Thanks @NickG123).
 * Added a new function: `parse_rfc3339`, which strictly parses RFC 3339 (#70).
+
+
+### Fixed
 * No longer accept mixed "basic" and "extended" format timestamps (#73).
     * ex. `20140203T23:35:27` and `2014-02-03T233527` are not valid in ISO 8601, but were not raising `ValueError`.
     * Attempting to parse such timestamps now raises `ValueError`
 
-## Version 2.0.1
 
+## 2.0.1 - (2018-06-04)
+---
+
+### Security
 * Fixed some memory leaks introduced in 2.0.0 (#51)
 
-## Version 2.0.0
-
+## 2.0.0 - (2018-06-01)
+---
 Version 2.0.0 was a major rewrite of `ciso8601`.
 
 Version 1.x.x had a problem with error handling in the case of invalid timestamps.
