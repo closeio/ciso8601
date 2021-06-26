@@ -19,7 +19,6 @@ ISO_8601_MODULES = {
     "ciso8601": ("import ciso8601", "ciso8601.parse_datetime('{timestamp}')"),
     "python-dateutil": ("import dateutil.parser", "dateutil.parser.parse('{timestamp}')"),
     "iso8601": ("import iso8601", "iso8601.parse_date('{timestamp}')"),
-    "iso8601utils": ("from iso8601utils import parsers", "parsers.datetime('{timestamp}')"),
     "isodate": ("import isodate", "isodate.parse_datetime('{timestamp}')"),
     "maya": ("import maya", "maya.parse('{timestamp}').datetime()"),
     "pendulum": ("from pendulum.parsing import parse_iso8601", "parse_iso8601('{timestamp}')"),
@@ -34,6 +33,11 @@ if os.name != "nt" and (sys.version_info.major, sys.version_info.minor) < (3, 9)
 if sys.version_info.major > 2:
     # zulu no longer supports Python 2.7
     ISO_8601_MODULES["zulu"] = ("import zulu", "zulu.parse('{timestamp}')")
+
+if (sys.version_info.major, sys.version_info.minor) != (3, 6):
+    # iso8601utils installs enum34, which messes with tox in Python 3.6
+    # https://stackoverflow.com/q/43124775
+    ISO_8601_MODULES["iso8601utils"] = ("from iso8601utils import parsers", "parsers.datetime('{timestamp}')")
 
 if (sys.version_info.major, sys.version_info.minor) != (3, 4):
     # arrow no longer supports Python 3.4
