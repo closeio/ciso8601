@@ -45,6 +45,28 @@ if (sys.version_info.major, sys.version_info.minor) != (3, 4):
     # moment is built on `times`, which is built on `arrow`, which no longer supports Python 3.4
     ISO_8601_MODULES["moment"] = ("import moment", "moment.date('{timestamp}').date")
 
+class Result:
+    def __init__(self, module, setup, stmt, parse_result, count, time_taken, matched, exception):
+        self.module = module
+        self.setup = setup
+        self.stmt = stmt
+        self.parse_result = parse_result
+        self.count = count
+        self.time_taken = time_taken
+        self.matched = matched
+        self.exception = exception
+
+    def to_row(self):
+        return [
+            self.module,
+            self.setup,
+            self.stmt,
+            self.parse_result,
+            self.count,
+            self.time_taken,
+            self.matched,
+            self.exception
+        ]
 
 def check_roughly_equivalent(dt1, dt2):
     # For the purposes of our benchmarking, we don't care if the datetime
@@ -53,75 +75,93 @@ def check_roughly_equivalent(dt1, dt2):
     dt2 = dt2.replace(tzinfo=pytz.UTC) if isinstance(dt2, datetime) and dt2.tzinfo is None else dt2
     return dt1 == dt2
 
+def auto_range_counts(filepath):
+    results = {}
+    if os.path.exists(filepath):
+        with open(filepath, "r") as fin:
+            reader = csv.reader(fin, delimiter=",", quotechar='"')
+            for module, count in reader:
+                results[module] = int(count)
+    return results
+
+def update_auto_range_counts(filepath, results):
+    new_counts = dict([[result.module, result.count] for result in results if result.count is not None])
+    new_auto_range_counts = auto_range_counts(filepath)
+    new_auto_range_counts.update(new_counts)
+    with open(filepath, "w") as fout:
+        auto_range_file_writer = csv.writer(fout, delimiter=",", quotechar='"', lineterminator="\n")
+        for module, count in sorted(new_auto_range_counts.items()):
+            auto_range_file_writer.writerow([module, count])
+
+def write_results(filepath, timestamp, results):
+    with open(filepath, "w") as fout:
+        writer = csv.writer(fout, delimiter=",", quotechar='"', lineterminator="\n")
+        writer.writerow([sys.version_info.major, sys.version_info.minor, timestamp])
+        for result in results:
+            writer.writerow(result.to_row())
+
+def write_module_versions(filepath):
+    with open(filepath, "w") as fout:
+        module_version_writer = csv.writer(fout, delimiter=",", quotechar='"', lineterminator="\n")
+        module_version_writer.writerow([sys.version_info.major, sys.version_info.minor])
+        for module, (_setup, _stmt) in sorted(ISO_8601_MODULES.items(), key=lambda x: x[0].lower()):
+            module_version_writer.writerow([module, get_module_version(module)])
 
 def run_tests(timestamp, results_directory, compare_to):
     # `Timer.autorange` only exists in Python 3.6+. We want the tests to run in a reasonable amount of time,
     # but we don't want to have to hard-code how many times to run each test.
     # So we make sure to call Python 3.6+ versions first. They output a file that the others use to know how many iterations to run.
-    test_interation_counts = {}
-    auto_range_file_obj = None
-    auto_range_file_writer = None
-    try:
-        if (sys.version_info.major == 3 and sys.version_info.minor >= 6) or sys.version_info.major > 3:
-            auto_range_file_obj = open(os.path.join(results_directory, "auto_range_counts.csv"), "w")
-            auto_range_file_writer = csv.writer(auto_range_file_obj, delimiter=",", quotechar='"', lineterminator="\n")
-        else:
-            with open(os.path.join(results_directory, "auto_range_counts.csv"), "r") as fin:
-                reader = csv.reader(fin, delimiter=",", quotechar='"')
-                for module, count in reader:
-                    test_interation_counts[module] = int(count)
+    auto_range_count_filepath = os.path.join(results_directory, "auto_range_counts.csv")
+    test_interation_counts = auto_range_counts(auto_range_count_filepath)
 
-        exec(ISO_8601_MODULES[compare_to][0])
-        expected_parse_result = eval(ISO_8601_MODULES[compare_to][1].format(timestamp=timestamp))
+    exec(ISO_8601_MODULES[compare_to][0])
+    expected_parse_result = eval(ISO_8601_MODULES[compare_to][1].format(timestamp=timestamp))
 
-        with open(os.path.join(results_directory, "benchmark_timings_python{major}{minor}.csv".format(major=sys.version_info.major, minor=sys.version_info.minor)), "w") as fout:
-            writer = csv.writer(fout, delimiter=",", quotechar='"', lineterminator="\n")
-            writer.writerow([sys.version_info.major, sys.version_info.minor, timestamp])
-            for module, (setup, stmt) in ISO_8601_MODULES.items():
-                count = None
-                time_taken = None
-                exception = None
-                try:
-                    exec(setup)
-                    parse_result = eval(stmt.format(timestamp=timestamp))
+    results = []
 
-                    if module in test_interation_counts:
-                        count = test_interation_counts[module]
-                        timer = timeit.Timer(stmt=stmt.format(timestamp=timestamp), setup=setup)
-                        time_taken = timer.timeit(number=count)
-                    else:
-                        timer = timeit.Timer(stmt=stmt.format(timestamp=timestamp), setup=setup)
-                        count, time_taken = timer.autorange()
-                except Exception as exc:
-                    count = 1
-                    parse_result = None
-                    exception = type(exc)
+    for module, (setup, stmt) in ISO_8601_MODULES.items():
+        count = None
+        time_taken = None
+        exception = None
+        try:
+            exec(setup)
+            parse_result = eval(stmt.format(timestamp=timestamp))
 
-                writer.writerow(
-                    [
-                        module,
-                        setup,
-                        stmt.format(timestamp=timestamp),
-                        parse_result if parse_result is not None else "None",
-                        count,
-                        time_taken,
-                        check_roughly_equivalent(parse_result, expected_parse_result),
-                        exception,
-                    ]
-                )
+            timer = timeit.Timer(stmt=stmt.format(timestamp=timestamp), setup=setup)
+            if hasattr(timer, 'autorange'):
+                count, time_taken = timer.autorange()
+            else:
+                count = test_interation_counts[module]
+                time_taken = timer.timeit(number=count)
+        except Exception as exc:
+            count = None
+            time_taken = None
+            parse_result = None
+            exception = type(exc)
 
-                if auto_range_file_writer is not None:
-                    auto_range_file_writer.writerow([module, count])
-    finally:
-        if auto_range_file_obj is not None:
-            auto_range_file_obj.close()
+        results.append(
+            Result(
+                module,
+                setup,
+                stmt.format(timestamp=timestamp),
+                parse_result if parse_result is not None else "None",
+                count,
+                time_taken,
+                check_roughly_equivalent(parse_result, expected_parse_result),
+                exception,
+            )
+        )
 
-    with open(os.path.join(results_directory, "module_versions_python{major}{minor}.csv".format(major=sys.version_info.major, minor=sys.version_info.minor)), "w") as fout:
-        module_version_writer = csv.writer(fout, delimiter=",", quotechar='"', lineterminator="\n")
-        module_version_writer.writerow([sys.version_info.major, sys.version_info.minor])
-        for module, (setup, stmt) in sorted(ISO_8601_MODULES.items(), key=lambda x: x[0].lower()):
-            module_version_writer.writerow([module, get_module_version(module)])
+    update_auto_range_counts(auto_range_count_filepath, results)
 
+    results_filepath = os.path.join(results_directory, "benchmark_timings_python{major}{minor}.csv".format(major=sys.version_info.major, minor=sys.version_info.minor))
+    write_results(results_filepath, timestamp, results)
+
+    module_versions_filepath = os.path.join(results_directory, "module_versions_python{major}{minor}.csv".format(major=sys.version_info.major, minor=sys.version_info.minor))
+    write_module_versions(module_versions_filepath)
+
+def sanitize_timestamp_as_filename(timestamp):
+    return timestamp.replace(":", "")
 
 if __name__ == "__main__":
     TIMESTAMP_HELP = "Which ISO 8601 timestamp to parse"
@@ -138,7 +178,7 @@ if __name__ == "__main__":
     parser.add_argument("--results", required=False, default=RESULTS_DIR_DEFAULT, help=RESULTS_DIR_HELP)
     args = parser.parse_args()
 
-    output_dir = os.path.join(args.results, args.TIMESTAMP.replace(":", ""))
+    output_dir = os.path.join(args.results, sanitize_timestamp_as_filename(args.TIMESTAMP))
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
