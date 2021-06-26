@@ -34,8 +34,8 @@ class ValidTimestampTestCase(unittest.TestCase):
 
     def test_excessive_subsecond_precision(self):
         self.assertEqual(
-            ciso8601.parse_datetime('20140203T103527.234567891234'),
-            datetime.datetime(2014, 2, 3, 10, 35, 27, 234567)
+            ciso8601.parse_datetime("20140203T103527.234567891234"),
+            datetime.datetime(2014, 2, 3, 10, 35, 27, 234567),
         )
 
     def test_leap_year(self):
@@ -43,14 +43,14 @@ class ValidTimestampTestCase(unittest.TestCase):
         # We just want to make sure that they work in general.
         for leap_year in (1600, 2000, 2016):
             self.assertEqual(
-                ciso8601.parse_datetime('{}-02-29'.format(leap_year)),
-                datetime.datetime(leap_year, 2, 29, 0, 0, 0, 0)
+                ciso8601.parse_datetime("{}-02-29".format(leap_year)),
+                datetime.datetime(leap_year, 2, 29, 0, 0, 0, 0),
             )
 
     def test_special_midnight(self):
         self.assertEqual(
-            ciso8601.parse_datetime('2014-02-03T24:00:00'),
-            datetime.datetime(2014, 2, 4, 0, 0, 0)
+            ciso8601.parse_datetime("2014-02-03T24:00:00"),
+            datetime.datetime(2014, 2, 4, 0, 0, 0),
         )
 
 
@@ -74,26 +74,26 @@ class InvalidTimestampTestCase(unittest.TestCase):
                 ValueError,
                 r"Invalid character while parsing date separator \('-'\) \('🐵', Index: 7\)",
                 ciso8601.parse_datetime,
-                '2019-01🐵01',
+                "2019-01🐵01",
             )
             self.assertRaisesRegex(
                 ValueError,
                 r"Invalid character while parsing day \('🐵', Index: 8\)",
                 ciso8601.parse_datetime,
-                '2019-01-🐵',
+                "2019-01-🐵",
             )
         else:
             self.assertRaisesRegex(
                 ValueError,
                 r"Invalid character while parsing date separator \('-'\) \(Index: 7\)",
                 ciso8601.parse_datetime,
-                '2019-01🐵01',
+                "2019-01🐵01",
             )
             self.assertRaisesRegex(
                 ValueError,
                 r"Invalid character while parsing day \(Index: 8\)",
                 ciso8601.parse_datetime,
-                '2019-01-🐵',
+                "2019-01-🐵",
             )
 
     def test_invalid_calendar_separator(self):
@@ -101,28 +101,28 @@ class InvalidTimestampTestCase(unittest.TestCase):
             ValueError,
             r"Invalid character while parsing month",
             ciso8601.parse_datetime,
-            '2018=01=01',
+            "2018=01=01",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Invalid character while parsing date separator \('-'\) \('=', Index: 7\)",
             ciso8601.parse_datetime,
-            '2018-01=01',
+            "2018-01=01",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Invalid character while parsing date separator \('-'\) \('0', Index: 7\)",
             ciso8601.parse_datetime,
-            '2018-0101',
+            "2018-0101",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Invalid character while parsing day \('-', Index: 6\)",
             ciso8601.parse_datetime,
-            '201801-01',
+            "201801-01",
         )
 
     def test_invalid_empty_but_required_fields(self):
@@ -130,63 +130,63 @@ class InvalidTimestampTestCase(unittest.TestCase):
             ValueError,
             r"Unexpected end of string while parsing year. Expected 4 more characters",
             ciso8601.parse_datetime,
-            '',
+            "",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Unexpected end of string while parsing month. Expected 2 more characters",
             ciso8601.parse_datetime,
-            '2018-',
+            "2018-",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Unexpected end of string while parsing day. Expected 2 more characters",
             ciso8601.parse_datetime,
-            '2018-01-',
+            "2018-01-",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Unexpected end of string while parsing hour. Expected 2 more characters",
             ciso8601.parse_datetime,
-            '2018-01-01T',
+            "2018-01-01T",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Unexpected end of string while parsing minute. Expected 2 more characters",
             ciso8601.parse_datetime,
-            '2018-01-01T00:',
+            "2018-01-01T00:",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Unexpected end of string while parsing second. Expected 2 more characters",
             ciso8601.parse_datetime,
-            '2018-01-01T00:00:',
+            "2018-01-01T00:00:",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Unexpected end of string while parsing subsecond. Expected 1 more character",
             ciso8601.parse_datetime,
-            '2018-01-01T00:00:00.',
+            "2018-01-01T00:00:00.",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Unexpected end of string while parsing tz hour. Expected 2 more characters",
             ciso8601.parse_datetime,
-            '2018-01-01T00:00:00.00+',
+            "2018-01-01T00:00:00.00+",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Unexpected end of string while parsing tz minute. Expected 2 more characters",
             ciso8601.parse_datetime,
-            '2018-01-01T00:00:00.00-00:',
+            "2018-01-01T00:00:00.00-00:",
         )
 
     def test_invalid_day_for_month(self):
@@ -195,28 +195,28 @@ class InvalidTimestampTestCase(unittest.TestCase):
                 ValueError,
                 r"day is out of range for month",
                 ciso8601.parse_datetime,
-                '{}-02-29'.format(non_leap_year)
+                "{}-02-29".format(non_leap_year),
             )
 
         self.assertRaisesRegex(
             ValueError,
             r"day is out of range for month",
             ciso8601.parse_datetime,
-            '2014-01-32',
+            "2014-01-32",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"day is out of range for month",
             ciso8601.parse_datetime,
-            '2014-06-31',
+            "2014-06-31",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"day is out of range for month",
             ciso8601.parse_datetime,
-            '2014-06-00',
+            "2014-06-00",
         )
 
     def test_invalid_yyyymm_format(self):
@@ -224,7 +224,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
             ValueError,
             r"Unexpected end of string while parsing day. Expected 2 more characters",
             ciso8601.parse_datetime,
-            '201406',
+            "201406",
         )
 
     def test_invalid_date_and_time_separator(self):
@@ -232,7 +232,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
             ValueError,
             r"Invalid character while parsing date and time separator \(ie. 'T' or ' '\) \('_', Index: 10\)",
             ciso8601.parse_datetime,
-            '2018-01-01_00:00:00',
+            "2018-01-01_00:00:00",
         )
 
     def test_invalid_hour_24(self):
@@ -241,7 +241,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
             ValueError,
             r"hour must be in 0..23",
             ciso8601.parse_datetime,
-            '2014-02-03T24:35:27',
+            "2014-02-03T24:35:27",
         )
 
     def test_invalid_time_separator(self):
@@ -249,21 +249,21 @@ class InvalidTimestampTestCase(unittest.TestCase):
             ValueError,
             r"Invalid character while parsing time separator \(':'\) \('=', Index: 16\)",
             ciso8601.parse_datetime,
-            '2018-01-01T00:00=00'
+            "2018-01-01T00:00=00",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Invalid character while parsing time separator \(':'\) \('0', Index: 16\)",
             ciso8601.parse_datetime,
-            '2018-01-01T00:0000'
+            "2018-01-01T00:0000",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Invalid character while parsing second \(':', Index: 15\)",
             ciso8601.parse_datetime,
-            '2018-01-01T0000:00'
+            "2018-01-01T0000:00",
         )
 
     def test_invalid_tz_minute(self):
@@ -271,7 +271,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
             ValueError,
             r"tzminute must be in 0..59",
             ciso8601.parse_datetime,
-            '2018-01-01T00:00:00.00-00:99',
+            "2018-01-01T00:00:00.00-00:99",
         )
 
     def test_invalid_tz_offsets_too_large(self):
@@ -282,14 +282,14 @@ class InvalidTimestampTestCase(unittest.TestCase):
             # Error message differs whether or not we are using pytz or datetime.timezone
             r"^offset must be a timedelta strictly between" if sys.version_info.major >= 3 else r"\('absolute offset is too large', -5940\)",
             ciso8601.parse_datetime,
-            '2018-01-01T00:00:00.00-99',
+            "2018-01-01T00:00:00.00-99",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"tzminute must be in 0..59",
             ciso8601.parse_datetime,
-            '2018-01-01T00:00:00.00-23:60',
+            "2018-01-01T00:00:00.00-23:60",
         )
 
     def test_mixed_basic_and_extended_formats(self):
@@ -302,14 +302,14 @@ class InvalidTimestampTestCase(unittest.TestCase):
             ValueError,
             r"Cannot combine \"extended\" date format with \"basic\" time format",
             ciso8601.parse_datetime,
-            '2014-01-02T010203',
+            "2014-01-02T010203",
         ),
 
         self.assertRaisesRegex(
             ValueError,
             r"Cannot combine \"basic\" date format with \"extended\" time format",
             ciso8601.parse_datetime,
-            '20140102T01:02:03',
+            "20140102T01:02:03",
         )
 
 
@@ -320,18 +320,19 @@ class Rfc3339TestCase(unittest.TestCase):
         and produce the same result as parse_datetime.
         """
         for string in [
-                '2018-01-02T03:04:05Z',
-                '2018-01-02t03:04:05z',
-                '2018-01-02 03:04:05z',
-                '2018-01-02T03:04:05+00:00',
-                '2018-01-02T03:04:05-00:00',
-                '2018-01-02T03:04:05.12345Z',
-                '2018-01-02T03:04:05+01:23',
-                '2018-01-02T03:04:05-12:34',
-                '2018-01-02T03:04:05-12:34',
+            "2018-01-02T03:04:05Z",
+            "2018-01-02t03:04:05z",
+            "2018-01-02 03:04:05z",
+            "2018-01-02T03:04:05+00:00",
+            "2018-01-02T03:04:05-00:00",
+            "2018-01-02T03:04:05.12345Z",
+            "2018-01-02T03:04:05+01:23",
+            "2018-01-02T03:04:05-12:34",
+            "2018-01-02T03:04:05-12:34",
         ]:
-            self.assertEqual(ciso8601.parse_datetime(string),
-                             ciso8601.parse_rfc3339(string))
+            self.assertEqual(
+                ciso8601.parse_datetime(string), ciso8601.parse_rfc3339(string)
+            )
 
     def test_invalid_rfc3339_timestamps(self):
         """
@@ -340,19 +341,19 @@ class Rfc3339TestCase(unittest.TestCase):
         ValueError explicitly mentions RFC 3339.
         """
         for timestamp in [
-                "2018-01-02",  # Missing mandatory time
-                "2018-01-02T03",  # Missing mandatory minute and second
-                "2018-01-02T03Z",  # Missing mandatory minute and second
-                "2018-01-02T03:04",  # Missing mandatory minute and second
-                "2018-01-02T03:04Z",  # Missing mandatory minute and second
-                "2018-01-02T03:04:01+04",  # Missing mandatory offset minute
-                "2018-01-02T03:04:05",  # Missing mandatory offset
-                "2018-01-02T03:04:05.12345",  # Missing mandatory offset
-                "2018-01-02T24:00:00Z",  # 24:00:00 is not valid in RFC 3339
-                '20180102T03:04:05-12:34',  # Missing mandatory date separators
-                '2018-01-02T030405-12:34',  # Missing mandatory time separators
-                '2018-01-02T03:04:05-1234',  # Missing mandatory offset separator
-                '2018-01-02T03:04:05,12345Z'  # Invalid comma fractional second separator
+            "2018-01-02",  # Missing mandatory time
+            "2018-01-02T03",  # Missing mandatory minute and second
+            "2018-01-02T03Z",  # Missing mandatory minute and second
+            "2018-01-02T03:04",  # Missing mandatory minute and second
+            "2018-01-02T03:04Z",  # Missing mandatory minute and second
+            "2018-01-02T03:04:01+04",  # Missing mandatory offset minute
+            "2018-01-02T03:04:05",  # Missing mandatory offset
+            "2018-01-02T03:04:05.12345",  # Missing mandatory offset
+            "2018-01-02T24:00:00Z",  # 24:00:00 is not valid in RFC 3339
+            "20180102T03:04:05-12:34",  # Missing mandatory date separators
+            "2018-01-02T030405-12:34",  # Missing mandatory time separators
+            "2018-01-02T03:04:05-1234",  # Missing mandatory offset separator
+            "2018-01-02T03:04:05,12345Z",  # Invalid comma fractional second separator
         ]:
             with self.assertRaisesRegex(ValueError, r"RFC 3339", msg="Timestamp '{0}' was supposed to be invalid, but parsing it didn't raise ValueError.".format(timestamp)):
                 ciso8601.parse_rfc3339(timestamp)
@@ -368,7 +369,7 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             ValueError,
             r"Invalid character while parsing minute \(':', Index: 14\)",
             ciso8601.parse_datetime,
-            '2014-02-03T10::27',
+            "2014-02-03T10::27",
         )
 
     def test_issue_6(self):
@@ -376,7 +377,7 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             ValueError,
             r"Invalid character while parsing second \('.', Index: 17\)",
             ciso8601.parse_datetime,
-            '2014-02-03 04:05:.123456',
+            "2014-02-03 04:05:.123456",
         )
 
     def test_issue_8(self):
@@ -384,14 +385,14 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             ValueError,
             r"hour must be in 0..23",
             ciso8601.parse_datetime,
-            '2001-01-01T24:01:01',
+            "2001-01-01T24:01:01",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"month must be in 1..12",
             ciso8601.parse_datetime,
-            '07722968',
+            "07722968",
         )
 
     def test_issue_13(self):
@@ -399,7 +400,7 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             ValueError,
             r"month must be in 1..12",
             ciso8601.parse_datetime,
-            '2014-13-01',
+            "2014-13-01",
         )
 
     def test_issue_22(self):
@@ -407,7 +408,7 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             ValueError,
             r"day is out of range for month",
             ciso8601.parse_datetime,
-            '2016-11-31T12:34:34.521059',
+            "2016-11-31T12:34:34.521059",
         )
 
     def test_issue_35(self):
@@ -415,7 +416,7 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             ValueError,
             r"Invalid character while parsing date separator \('-'\) \('1', Index: 7\)",
             ciso8601.parse_datetime,
-            '2017-0012-27T13:35:19+0200',
+            "2017-0012-27T13:35:19+0200",
         )
 
     def test_issue_42(self):
@@ -423,7 +424,7 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             ValueError,
             r"day is out of range for month",
             ciso8601.parse_datetime,
-            '20140200',
+            "20140200",
         )
 
     def test_issue_71(self):
@@ -431,16 +432,16 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             ValueError,
             r"Cannot combine \"basic\" date format with \"extended\" time format",
             ciso8601.parse_datetime,
-            '20010203T04:05:06Z',
+            "20010203T04:05:06Z",
         )
 
         self.assertRaisesRegex(
             ValueError,
             r"Cannot combine \"basic\" date format with \"extended\" time format",
             ciso8601.parse_datetime,
-            '20010203T04:05',
+            "20010203T04:05",
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

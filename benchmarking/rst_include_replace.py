@@ -20,12 +20,12 @@ def replace_include(target_filepath, include_file, source_filepath):
     start_block_regex = re.compile(INCLUDE_BLOCK_START.format(filename=include_file))
     end_block_regex = re.compile(INCLUDE_BLOCK_END.format(filename=include_file))
 
-    with open(source_filepath, 'r') as fin:
+    with open(source_filepath, "r") as fin:
         replacement_lines = iter(fin.readlines())
 
-    with open(target_filepath, 'r') as fin:
+    with open(target_filepath, "r") as fin:
         target_lines = iter(fin.readlines())
-    with open(target_filepath, 'w') as fout:
+    with open(target_filepath, "w") as fout:
         for line in target_lines:
             if start_block_regex.match(line):
                 fout.write(line)
@@ -44,7 +44,7 @@ def replace_include(target_filepath, include_file, source_filepath):
                 fout.write(line)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TARGET_HELP = "The filepath you wish to replace tags within."
     INCLUDE_TAG_HELP = "The filename within the tag you are hoping to replace. (ex. 'benchmark_with_time_zone.rst')"
     SOURCE_HELP = "The filepath whose contents should be included into the TARGET file."
@@ -57,9 +57,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if not os.path.exists(args.TARGET):
-        raise ValueError(f'TARGET path {args.TARGET} does not exist')
+        raise ValueError(f"TARGET path {args.TARGET} does not exist")
 
     if not os.path.exists(args.SOURCE):
-        raise ValueError(f'SOURCE path {args.SOURCE} does not exist')
+        raise ValueError(f"SOURCE path {args.SOURCE} does not exist")
 
     replace_include(args.TARGET, args.INCLUDE_TAG, args.SOURCE)

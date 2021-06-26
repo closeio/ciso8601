@@ -27,11 +27,14 @@ NUMBER_FIELDS = {
     "second": NumberField(2, 2, 0, 60),  # 60 = Leap second
     "microsecond": NumberField(1, None, 0, None),  # Can have unbounded characters
     "tzhour": NumberField(2, 2, 0, 23),
-    "tzminute": NumberField(2, 2, 0, 59)
+    "tzminute": NumberField(2, 2, 0, 59),
 }
 
 PADDED_NUMBER_FIELD_FORMATS = {
-    field_name: "{{{field_name}:0>{max_width}}}".format(field_name=field_name, max_width=field.max_width if field.max_width is not None else 1)
+    field_name: "{{{field_name}:0>{max_width}}}".format(
+        field_name=field_name,
+        max_width=field.max_width if field.max_width is not None else 1,
+    )
     for field_name, field in NUMBER_FIELDS.items()
 }
 
@@ -50,12 +53,7 @@ def __generate_valid_formats(year=2014, month=2, day=3, hour=1, minute=23, secon
         ("{year}-{month}-{day}", set(["year", "month", "day"]), {"year": year, "month": month, "day": day}),
     ]
 
-    valid_date_and_time_separators = [
-        None,
-        'T',
-        't',
-        ' '
-    ]
+    valid_date_and_time_separators = [None, "T", "t", " "]
 
     valid_basic_time_formats = [
         ("{hour}", set(["hour"]), {"hour": hour}),
@@ -135,7 +133,7 @@ def generate_valid_timestamp_and_datetime(year=2014, month=2, day=3, hour=1, min
         "second": second,
         "microsecond": microsecond,
         "tzhour": tzhour,
-        "tzminute": tzminute
+        "tzminute": tzminute,
     }
     for timestamp_format, _fields, datetime_params in __generate_valid_formats(**kwargs):
         # Pad each field to the appropriate width
@@ -176,7 +174,7 @@ def generate_invalid_timestamp(year=2014, month=2, day=3, hour=1, minute=23, sec
         "second": second,
         "microsecond": microsecond,
         "tzhour": tzhour,
-        "tzminute": tzminute
+        "tzminute": tzminute,
     }
 
     for timestamp_format, fields, _datetime_params in __generate_valid_formats(**kwargs):

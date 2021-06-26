@@ -2,11 +2,11 @@ import argparse
 import csv
 import os
 import platform
-import pytablewriter
 import re
 
 from collections import defaultdict, UserDict
 
+import pytablewriter
 
 class Result:
     def __init__(self, timing, parsed_value, exception, matched_expected):
@@ -41,7 +41,7 @@ MODULE_VERSION_FILENAME_REGEX = re.compile(MODULE_VERSION_FILENAME_REGEX_RAW)
 UNITS = {"nsec": 1e-9, "usec": 1e-6, "msec": 1e-3, "sec": 1.0}
 SCALES = sorted([(scale, unit) for unit, scale in UNITS.items()], reverse=True)
 
-NOT_APPLICABLE = 'N/A'
+NOT_APPLICABLE = "N/A"
 
 
 def format_duration(duration):
@@ -51,11 +51,11 @@ def format_duration(duration):
     return "%.*g %s" % (precision, duration / scale, unit)
 
 
-def format_relative(d1, d2):
-    if d1 is None or d2 is None:
+def format_relative(duration1, duration2):
+    if duration1 is None or duration2 is None:
         return NOT_APPLICABLE
     precision = 1
-    return "%.*fx" % (precision, d1 / d2)
+    return "%.*fx" % (precision, duration1 / duration2)
 
 
 def format_used_module_versions(module_versions_used):
@@ -132,10 +132,10 @@ def write_benchmarking_results(results_directory, output_file, baseline_module, 
         [module] + ([calling_code[module]] if include_call else []) + performance_by_version + [relative_slowdown] for module, calling_code, performance_by_version, relative_slowdown in zip(modules_by_modern_speed, calling_codes, performance_results, relative_slowdowns)
     ]
 
-    with open(output_file, 'w') as fout:
+    with open(output_file, "w") as fout:
         writer.stream = fout
         writer.write_table()
-        fout.write('\n')
+        fout.write("\n")
 
         if len(modules_by_modern_speed) > 1:
             baseline_module_timing = results[baseline_module].most_modern_result().formatted_timing()
@@ -162,11 +162,11 @@ def load_module_version_info(results_directory):
 
 
 def write_module_version_info(results_directory, output_file):
-    with open(output_file, 'w') as fout:
+    with open(output_file, "w") as fout:
         fout.write(f"Tested on {platform.system()} {platform.release()} using the following modules:\n")
-        fout.write('\n')
+        fout.write("\n")
         fout.write(".. code:: python\n")
-        fout.write('\n')
+        fout.write("\n")
         for module_version_line in format_used_module_versions(load_module_version_info(results_directory)):
             fout.write(f"  {module_version_line}\n")
 
@@ -176,12 +176,12 @@ def main(results_directory, output_file, baseline_module, include_call, module_v
     write_module_version_info(results_directory, os.path.join(os.path.dirname(output_file), module_version_output))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     OUTPUT_FILE_HELP = "The filepath to use when outputting the reStructuredText results."
     RESULTS_DIR_HELP = f"Which directory the script should look in to find benchmarking results. Will process any file that match the regexes '{FILENAME_REGEX_RAW}' and '{MODULE_VERSION_FILENAME_REGEX_RAW}'."
 
     BASELINE_LIBRARY_DEFAULT = "ciso8601"
-    BASELINE_LIBRARY_HELP = f"The module to make all relative calculations relative to (default: \"{BASELINE_LIBRARY_DEFAULT}\")."
+    BASELINE_LIBRARY_HELP = f'The module to make all relative calculations relative to (default: "{BASELINE_LIBRARY_DEFAULT}").'
 
     INCLUDE_CALL_DEFAULT = False
     INCLUDE_CALL_HELP = f"Whether or not to include a column showing the actual code call (default: {INCLUDE_CALL_DEFAULT})."
