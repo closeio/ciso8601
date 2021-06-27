@@ -30,8 +30,8 @@ if os.name != "nt" and (sys.version_info.major, sys.version_info.minor) < (3, 9)
     # udatetime doesn't support Windows.
     ISO_8601_MODULES["udatetime"] = ("import udatetime", "udatetime.from_string('{timestamp}')")
 
-if sys.version_info.major > 2:
-    # zulu no longer supports Python 2.7
+if (sys.version_info.major, sys.version_info.minor) >= (3, 6):
+    # zulu v2.0.0+ no longer supports Python < 3.6
     ISO_8601_MODULES["zulu"] = ("import zulu", "zulu.parse('{timestamp}')")
 
 if (sys.version_info.major, sys.version_info.minor) != (3, 6):
