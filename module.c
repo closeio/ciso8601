@@ -480,6 +480,8 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
     /* Make sure that there is no more to parse. */
     if (*c != '\0') {
         PyErr_Format(PyExc_ValueError, "unconverted data remains: '%s'", c);
+        if (tzinfo != Py_None && tzinfo != utc)
+            Py_DECREF(tzinfo);
         return NULL;
     }
 
