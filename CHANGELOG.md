@@ -29,6 +29,7 @@
 * Added caching of tzinfo objects
   * Parsing is ~1.1x faster for subsequent timestamps that have the same time zone offset.
   * Caching can be disabled at compile time by setting the `CISO8601_CACHING_ENABLED=0` environment variable
+* Fixed a memory leak in the case where an invalid timestamp had a non-UTC timezone and extra characters
 
 # 2.x.x
 
