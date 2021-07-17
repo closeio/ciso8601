@@ -3,6 +3,7 @@
 import copy
 import datetime
 import pickle
+import platform
 import re
 import sys
 
@@ -57,9 +58,12 @@ class ValidTimestampTestCase(unittest.TestCase):
         )
 
     def test_returns_built_in_utc_if_available(self):
-        # Python 3.7 added a built-in UTC object
+        # Python 3.7 added a built-in UTC object at the C level (`PyDateTime_TimeZone_UTC`)
+        # PyPy added support for it in 7.3.6
+
         timestamp = '2018-01-01T00:00:00.00Z'
-        if sys.version_info >= (3, 7):
+        if (platform.python_implementation() == 'CPython' and sys.version_info >= (3, 7)) or \
+           (platform.python_implementation() == 'PyPy' and sys.pypy_version_info >= (7, 3, 6)):
             self.assertIs(parse_datetime(timestamp).tzinfo, datetime.timezone.utc)
         else:
             self.assertIsInstance(parse_datetime(timestamp).tzinfo, FixedOffset)
@@ -200,34 +204,64 @@ class InvalidTimestampTestCase(unittest.TestCase):
         )
 
     def test_invalid_day_for_month(self):
-        for non_leap_year in (1700, 1800, 1900, 2014):
+        if platform.python_implementation() == 'PyPy' and sys.version_info.major >= 3:
+            for non_leap_year in (1700, 1800, 1900, 2014):
+                self.assertRaisesRegex(
+                    ValueError,
+                    r"('day must be in 1..28', 29)",
+                    parse_datetime,
+                    "{}-02-29".format(non_leap_year),
+                )
+
+            self.assertRaisesRegex(
+                ValueError,
+                r"('day must be in 1..31', 32)",
+                parse_datetime,
+                "2014-01-32",
+            )
+
+            self.assertRaisesRegex(
+                ValueError,
+                r"('day must be in 1..30', 31)",
+                parse_datetime,
+                "2014-06-31",
+            )
+
+            self.assertRaisesRegex(
+                ValueError,
+                r"('day must be in 1..30', 0)",
+                parse_datetime,
+                "2014-06-00",
+            )
+        else:
+            for non_leap_year in (1700, 1800, 1900, 2014):
+                self.assertRaisesRegex(
+                    ValueError,
+                    r"day is out of range for month",
+                    parse_datetime,
+                    "{}-02-29".format(non_leap_year),
+                )
+
             self.assertRaisesRegex(
                 ValueError,
                 r"day is out of range for month",
                 parse_datetime,
-                "{}-02-29".format(non_leap_year),
+                "2014-01-32",
             )
 
-        self.assertRaisesRegex(
-            ValueError,
-            r"day is out of range for month",
-            parse_datetime,
-            "2014-01-32",
-        )
+            self.assertRaisesRegex(
+                ValueError,
+                r"day is out of range for month",
+                parse_datetime,
+                "2014-06-31",
+            )
 
-        self.assertRaisesRegex(
-            ValueError,
-            r"day is out of range for month",
-            parse_datetime,
-            "2014-06-31",
-        )
-
-        self.assertRaisesRegex(
-            ValueError,
-            r"day is out of range for month",
-            parse_datetime,
-            "2014-06-00",
-        )
+            self.assertRaisesRegex(
+                ValueError,
+                r"day is out of range for month",
+                parse_datetime,
+                "2014-06-00",
+            )
 
     def test_invalid_yyyymm_format(self):
         self.assertRaisesRegex(
@@ -453,12 +487,20 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
         )
 
     def test_issue_22(self):
-        self.assertRaisesRegex(
-            ValueError,
-            r"day is out of range for month",
-            parse_datetime,
-            "2016-11-31T12:34:34.521059",
-        )
+        if platform.python_implementation() == 'PyPy' and sys.version_info.major >= 3:
+            self.assertRaisesRegex(
+                ValueError,
+                r"('day must be in 1..30', 31)",
+                parse_datetime,
+                "2016-11-31T12:34:34.521059",
+            )
+        else:
+            self.assertRaisesRegex(
+                ValueError,
+                r"day is out of range for month",
+                parse_datetime,
+                "2016-11-31T12:34:34.521059",
+            )
 
     def test_issue_35(self):
         self.assertRaisesRegex(
@@ -469,12 +511,20 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
         )
 
     def test_issue_42(self):
-        self.assertRaisesRegex(
-            ValueError,
-            r"day is out of range for month",
-            parse_datetime,
-            "20140200",
-        )
+        if platform.python_implementation() == 'PyPy' and sys.version_info.major >= 3:
+            self.assertRaisesRegex(
+                ValueError,
+                r"('day must be in 1..28', 0)",
+                parse_datetime,
+                "20140200",
+            )
+        else:
+            self.assertRaisesRegex(
+                ValueError,
+                r"day is out of range for month",
+                parse_datetime,
+                "20140200",
+            )
 
     def test_issue_71(self):
         self.assertRaisesRegex(
