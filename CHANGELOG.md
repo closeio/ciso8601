@@ -3,6 +3,7 @@
 
 - [Unreleased](#unreleased)
 - [2.x.x](#2xx)
+  - [Version 2.2.0](#version-220)
   - [Version 2.1.3](#version-213)
   - [Version 2.1.2](#version-212)
   - [Version 2.1.1](#version-211)
@@ -20,6 +21,12 @@
 
 # Unreleased
 
+*
+
+# 2.x.x
+
+## Version 2.2.0
+
 * Added Python 3.9 support
 * Switched to using a C implementation of `timezone` objects.
     * Much faster parse times for timestamps with timezone information
@@ -30,8 +37,6 @@
   * Parsing is ~1.1x faster for subsequent timestamps that have the same time zone offset.
   * Caching can be disabled at compile time by setting the `CISO8601_CACHING_ENABLED=0` environment variable
 * Fixed a memory leak in the case where an invalid timestamp had a non-UTC timezone and extra characters
-
-# 2.x.x
 
 ## Version 2.1.3
 
