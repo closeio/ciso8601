@@ -57,7 +57,7 @@
 * Added [Mypy](http://mypy-lang.org/)/[PEP 484](https://www.python.org/dev/peps/pep-0484/) typing information (#68, Thanks @NickG123).
 * Added a new function: `parse_rfc3339`, which strictly parses RFC 3339 (#70).
 * No longer accept mixed "basic" and "extended" format timestamps (#73).
-    * ex. `20140203T23:35:27` and `2014-02-03T233527` are not valid in ISO 8601, but were not raising `ValueError`.
+    * e.g., `20140203T23:35:27` and `2014-02-03T233527` are not valid in ISO 8601, but were not raising `ValueError`.
     * Attempting to parse such timestamps now raises `ValueError`
 
 ## Version 2.0.1

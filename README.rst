@@ -72,11 +72,11 @@ If time zone information is provided, an aware datetime object will be returned.
 Benchmark
 ---------
 
-Parsing a timestamp with no time zone information (ex. ``2014-01-09T21:48:00``):
+Parsing a timestamp with no time zone information (e.g., ``2014-01-09T21:48:00``):
 
 .. <include:benchmark_with_no_time_zone.rst>
 
-.. table:: 
+.. table::
 
     +---------------+----------+----------+----------+----------+----------+-------------------------------+--------------------------------------------------+
     |    Module     |Python 3.9|Python 3.8|Python 3.7|Python 3.6|Python 3.5|          Python 2.7           |Relative Slowdown (versus ciso8601, latest Python)|
@@ -114,11 +114,11 @@ ciso8601 takes 154 nsec, which is **1.2x faster than pendulum**, the next fastes
 
 .. </include:benchmark_with_no_time_zone.rst>
 
-Parsing a timestamp with time zone information (ex. ``2014-01-09T21:48:00-05:30``):
+Parsing a timestamp with time zone information (e.g., ``2014-01-09T21:48:00-05:30``):
 
 .. <include:benchmark_with_time_zone.rst>
 
-.. table:: 
+.. table::
 
     +---------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+--------------------------------------------------+
     |    Module     |          Python 3.9           |          Python 3.8           |          Python 3.7           |          Python 3.6           |          Python 3.5           |          Python 2.7           |Relative Slowdown (versus ciso8601, latest Python)|
