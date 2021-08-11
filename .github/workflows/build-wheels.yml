@@ -20,11 +20,7 @@ jobs:
     - name: Build wheels
       uses: pypa/cibuildwheel@v2.1.1
       env:
-        # From rio-color here:
-        # https://github.com/mapbox/rio-color/blob/0ab59ad8e2db99ad1d0c8bd8c2e4cf8d0c3114cf/appveyor.yml#L3
-        # Skip Python 3.10 until officially released, as numpy wheels aren't yet
-        # available
-        CIBW_SKIP: "cp310* *-win32 *-manylinux_i686"
+        CIBW_SKIP: "*-win32 *-manylinux_i686"
         CIBW_ARCHS_MACOS: x86_64 arm64 universal2
 
     - uses: actions/upload-artifact@v2
