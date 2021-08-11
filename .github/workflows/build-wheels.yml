@@ -26,7 +26,6 @@ jobs:
         # available
         CIBW_SKIP: "cp310* *-win32 *-manylinux_i686"
         CIBW_ARCHS_MACOS: x86_64 arm64 universal2
-        CIBW_BEFORE_BUILD: python -m pip install numpy Cython
 
     - uses: actions/upload-artifact@v2
       with:
@@ -42,9 +41,6 @@ jobs:
         name: Install Python
         with:
           python-version: '3.8'
-
-      - name: Install build dependencies
-        run: python -m pip install '.[build]'
 
       - name: Build sdist
         run: python setup.py sdist
