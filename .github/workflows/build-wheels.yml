@@ -1,0 +1,69 @@
+name: Build Wheels
+
+# Only run on new tags starting with `v`
+on:
+  push:
+    # tags:
+    #   - 'v*'
+
+jobs:
+  build_wheels:
+    name: Build wheel on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build wheels
+      uses: pypa/cibuildwheel@v2.1.1
+      env:
+        # From rio-color here:
+        # https://github.com/mapbox/rio-color/blob/0ab59ad8e2db99ad1d0c8bd8c2e4cf8d0c3114cf/appveyor.yml#L3
+        # Skip Python 3.10 until officially released, as numpy wheels aren't yet
+        # available
+        CIBW_SKIP: "cp2* cp35* cp310* pp* *-win32 *-manylinux_i686"
+        CIBW_ARCHS_MACOS: x86_64 arm64 universal2
+        CIBW_BEFORE_BUILD: python -m pip install numpy Cython
+
+    - uses: actions/upload-artifact@v2
+      with:
+        path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: '3.8'
+
+      - name: Install build dependencies
+        run: python -m pip install '.[build]'
+
+      - name: Build sdist
+        run: python setup.py sdist
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: dist/*.tar.gz
+
+  # upload_pypi:
+  #   needs: [build_wheels, build_sdist]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/download-artifact@v2
+  #       with:
+  #         name: artifact
+  #         path: dist
+  #
+  #     - uses: pypa/gh-action-pypi-publish@master
+  #       with:
+  #         user: __token__
+  #         password: ${{ secrets.PYPI_PASSWORD }}
+  #         # To test: repository_url: https://test.pypi.org/legacy/
