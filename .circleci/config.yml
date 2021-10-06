@@ -6,7 +6,7 @@ workflows:
       - test:
           matrix:
             parameters:
-              python_version: ["2.7", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9"]
+              python_version: ["2.7", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10"]
       - test_pypy:
           matrix:
             parameters:
@@ -54,4 +54,4 @@ jobs:
             . venv/bin/activate
             rst-lint --encoding=utf-8 README.rst
     docker:
-      - image: circleci/python:3.9
+      - image: circleci/python:3.10
