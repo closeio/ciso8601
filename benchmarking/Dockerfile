@@ -11,13 +11,14 @@ RUN apt install -y python python-dev && \
     apt install -y python3.6 python3.6-dev python3.6-venv && \
     apt install -y python3.7 python3.7-dev python3.7-venv && \
     apt install -y python3.8 python3.8-dev python3.8-venv && \
-    apt install -y python3.9 python3.9-dev python3.9-venv
+    apt install -y python3.9 python3.9-dev python3.9-venv && \
+    apt install -y python3.10 python3.10-dev python3.10-venv
 
 # Install the other dependencies
 RUN apt-get install -y git curl gcc build-essential
 
-# Make Python 3.9 the default `python`
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.9 10
+# Make Python 3.10 the default `python`
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 10
 
 # Get pip
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
