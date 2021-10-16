@@ -21,13 +21,12 @@ RUN apt-get install -y git curl gcc build-essential
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 10
 
 # Get pip
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python get-pip.py
+RUN python -m ensurepip --upgrade
 
 ADD requirements.txt requirements.txt
 
 # Install benchmarking dependencies
-RUN pip install -r requirements.txt
+RUN python -m pip install -r requirements.txt
 
 # Work around https://bugs.launchpad.net/ubuntu/+source/tzdata/+bug/1899343, which messes with `moment`
 RUN echo "Etc/UTC" | tee /etc/timezone && \

@@ -32,10 +32,10 @@ class ModuleResults(UserDict):
         non_exception_results = [(_python_version, result) for _python_version, result in self.data.items() if result.exception is None]
         return sorted(non_exception_results, key=lambda kvp: kvp[0], reverse=True)[0][1]
 
-FILENAME_REGEX_RAW = r"benchmark_timings_python(\d)(\d).csv"
+FILENAME_REGEX_RAW = r"benchmark_timings_python(\d)(\d\d?).csv"
 FILENAME_REGEX = re.compile(FILENAME_REGEX_RAW)
 
-MODULE_VERSION_FILENAME_REGEX_RAW = r"module_versions_python(\d)(\d).csv"
+MODULE_VERSION_FILENAME_REGEX_RAW = r"module_versions_python(\d)(\d\d?).csv"
 MODULE_VERSION_FILENAME_REGEX = re.compile(MODULE_VERSION_FILENAME_REGEX_RAW)
 
 UNITS = {"nsec": 1e-9, "usec": 1e-6, "msec": 1e-3, "sec": 1.0}
@@ -92,6 +92,8 @@ def load_benchmarking_results(results_directory):
             with open(csv_file, "r") as fin:
                 reader = csv.reader(fin, delimiter=",", quotechar='"')
                 major, minor, timestamp = next(reader)
+                major = int(major)
+                minor = int(minor)
                 timestamps.add(timestamp)
                 for module, _setup, stmt, parse_result, count, time_taken, matched, exception in reader:
                     timing = float(time_taken) / int(count) if exception == "" else None
@@ -120,7 +122,7 @@ def write_benchmarking_results(results_directory, output_file, baseline_module, 
     modules_by_modern_speed = [module for module, results in sorted([*results.items()], key=lambda kvp: kvp[1].most_modern_result().timing)]
 
     writer = pytablewriter.RstGridTableWriter()
-    formatted_python_versions = ["Python {}".format(".".join(key)) for key in python_versions_by_modernity]
+    formatted_python_versions = [f"Python {major}.{minor}" for major, minor in python_versions_by_modernity]
     writer.header_list = ["Module"] + (["Call"] if include_call else []) + formatted_python_versions + [f"Relative Slowdown (versus {baseline_module}, latest Python)"]
     writer.type_hint_list = [pytablewriter.String] * len(writer.header_list)
 
