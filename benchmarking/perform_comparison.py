@@ -34,9 +34,12 @@ if (sys.version_info.major, sys.version_info.minor) >= (3, 6):
     # zulu v2.0.0+ no longer supports Python < 3.6
     ISO_8601_MODULES["zulu"] = ("import zulu", "zulu.parse('{timestamp}')")
 
-if (sys.version_info.major, sys.version_info.minor) != (3, 6):
+if (sys.version_info.major, sys.version_info.minor) != (3, 6) and (sys.version_info.major, sys.version_info.minor) != (3, 10):
     # iso8601utils installs enum34, which messes with tox in Python 3.6
     # https://stackoverflow.com/q/43124775
+    # https://github.com/silverfernsys/iso8601utils/pull/5
+    # iso8601utils uses `from collections import Iterable` which no longer works in Python 3.10
+    # https://github.com/silverfernsys/iso8601utils/issues/6
     ISO_8601_MODULES["iso8601utils"] = ("from iso8601utils import parsers", "parsers.datetime('{timestamp}')")
 
 if (sys.version_info.major, sys.version_info.minor) != (3, 4):
