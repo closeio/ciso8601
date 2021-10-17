@@ -1,5 +1,4 @@
-<!-- Generated with "Markdown T​O​C" extension for Visual Studio Code -->
-<!-- TOC anchorMode:github.com -->
+<!-- Generated with "Markdown All in One" extension for Visual Studio Code -->
 
 - [Unreleased](#unreleased)
 - [2.x.x](#2xx)
