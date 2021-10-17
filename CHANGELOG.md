@@ -21,6 +21,7 @@
 # Unreleased
 
 * Fix the build for PyPy2 ([#116](https://github.com/closeio/ciso8601/pull/116))
+* Added missing `fromutc` implementation for `FixedOffset` (#113). Thanks @davidkraljic
 
 # 2.x.x
 

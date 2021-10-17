@@ -64,5 +64,41 @@ class TimezoneTestCase(unittest.TestCase):
             self.assertEqual(FixedOffset(-4980).tzname(), "UTC-01:23")
             self.assertEqual(FixedOffset(+45240).tzname(), "UTC+12:34")
 
+    def test_fromutc(self):
+        # https://github.com/closeio/ciso8601/issues/108
+        our_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=FixedOffset(60 * 60))
+        expected_dt = datetime(2014, 2, 3, 11, 35, 27, 234567, tzinfo=FixedOffset(60 * 60))
+        self.assertEqual(expected_dt, our_dt.tzinfo.fromutc(our_dt))
+
+        if sys.version_info >= (3, 2):
+            from datetime import timezone
+            td = timedelta(minutes=60)
+            tz = timezone(td)
+            built_in_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=tz)
+            built_in_result = built_in_dt.tzinfo.fromutc(built_in_dt)
+            self.assertEqual(expected_dt, built_in_result)
+
+    def test_fromutc_straddling_a_day_boundary(self):
+        our_dt = datetime(2020, 2, 29, 23, 35, 27, 234567, tzinfo=FixedOffset(60 * 60))
+        expected_dt = datetime(2020, 3, 1, 0, 35, 27, 234567, tzinfo=FixedOffset(60 * 60))
+        self.assertEqual(expected_dt, our_dt.tzinfo.fromutc(our_dt))
+
+    def test_fromutc_fails_if_given_non_datetime(self):
+        our_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=FixedOffset(60 * 60))
+        with self.assertRaises(TypeError, msg="fromutc: argument must be a datetime"):
+            our_dt.tzinfo.fromutc(123)
+
+    def test_fromutc_fails_if_tzinfo_is_none(self):
+        our_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=FixedOffset(60 * 60))
+        other_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=None)
+        with self.assertRaises(ValueError, msg="fromutc: dt.tzinfo is not self"):
+            our_dt.tzinfo.fromutc(other_dt)
+
+    def test_fromutc_fails_if_tzinfo_is_some_other_offset(self):
+        our_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=FixedOffset(60 * 60))
+        other_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=FixedOffset(120 * 60))
+        with self.assertRaises(ValueError, msg="fromutc: dt.tzinfo is not self"):
+            our_dt.tzinfo.fromutc(other_dt)
+
 if __name__ == '__main__':
     unittest.main()
