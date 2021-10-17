@@ -25,12 +25,13 @@ class TimezoneTestCase(unittest.TestCase):
                 built_in_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=tz)
                 our_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=FixedOffset(minutes * 60))
                 self.assertEqual(built_in_dt.utcoffset(), our_dt.utcoffset(), "`utcoffset` output did not match for offset: {minutes}".format(minutes=minutes))
+                self.assertEqual(built_in_dt.tzinfo.utcoffset(built_in_dt), our_dt.tzinfo.utcoffset(our_dt), "`tzinfo.utcoffset` output did not match for offset: {minutes}".format(minutes=minutes))
         else:
-            self.assertEqual(FixedOffset(0).utcoffset(), timedelta(minutes=0))
-            self.assertEqual(FixedOffset(+0).utcoffset(), timedelta(minutes=0))
-            self.assertEqual(FixedOffset(-0).utcoffset(), timedelta(minutes=0))
-            self.assertEqual(FixedOffset(-4980).utcoffset(), timedelta(hours=-1, minutes=-23))
-            self.assertEqual(FixedOffset(+45240).utcoffset(), timedelta(hours=12, minutes=34))
+            for seconds in [0, +0, -0, -4980, +45240]:
+                offset = FixedOffset(seconds)
+                our_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=offset)
+                self.assertEqual(our_dt.utcoffset(), timedelta(seconds=seconds))
+                self.assertEqual(offset.utcoffset(our_dt), timedelta(seconds=seconds))
 
     def test_dst(self):
         if sys.version_info >= (3, 2):
@@ -41,12 +42,13 @@ class TimezoneTestCase(unittest.TestCase):
                 built_in_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=tz)
                 our_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=FixedOffset(minutes * 60))
                 self.assertEqual(built_in_dt.dst(), our_dt.dst(), "`dst` output did not match for offset: {minutes}".format(minutes=minutes))
+                self.assertEqual(built_in_dt.tzinfo.dst(built_in_dt), our_dt.tzinfo.dst(our_dt), "`tzinfo.dst` output did not match for offset: {minutes}".format(minutes=minutes))
         else:
-            self.assertIsNone(FixedOffset(0).dst(), "UTC")
-            self.assertIsNone(FixedOffset(+0).dst(), "UTC")
-            self.assertIsNone(FixedOffset(-0).dst(), "UTC")
-            self.assertIsNone(FixedOffset(-4980).dst(), "UTC-01:23")
-            self.assertIsNone(FixedOffset(+45240).dst(), "UTC+12:34")
+            for seconds in [0, +0, -0, -4980, +45240]:
+                offset = FixedOffset(seconds)
+                our_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=offset)
+                self.assertIsNone(our_dt.dst())
+                self.assertIsNone(offset.dst(our_dt))
 
     def test_tzname(self):
         if sys.version_info >= (3, 2):
@@ -57,12 +59,13 @@ class TimezoneTestCase(unittest.TestCase):
                 built_in_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=tz)
                 our_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=FixedOffset(minutes * 60))
                 self.assertEqual(built_in_dt.tzname(), our_dt.tzname(), "`tzname` output did not match for offset: {minutes}".format(minutes=minutes))
+                self.assertEqual(built_in_dt.tzinfo.tzname(built_in_dt), our_dt.tzinfo.tzname(our_dt), "`tzinfo.tzname` output did not match for offset: {minutes}".format(minutes=minutes))
         else:
-            self.assertEqual(FixedOffset(0).tzname(), "UTC+00:00")
-            self.assertEqual(FixedOffset(+0).tzname(), "UTC+00:00")
-            self.assertEqual(FixedOffset(-0).tzname(), "UTC+00:00")
-            self.assertEqual(FixedOffset(-4980).tzname(), "UTC-01:23")
-            self.assertEqual(FixedOffset(+45240).tzname(), "UTC+12:34")
+            for seconds, expected_tzname in [(0, "UTC+00:00"), (+0, "UTC+00:00"), (-0, "UTC+00:00"), (-4980, "UTC-01:23"), (+45240, "UTC+12:34")]:
+                offset = FixedOffset(seconds)
+                our_dt = datetime(2014, 2, 3, 10, 35, 27, 234567, tzinfo=offset)
+                self.assertEqual(our_dt.tzname(), expected_tzname)
+                self.assertEqual(offset.tzname(our_dt), expected_tzname)
 
     def test_fromutc(self):
         # https://github.com/closeio/ciso8601/issues/108
