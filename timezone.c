@@ -92,6 +92,25 @@ FixedOffset_dst(FixedOffset *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *
+FixedOffset_fromutc(FixedOffset *self, PyDateTime_DateTime *dt)
+{
+    if (!PyDateTime_Check(dt)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "fromutc: argument must be a datetime");
+        return NULL;
+    }
+    if (!dt->hastzinfo || dt->tzinfo != (PyObject *)self) {
+        PyErr_SetString(PyExc_ValueError,
+                        "fromutc: dt.tzinfo "
+                        "is not self");
+        return NULL;
+    }
+
+    return PyNumber_Add((PyObject *)dt,
+                        FixedOffset_utcoffset(self, (PyObject *)self));
+}
+
 /*
  * def tzname(self, dt):
  *     sign = '+'
@@ -157,11 +176,20 @@ static PyMemberDef FixedOffset_members[] = {
  * Class methods
  */
 static PyMethodDef FixedOffset_methods[] = {
-    {"utcoffset", (PyCFunction)FixedOffset_utcoffset, METH_VARARGS, ""},
-    {"dst", (PyCFunction)FixedOffset_dst, METH_VARARGS, ""},
-    {"tzname", (PyCFunction)FixedOffset_tzname, METH_VARARGS, ""},
-    {"__getinitargs__", (PyCFunction)FixedOffset_getinitargs, METH_VARARGS,
-     ""},
+    {"utcoffset", (PyCFunction)FixedOffset_utcoffset, METH_O,
+     PyDoc_STR("Return fixed offset.")},
+
+    {"dst", (PyCFunction)FixedOffset_dst, METH_O, PyDoc_STR("Return None.")},
+
+    {"fromutc", (PyCFunction)FixedOffset_fromutc, METH_O,
+     PyDoc_STR("datetime in UTC -> datetime in local time.")},
+
+    {"tzname", (PyCFunction)FixedOffset_tzname, METH_O,
+     PyDoc_STR("Returns offset as 'UTC(+|-)HH:MM'")},
+
+    {"__getinitargs__", (PyCFunction)FixedOffset_getinitargs, METH_NOARGS,
+     PyDoc_STR("pickle support")},
+
     {NULL}};
 
 static PyTypeObject FixedOffset_type = {
