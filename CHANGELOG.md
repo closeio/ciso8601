@@ -22,6 +22,7 @@
 
 * Fix the build for PyPy2 ([#116](https://github.com/closeio/ciso8601/pull/116))
 * Added missing `fromutc` implementation for `FixedOffset` (#113). Thanks @davidkraljic
+* Removed improper ability to call `FixedOffset`'s `dst`, `tzname` and `utcoffset` without arguments
 
 # 2.x.x
 
