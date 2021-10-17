@@ -50,10 +50,6 @@ typedef struct {
     PyObject_HEAD int offset;
 } FixedOffset;
 
-/*
- * def __init__(self, offset):
- *     self.offset = offset
- */
 static int
 FixedOffset_init(FixedOffset *self, PyObject *args, PyObject *kwargs)
 {
@@ -72,22 +68,14 @@ FixedOffset_init(FixedOffset *self, PyObject *args, PyObject *kwargs)
     return 0;
 }
 
-/*
- * def utcoffset(self, dt):
- *     return timedelta(seconds=self.offset * 60)
- */
 static PyObject *
-FixedOffset_utcoffset(FixedOffset *self, PyObject *args)
+FixedOffset_utcoffset(FixedOffset *self, PyObject *dt)
 {
     return PyDelta_FromDSU(0, self->offset, 0);
 }
 
-/*
- * def dst(self, dt):
- *     return timedelta(seconds=self.offset * 60)
- */
 static PyObject *
-FixedOffset_dst(FixedOffset *self, PyObject *args)
+FixedOffset_dst(FixedOffset *self, PyObject *dt)
 {
     Py_RETURN_NONE;
 }
@@ -111,26 +99,19 @@ FixedOffset_fromutc(FixedOffset *self, PyDateTime_DateTime *dt)
                         FixedOffset_utcoffset(self, (PyObject *)self));
 }
 
-/*
- * def tzname(self, dt):
- *     sign = '+'
- *     if self.offset < 0:
- *         sign = '-'
- *     return "%s%d:%d" % (sign, self.offset / 60, self.offset % 60)
- */
 static PyObject *
-FixedOffset_tzname(FixedOffset *self, PyObject *args)
+FixedOffset_tzname(FixedOffset *self, PyObject *dt)
 {
-
     int offset = self->offset;
 
-    if (offset == 0){
+    if (offset == 0) {
 #if PY_VERSION_AT_LEAST_36
         return PyUnicode_FromString("UTC");
 #else
         return PyUnicode_FromString("UTC+00:00");
 #endif
-    } else {
+    }
+    else {
         char result_tzname[10] = {0};
         char sign = '+';
 
@@ -139,26 +120,18 @@ FixedOffset_tzname(FixedOffset *self, PyObject *args)
             offset *= -1;
         }
         snprintf(result_tzname, 10, "UTC%c%02u:%02u", sign,
-             (offset / SECS_PER_HOUR) & 31,
-             offset / SECS_PER_MIN % SECS_PER_MIN);
+                 (offset / SECS_PER_HOUR) & 31,
+                 offset / SECS_PER_MIN % SECS_PER_MIN);
         return PyUnicode_FromString(result_tzname);
     }
 }
 
-/*
- * def __repr__(self):
- *     return self.tzname()
- */
 static PyObject *
 FixedOffset_repr(FixedOffset *self)
 {
     return FixedOffset_tzname(self, NULL);
 }
 
-/*
- * def __getinitargs__(self):
- *     return (self.offset,)
- */
 static PyObject *
 FixedOffset_getinitargs(FixedOffset *self)
 {
