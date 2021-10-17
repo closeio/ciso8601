@@ -107,8 +107,10 @@ FixedOffset_tzname(FixedOffset *self, PyObject *dt)
     if (offset == 0) {
 #if PY_VERSION_AT_LEAST_36
         return PyUnicode_FromString("UTC");
-#else
+#elif PY_MAJOR_VERSION >= 3
         return PyUnicode_FromString("UTC+00:00");
+#else
+        return PyString_FromString("UTC+00:00");
 #endif
     }
     else {
@@ -122,7 +124,11 @@ FixedOffset_tzname(FixedOffset *self, PyObject *dt)
         snprintf(result_tzname, 10, "UTC%c%02u:%02u", sign,
                  (offset / SECS_PER_HOUR) & 31,
                  offset / SECS_PER_MIN % SECS_PER_MIN);
+#if PY_MAJOR_VERSION >= 3
         return PyUnicode_FromString(result_tzname);
+#else
+        return PyString_FromString(result_tzname);
+#endif
     }
 }
 
