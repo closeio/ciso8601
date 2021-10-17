@@ -29,7 +29,7 @@ Sure. First [search the existing issues](https://github.com/closeio/ciso8601/iss
 
 ## Design Philosophy
 
-ciso8601's goal is to be the fastest ISO 8601 parser available for Python. It probably will never support the complete grammar of ISO 8601, but it will be correct for the chosen subset of the grammar. It will also be robust against non-conforming inputs. Beyond that, performance is king. 
+ciso8601's goal is to be the fastest ISO 8601 parser available for Python. It probably will never support the complete grammar of ISO 8601, but it will be correct for the chosen subset of the grammar. It will also be robust against non-conforming inputs. Beyond that, performance is king.
 
 That said, some care should still be taken to ensure cross-platform compatibility and maintainability. For example, this means that we do not hand-code assembly instructions for a specific CPUs/architectures, and instead rely on the native C compilers to take advantage of specific hardware. We are not against the idea of platform-specific code in principle, but it would have to be shown to be produce sufficient benefits to warrant the additional maintenance overhead.
 
@@ -73,7 +73,7 @@ Before creating enhancement suggestions, please check [this list](#before-submit
 
 #### Before Submitting An Enhancement Suggestion
 
-* **Perform a [cursory search](https://github.com/closeio/ciso8601/issues?utf8=%E2%9C%93&q=is%3Aissue)** to see if the enhancement has already been suggested. 
+* **Perform a [cursory search](https://github.com/closeio/ciso8601/issues?utf8=%E2%9C%93&q=is%3Aissue)** to see if the enhancement has already been suggested.
 
 If it has, don't create a new issue. Consider adding a :+1: [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the issue description. If you feel that your use case is sufficiently different, add a comment to the existing issue instead of opening a new one.
 
@@ -107,7 +107,7 @@ See [this guide](https://opensource.guide/how-to-contribute/#opening-a-pull-requ
 
 #### C Coding Style
 
-ciso8601 tries to adhere to the [Python PEP 7](https://www.python.org/dev/peps/pep-0007/) style guide. 
+ciso8601 tries to adhere to the [Python PEP 7](https://www.python.org/dev/peps/pep-0007/) style guide.
 
 You can use [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html) to make this mostly automatic. The auto-formatting rules are defined in the [.clang-format](.clang-format) file. If you are using Visual Studio Code as your editor, you can use the ["C/C++"](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) extension and it will automatically start auto-formatting.
 
@@ -115,7 +115,7 @@ You can use [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html) to make 
 
 ciso8601 supports a variety of cPython versions, including Python 2.7 (for the full list see the [README](README.rst)). Please make sure that you do not accidentally make use of features that are specific to certain versions of Python. Feel free to make use of modern features of the languages, but you also need to provide mechanisms to support the other versions as well.
 
-You can make use of `#ifdef` blocks within the code to make use of version specific features (there are already several examples throughout the code).   
+You can make use of `#ifdef` blocks within the code to make use of version specific features (there are already several examples throughout the code).
 
 #### Supported Operating Systems
 
@@ -165,4 +165,3 @@ rst-lint --encoding=utf-8 README.rst
 
 * Follow the [C Code](#c-coding-style) style guide.
 * Document new code and functionality [See "Documentation"](#documentation)
-
