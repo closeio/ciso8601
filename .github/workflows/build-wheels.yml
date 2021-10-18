@@ -1,10 +1,6 @@
 name: Build Wheels
 
-# Only run on new tags starting with `v`
 on:
-  push:
-    # tags:
-    #   - 'v*'
   workflow_dispatch:
 
 jobs:
