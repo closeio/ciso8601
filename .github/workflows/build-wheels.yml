@@ -2,6 +2,12 @@ name: Build Wheels
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'If provided, we will attempt to upload to PyPI using the information from the GitHub release with this name.'
+        required: false
+  # release:
+  #   types: [published]
 
 jobs:
   build_wheels:
@@ -42,9 +48,25 @@ jobs:
         with:
           path: dist/*.tar.gz
 
-  # upload_pypi:
-  #   needs: [build_wheels, build_sdist]
+  release_sanity_check:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    if: ${{ (github.event_name == 'release' && github.event.type == 'published') || github.event.inputs.release_tag }}
+    steps:
+      - run: |
+          echo "We're doing a release!? ${{ github.event }}"
+          echo "${{ github.event.release.tag_name || github.event.inputs.release_tag }}"
+      # TODO: Verify that the `tag_name` matches the `name`
+      # TODO: Verify that the `tag_name` matches the VERSION in setup.py
+      # TODO: Verify that the `tag_name` matches the filenames in the artifacts
+      # TODO: Verify that the `tag_name` is different than the existing release in PyPI
+      # TODO: Verify that the `tag_name` is larger/newer than the existing release in PyPI
+      # TODO: Verify that the `tag_name` is present in the CHANGELOG
+
+  # upload_to_pypi:
+  #   needs: [build_wheels, build_sdist, release_sanity_check]
   #   runs-on: ubuntu-latest
+  #   if: ${{ github.event_name == 'release' && github.event.type == 'published' }}
   #   steps:
   #     - uses: actions/download-artifact@v2
   #       with:
