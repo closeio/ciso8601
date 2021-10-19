@@ -3,7 +3,7 @@ name: Build Wheels
 on:
   workflow_dispatch:
     inputs:
-      release_tag:
+      requested_release_tag:
         description: 'The tag to use for this release (e.g., `v2.3.0`)'
         required: true
 
@@ -12,13 +12,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      # Normalize the release version and tag
+      - run: |
+          echo "release_version=`echo '${{ github.event.inputs.requested_release_tag }}' | sed 's/^v//'`" >> $GITHUB_ENV
+      - run: |
+          echo "release_tag=v${release_version}" >> $GITHUB_ENV
+
+      # Get the VERSION from setup.py
       - run: |
           echo "ciso8601_version=`grep -Po 'VERSION = "\K[^"]*' setup.py`" >> $GITHUB_ENV
-          echo "Requested release tag ${{ github.event.inputs.release_tag }}"
-          echo "VERSION in setup.py   ${{ env.ciso8601_version }}"
-          false
-      # TODO: Verify that the `release_tag` matches the VERSION in setup.py
-      # TODO: Verify that the `release_tag` is different than the existing release in PyPI
+
+      # Log all the things
+      - run: |
+          echo 'Requested release tag `${{ github.event.inputs.requested_release_tag }}`'
+          echo 'Release version `${{ env.release_version }}`'
+          echo 'Release tag `${{ env.release_tag }}`'
+          echo "VERSION in setup.py   `${{ env.ciso8601_version }}`"
+
+      # Verify that  the version string we produced looks like a version string
+      - run: |
+          echo "${{ env.release_version }}" | sed '/^[0-9]\+\.[0-9]\+\.[0-9]\+$/!{q1}'
+
+      # Verify that the version tag we produced looks like a version tag
+      - run: |
+          echo "${{ env.release_tag }}" | sed '/^v[0-9]\+\.[0-9]\+\.[0-9]\+$/!{q1}'
+
+      # Verify that the release version matches the VERSION in setup.py
+      - run: |
+          [[ ${{ env.release_version }} == ${{ env.ciso8601_version }} ]]
+
       # TODO: Verify that the `release_tag` is larger/newer than the existing release in PyPI
       # TODO: Verify that the `release_tag` is present in the CHANGELOG
 
@@ -72,7 +95,7 @@ jobs:
   #         name: artifact
   #         path: dist
 
-  #     - uses: pypa/gh-action-pypi-publish@master
+  #     - uses: pypa/gh-action-pypi-publish@v1.4.2
   #       with:
   #         user: __token__
   #         password: ${{ secrets.PYPI_PASSWORD }}
