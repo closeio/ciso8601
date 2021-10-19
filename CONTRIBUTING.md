@@ -8,7 +8,7 @@ The following is a set of guidelines for contributing to ciso8601, which are hos
 
 [I don't want to read this whole thing, I just have a question!!!](#i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
 
-* [Design Philosophy](#design-philosophy)
+[Design Philosophy](#design-philosophy)
 
 [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
