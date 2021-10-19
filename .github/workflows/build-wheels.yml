@@ -4,14 +4,26 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'If provided, we will attempt to upload to PyPI using the information from the GitHub release with this name.'
-        required: false
-  # release:
-  #   types: [published]
+        description: 'The tag to use for this release (e.g., `v2.3.0`)'
+        required: true
 
 jobs:
+  sanity_check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "ciso8601_version=`grep -Po 'VERSION = "\K[^"]*' setup.py`" >> $GITHUB_ENV
+          echo "Requested release tag ${{ github.event.inputs.release_tag }}"
+          echo "VERSION in setup.py   ${{ env.ciso8601_version }}"
+          false
+      # TODO: Verify that the `release_tag` matches the VERSION in setup.py
+      # TODO: Verify that the `release_tag` is different than the existing release in PyPI
+      # TODO: Verify that the `release_tag` is larger/newer than the existing release in PyPI
+      # TODO: Verify that the `release_tag` is present in the CHANGELOG
+
   build_wheels:
     name: Build wheel on ${{ matrix.os }}
+    needs: [sanity_check]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -32,6 +44,7 @@ jobs:
 
   build_sdist:
     name: Build source distribution
+    needs: [sanity_check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -48,33 +61,26 @@ jobs:
         with:
           path: dist/*.tar.gz
 
-  release_sanity_check:
-    needs: [build_wheels, build_sdist]
-    runs-on: ubuntu-latest
-    if: ${{ (github.event_name == 'release' && github.event.type == 'published') || github.event.inputs.release_tag }}
-    steps:
-      - run: |
-          echo "We're doing a release!? ${{ github.event }}"
-          echo "${{ github.event.release.tag_name || github.event.inputs.release_tag }}"
-      # TODO: Verify that the `tag_name` matches the `name`
-      # TODO: Verify that the `tag_name` matches the VERSION in setup.py
-      # TODO: Verify that the `tag_name` matches the filenames in the artifacts
-      # TODO: Verify that the `tag_name` is different than the existing release in PyPI
-      # TODO: Verify that the `tag_name` is larger/newer than the existing release in PyPI
-      # TODO: Verify that the `tag_name` is present in the CHANGELOG
-
   # upload_to_pypi:
-  #   needs: [build_wheels, build_sdist, release_sanity_check]
+  #   name: Upload wheels to PyPI
+  #   needs: [build_wheels, build_sdist, sanity_check]
   #   runs-on: ubuntu-latest
-  #   if: ${{ github.event_name == 'release' && github.event.type == 'published' }}
   #   steps:
   #     - uses: actions/download-artifact@v2
   #       with:
   #         name: artifact
   #         path: dist
-  #
+
   #     - uses: pypa/gh-action-pypi-publish@master
   #       with:
   #         user: __token__
   #         password: ${{ secrets.PYPI_PASSWORD }}
-  #         # To test: repository_url: https://test.pypi.org/legacy/
+  #         # repository_url: https://test.pypi.org/legacy/ # Test PyPI
+
+  # create_release:
+  #   name: Create release in GitHub
+  #   needs: [upload_to_pypi]
+  #   runs-on: ubuntu-latest
+  #   steps:  # TODO
+  #     - run: |
+  #         echo "We're doing a release!? ${{ github.event }}"
