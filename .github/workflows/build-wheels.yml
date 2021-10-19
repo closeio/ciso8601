@@ -11,6 +11,7 @@ jobs:
   sanity_check:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: |
           echo "ciso8601_version=`grep -Po 'VERSION = "\K[^"]*' setup.py`" >> $GITHUB_ENV
           echo "Requested release tag ${{ github.event.inputs.release_tag }}"
@@ -30,17 +31,17 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Build wheels
-      uses: pypa/cibuildwheel@v2.1.3
-      env:
-        CIBW_SKIP: "pp*-macosx* *-win32 *-manylinux_i686"
-        CIBW_ARCHS_MACOS: x86_64 arm64 universal2
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.1.3
+        env:
+          CIBW_SKIP: "pp*-macosx* *-win32 *-manylinux_i686"
+          CIBW_ARCHS_MACOS: x86_64 arm64 universal2
 
-    - uses: actions/upload-artifact@v2
-      with:
-        path: ./wheelhouse/*.whl
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
 
   build_sdist:
     name: Build source distribution
