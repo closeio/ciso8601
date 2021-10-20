@@ -13,6 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: '3.10'
+
+      - run: |
+          pip install packaging
+
       # Normalize the release version and tag
       - run: |
           echo "release_version=`echo '${{ github.event.inputs.requested_release_tag }}' | sed 's/^v//'`" >> $GITHUB_ENV
@@ -23,12 +31,17 @@ jobs:
       - run: |
           echo "ciso8601_version=`grep -Po 'VERSION = "\K[^"]*' setup.py`" >> $GITHUB_ENV
 
+      # Get the latest version from PyPI
+      - run: |
+          curl https://pypi.org/pypi/ciso8601/json | python -c 'import json, sys; contents=sys.stdin.read(); parsed = json.loads(contents); print("pypi_version=" + parsed["info"]["version"])' >> $GITHUB_ENV
+
       # Log all the things
       - run: |
           echo 'Requested release tag `${{ github.event.inputs.requested_release_tag }}`'
-          echo 'Release version `${{ env.release_version }}`'
-          echo 'Release tag `${{ env.release_tag }}`'
-          echo "VERSION in setup.py   `${{ env.ciso8601_version }}`"
+          echo 'Release version       `${{ env.release_version }}`'
+          echo 'Release tag           `${{ env.release_tag }}`'
+          echo 'VERSION in setup.py   `${{ env.ciso8601_version }}`'
+          echo 'Version in PyPI       `${{ env.pypi_version }}`'
 
       # Verify that  the version string we produced looks like a version string
       - run: |
@@ -42,8 +55,11 @@ jobs:
       - run: |
           [[ ${{ env.release_version }} == ${{ env.ciso8601_version }} ]]
 
-      # TODO: Verify that the `release_tag` is larger/newer than the existing release in PyPI
-      # TODO: Verify that the `release_tag` is present in the CHANGELOG
+      # Verify that the `release_version` is larger/newer than the existing release in PyPI
+      - run: |
+          python -c 'import sys; from packaging import version; code = 0 if version.parse("${{ env.ciso8601_version }}") < version.parse("${{ env.release_version }}") else 1; sys.exit(code)'
+
+      # TODO: Verify that the `release_version` is present in the CHANGELOG
 
   build_wheels:
     name: Build wheel on ${{ matrix.os }}
