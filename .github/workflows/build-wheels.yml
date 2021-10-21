@@ -21,45 +21,60 @@ jobs:
       - run: |
           pip install packaging
 
-      # Normalize the release version and tag
-      - run: |
+      - name: Normalize the release version
+        run: |
           echo "release_version=`echo '${{ github.event.inputs.requested_release_tag }}' | sed 's/^v//'`" >> $GITHUB_ENV
-      - run: |
+
+      - name: Normalize the release tag
+        run: |
           echo "release_tag=v${release_version}" >> $GITHUB_ENV
 
-      # Get the VERSION from setup.py
-      - run: |
+      - name: Get the VERSION from setup.py
+        run: |
           echo "ciso8601_version=`grep -Po 'VERSION = "\K[^"]*' setup.py`" >> $GITHUB_ENV
 
-      # Get the latest version from PyPI
-      - run: |
+      - name: Get the latest version from PyPI
+        run: |
           curl https://pypi.org/pypi/ciso8601/json | python -c 'import json, sys; contents=sys.stdin.read(); parsed = json.loads(contents); print("pypi_version=" + parsed["info"]["version"])' >> $GITHUB_ENV
 
-      # Log all the things
-      - run: |
+      - name: Log all the things
+        run: |
           echo 'Requested release tag `${{ github.event.inputs.requested_release_tag }}`'
           echo 'Release version       `${{ env.release_version }}`'
           echo 'Release tag           `${{ env.release_tag }}`'
           echo 'VERSION in setup.py   `${{ env.ciso8601_version }}`'
           echo 'Version in PyPI       `${{ env.pypi_version }}`'
 
-      # Verify that  the version string we produced looks like a version string
-      - run: |
+      - name: Verify that  the version string we produced looks like a version string
+        run: |
           echo "${{ env.release_version }}" | sed '/^[0-9]\+\.[0-9]\+\.[0-9]\+$/!{q1}'
 
-      # Verify that the version tag we produced looks like a version tag
-      - run: |
+      - name: Verify that the version tag we produced looks like a version tag
+        run: |
           echo "${{ env.release_tag }}" | sed '/^v[0-9]\+\.[0-9]\+\.[0-9]\+$/!{q1}'
 
-      # Verify that the release version matches the VERSION in setup.py
-      - run: |
+      - name: Verify that the release version matches the VERSION in setup.py
+        run: |
           [[ ${{ env.release_version }} == ${{ env.ciso8601_version }} ]]
 
-      # Verify that the `release_version` is larger/newer than the existing release in PyPI
-      - run: |
+      - name: Verify that the `release_version` is larger/newer than the existing release in PyPI
+        run: |
           python -c 'import sys; from packaging import version; code = 0 if version.parse("${{ env.ciso8601_version }}") < version.parse("${{ env.release_version }}") else 1; sys.exit(code)'
 
-      # TODO: Verify that the `release_version` is present in the CHANGELOG
+      - name: Verify that the `release_version` is present in the CHANGELOG
+        # TODO: Use something like `changelog-cli` to extract the correct version number
+        run: |
+          grep ${{ env.release_version }} CHANGELOG.md
+
+      - name: Serialize normalized release values
+        run: |
+          echo -e "release_version=${{ env.release_version }}\nrelease_tag=${{ env.release_tag }}" > release_values.txt
+
+      - name: Share normalized release values
+        uses: actions/upload-artifact@v2
+        with:
+          name: release_values
+          path: release_values.txt
 
   build_wheels:
     name: Build wheel on ${{ matrix.os }}
@@ -100,6 +115,31 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           path: dist/*.tar.gz
+
+  # create_or_update_draft_release:
+  #   # TODO: Figure out how to do this in an idempotent way
+  #   name: Create or update draft release in GitHub
+  #   needs: [build_wheels, build_sdist, sanity_check]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Get normalized release values
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: release_values
+
+  #     - name: Load normalized release values
+  #       run: |
+  #         xargs -a release_values.txt -l -I{} bash -c 'echo {} >> $GITHUB_ENV'
+
+  #     - uses: actions/create-release@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions
+  #       with:
+  #         tag_name: ${{ env.release_tag }}
+  #         commitish: master # Default branch
+  #         release_name: ${{ env.release_tag }}
+  #         body: "" # TODO: Pull this in using `changelog-cli`
+  #         draft: true
 
   # upload_to_pypi:
   #   name: Upload wheels to PyPI
