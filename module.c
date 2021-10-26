@@ -17,7 +17,7 @@
 // https://foss.heptapod.net/pypy/pypy/-/merge_requests/826
 #ifdef PYPY_VERSION
     #define SUPPORTS_37_TIMEZONE_API \
-            (PYPY_VERSION_NUM >= 0x07030600)
+            (PYPY_VERSION_NUM >= 0x07030600) && PY_VERSION_AT_LEAST_37
 #else
     #define SUPPORTS_37_TIMEZONE_API \
             PY_VERSION_AT_LEAST_37
