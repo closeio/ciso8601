@@ -62,8 +62,9 @@ class ValidTimestampTestCase(unittest.TestCase):
         # PyPy added support for it in 7.3.6
 
         timestamp = '2018-01-01T00:00:00.00Z'
-        if (platform.python_implementation() == 'CPython' and sys.version_info >= (3, 7)) or \
-           (platform.python_implementation() == 'PyPy' and sys.pypy_version_info >= (7, 3, 6)):
+        if sys.version_info >= (3, 7) and \
+            (platform.python_implementation() == 'CPython'
+             or (platform.python_implementation() == 'PyPy' and sys.pypy_version_info >= (7, 3, 6))):
             self.assertIs(parse_datetime(timestamp).tzinfo, datetime.timezone.utc)
         else:
             self.assertIsInstance(parse_datetime(timestamp).tzinfo, FixedOffset)

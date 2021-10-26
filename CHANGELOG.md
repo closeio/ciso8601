@@ -20,7 +20,7 @@
 
 # Unreleased
 
-*
+* Fix the build for PyPy2 ([#116](https://github.com/closeio/ciso8601/pull/116))
 
 # 2.x.x
 
