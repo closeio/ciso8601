@@ -2,6 +2,7 @@
 
 - [Unreleased](#unreleased)
 - [2.x.x](#2xx)
+  - [Version 2.2.1](#version-221)
   - [Version 2.2.0](#version-220)
   - [Version 2.1.3](#version-213)
   - [Version 2.1.2](#version-212)
@@ -20,12 +21,17 @@
 
 # Unreleased
 
+*
+
+# 2.x.x
+
+## Version 2.2.1
+
+* Added Python 3.10 support
 * Fix the build for PyPy2 ([#116](https://github.com/closeio/ciso8601/pull/116))
 * Added missing `fromutc` implementation for `FixedOffset` (#113). Thanks @davidkraljic
 * Removed improper ability to call `FixedOffset`'s `dst`, `tzname` and `utcoffset` without arguments
 * Fixed: `datetime.tzname` returns a `str` in Python 2.7, not a `unicode`
-
-# 2.x.x
 
 ## Version 2.2.0
 
