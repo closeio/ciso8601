@@ -4,10 +4,12 @@ import os
 import sys
 import timeit
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytz
 
+if (sys.version_info.major, sys.version_info.minor) >= (3, 5):
+    from metomi.isodatetime.data import TimePoint
 
 try:
     from importlib.metadata import version as get_module_version
@@ -29,6 +31,10 @@ ISO_8601_MODULES = {
 if os.name != "nt" and (sys.version_info.major, sys.version_info.minor) < (3, 9):
     # udatetime doesn't support Windows.
     ISO_8601_MODULES["udatetime"] = ("import udatetime", "udatetime.from_string('{timestamp}')")
+
+if (sys.version_info.major, sys.version_info.minor) >= (3, 5):
+    # metomi-isodatetime doesn't support Python < 3.5
+    ISO_8601_MODULES["metomi-isodatetime"] = ("import metomi.isodatetime.parsers as parse", "parse.TimePointParser().parse('{timestamp}')")
 
 if (sys.version_info.major, sys.version_info.minor) >= (3, 6):
     # zulu v2.0.0+ no longer supports Python < 3.6
@@ -71,11 +77,29 @@ class Result:
             self.exception
         ]
 
+def metomi_compare(timepoint, dt):
+    # Really (s)crappy comparison function
+    # Ignores subsecond accuracy.
+    # https://github.com/metomi/isodatetime/issues/196
+    offset = timedelta(hours=timepoint.time_zone.hours, minutes=timepoint.time_zone.minutes)
+    return timepoint.year == dt.year and \
+        timepoint.month_of_year == dt.month and \
+        timepoint.day_of_month == dt.day and \
+        timepoint.hour_of_day == dt.hour and \
+        timepoint.minute_of_hour == dt.minute and \
+        timepoint.second_of_minute == dt.second and \
+        offset == dt.tzinfo.utcoffset(dt)
+
 def check_roughly_equivalent(dt1, dt2):
     # For the purposes of our benchmarking, we don't care if the datetime
     # has tzinfo=UTC or is naive.
     dt1 = dt1.replace(tzinfo=pytz.UTC) if isinstance(dt1, datetime) and dt1.tzinfo is None else dt1
     dt2 = dt2.replace(tzinfo=pytz.UTC) if isinstance(dt2, datetime) and dt2.tzinfo is None else dt2
+
+    # Special handling for metomi-isodatetime
+    if (sys.version_info.major, sys.version_info.minor) >= (3, 5) and isinstance(dt1, TimePoint):
+        return metomi_compare(dt1, dt2)
+
     return dt1 == dt2
 
 def auto_range_counts(filepath):
