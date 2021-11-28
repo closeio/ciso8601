@@ -208,7 +208,7 @@ The following date formats are supported:
    ============================= ============== ==================
    ``YYYY-MM-DD``                ``2018-04-29`` ✅
    ``YYYY-MM``                   ``2018-04``    ✅
-   ``YYYYMMDD``                  ``2018-04``    ✅
+   ``YYYYMMDD``                  ``20180429``    ✅
    ``--MM-DD`` (omitted year)    ``--04-29``    ❌
    ``--MMDD`` (omitted year)     ``--0429``     ❌
    ``±YYYYY-MM`` (>4 digit year) ``+10000-04``  ❌
