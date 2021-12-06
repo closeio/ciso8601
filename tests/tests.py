@@ -59,12 +59,12 @@ class ValidTimestampTestCase(unittest.TestCase):
 
     def test_returns_built_in_utc_if_available(self):
         # Python 3.7 added a built-in UTC object at the C level (`PyDateTime_TimeZone_UTC`)
-        # PyPy added support for it in 7.3.6
+        # PyPy added support for it in 7.3.6, but only for PyPy 3.8+
 
         timestamp = '2018-01-01T00:00:00.00Z'
         if sys.version_info >= (3, 7) and \
             (platform.python_implementation() == 'CPython'
-             or (platform.python_implementation() == 'PyPy' and sys.pypy_version_info >= (7, 3, 6))):
+             or (platform.python_implementation() == 'PyPy' and sys.version_info >= (3, 8) and sys.pypy_version_info >= (7, 3, 6))):
             self.assertIs(parse_datetime(timestamp).tzinfo, datetime.timezone.utc)
         else:
             self.assertIsInstance(parse_datetime(timestamp).tzinfo, FixedOffset)
