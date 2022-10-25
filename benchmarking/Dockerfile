@@ -5,20 +5,23 @@ RUN apt-get update && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update
 
-# Install the Python versions
-RUN apt install -y python python-dev && \
-    apt install -y python3.5 python3.5-dev python3.5-venv && \
-    apt install -y python3.6 python3.6-dev python3.6-venv && \
-    apt install -y python3.7 python3.7-dev python3.7-venv && \
-    apt install -y python3.8 python3.8-dev python3.8-venv && \
-    apt install -y python3.9 python3.9-dev python3.9-venv && \
-    apt install -y python3.10 python3.10-dev python3.10-venv
-
 # Install the other dependencies
 RUN apt-get install -y git curl gcc build-essential
 
-# Make Python 3.10 the default `python`
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 10
+# Install tzdata non-iteractively
+# https://stackoverflow.com/questions/44331836/apt-get-install-tzdata-noninteractive/44333806#44333806
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+
+# Install the Python versions
+RUN apt install -y python2 python2-dev && \
+    apt install -y python3.7 python3.7-dev python3.7-venv && \
+    apt install -y python3.8 python3.8-dev python3.8-venv && \
+    apt install -y python3.9 python3.9-dev python3.9-venv && \
+    apt install -y python3.10 python3.10-dev python3.10-venv && \
+    apt install -y python3.11 python3.11-dev python3.11-venv
+
+# Make Python 3.11 the default `python`
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 10
 
 # Get pip
 RUN python -m ensurepip --upgrade
