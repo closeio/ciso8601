@@ -5,6 +5,7 @@ import platform
 import re
 
 from collections import defaultdict, UserDict
+from packaging import version as version_parse
 
 import pytablewriter
 
@@ -64,9 +65,11 @@ def format_used_module_versions(module_versions_used):
         if len(versions) == 1:
             results.append(f"{module}=={next(iter(versions.keys()))}")
         else:
-            results.append(", ".join([f"{module}=={version} (on Python {', '.join(sorted(py_versions))})" for version, py_versions in versions.items()]))
+            results.append(", ".join([f"{module}=={version} (on Python {', '.join(version_sort(py_versions))})" for version, py_versions in versions.items()]))
     return results
 
+def version_sort(versions):
+    return [str(v) for v in sorted([version_parse.parse(v) for v in versions])]
 
 def relative_slowdown(subject, comparison):
     most_modern_common_version = next(iter(sorted(set(subject.keys()).intersection(set(comparison)), reverse=True)), None)
