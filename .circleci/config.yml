@@ -3,10 +3,11 @@ version: 2.1
 workflows:
   workflow:
     jobs:
+      - test_python_34
       - test:
           matrix:
             parameters:
-              python_version: ["2.7", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+              python_version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
       - test_pypy:
           matrix:
             parameters:
@@ -14,6 +15,17 @@ workflows:
       - lint-rst
 
 jobs:
+  # `cimg/python` doesn't support Python 3.4,
+  # but old `circleci/python` is still around!
+  test_python_34:
+    steps:
+      - checkout
+      - run:
+          name: Test
+          command: python setup.py test
+    docker:
+      - image: circleci/python:3.4
+
   test:
     parameters:
       python_version:
@@ -24,7 +36,7 @@ jobs:
           name: Test
           command: python setup.py test
     docker:
-      - image: circleci/python:<<parameters.python_version>>
+      - image: cimg/python:<<parameters.python_version>>
 
   test_pypy:
     parameters:
@@ -54,4 +66,4 @@ jobs:
             . venv/bin/activate
             rst-lint --encoding=utf-8 README.rst
     docker:
-      - image: circleci/python:3.11
+      - image: cimg/python:3.11
