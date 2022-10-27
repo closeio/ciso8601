@@ -22,13 +22,16 @@ ISO_8601_MODULES = {
     "python-dateutil": ("import dateutil.parser", "dateutil.parser.parse('{timestamp}')"),
     "iso8601": ("import iso8601", "iso8601.parse_date('{timestamp}')"),
     "isodate": ("import isodate", "isodate.parse_datetime('{timestamp}')"),
-    "maya": ("import maya", "maya.parse('{timestamp}').datetime()"),
     "pendulum": ("from pendulum.parsing import parse_iso8601", "parse_iso8601('{timestamp}')"),
     "PySO8601": ("import PySO8601", "PySO8601.parse('{timestamp}')"),
     "str2date": ("from str2date import str2date", "str2date('{timestamp}')"),
 }
 
-if os.name != "nt" and (sys.version_info.major, sys.version_info.minor) < (3, 9):
+if (sys.version_info.major, sys.version_info.minor) >= (3, 11):
+    # Python 3.11 added full ISO 8601 parsing
+    ISO_8601_MODULES["datetime (builtin)"] = ("from datetime import datetime", "datetime.fromisoformat('{timestamp}')")
+
+if os.name != "nt":
     # udatetime doesn't support Windows.
     ISO_8601_MODULES["udatetime"] = ("import udatetime", "udatetime.from_string('{timestamp}')")
 
@@ -40,7 +43,7 @@ if (sys.version_info.major, sys.version_info.minor) >= (3, 6):
     # zulu v2.0.0+ no longer supports Python < 3.6
     ISO_8601_MODULES["zulu"] = ("import zulu", "zulu.parse('{timestamp}')")
 
-if (sys.version_info.major, sys.version_info.minor) != (3, 6) and (sys.version_info.major, sys.version_info.minor) != (3, 10):
+if (sys.version_info.major, sys.version_info.minor) != (3, 6) and (sys.version_info.major, sys.version_info.minor) <= (3, 9):
     # iso8601utils installs enum34, which messes with tox in Python 3.6
     # https://stackoverflow.com/q/43124775
     # https://github.com/silverfernsys/iso8601utils/pull/5
@@ -49,9 +52,16 @@ if (sys.version_info.major, sys.version_info.minor) != (3, 6) and (sys.version_i
     ISO_8601_MODULES["iso8601utils"] = ("from iso8601utils import parsers", "parsers.datetime('{timestamp}')")
 
 if (sys.version_info.major, sys.version_info.minor) != (3, 4):
-    # arrow no longer supports Python 3.4
+    # `arrow` no longer supports Python 3.4
     ISO_8601_MODULES["arrow"] = ("import arrow", "arrow.get('{timestamp}').datetime")
-    # moment is built on `times`, which is built on `arrow`, which no longer supports Python 3.4
+
+if sys.version_info.major >= 3:
+    # `maya` uses a version of `regex` which no longer supports Python 2
+    ISO_8601_MODULES["maya"] = ("import maya", "maya.parse('{timestamp}').datetime()")
+
+if (sys.version_info.major, sys.version_info.minor) >= (3, 5):
+    # `moment` is built on `times`, which is built on `arrow`, which no longer supports Python 3.4
+    # `moment` uses a version of `regex` which no longer supports Python 2
     ISO_8601_MODULES["moment"] = ("import moment", "moment.date('{timestamp}').date")
 
 class Result:
@@ -132,6 +142,8 @@ def write_module_versions(filepath):
         module_version_writer = csv.writer(fout, delimiter=",", quotechar='"', lineterminator="\n")
         module_version_writer.writerow([sys.version_info.major, sys.version_info.minor])
         for module, (_setup, _stmt) in sorted(ISO_8601_MODULES.items(), key=lambda x: x[0].lower()):
+            if module == "datetime (builtin)":
+                continue
             module_version_writer.writerow([module, get_module_version(module)])
 
 def run_tests(timestamp, results_directory, compare_to):
