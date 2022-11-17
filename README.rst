@@ -57,6 +57,13 @@ See `CHANGELOG`_ for the Migration Guide.
 
 .. _CHANGELOG: https://github.com/closeio/ciso8601/blob/master/CHANGELOG.md
 
+When should I not use ``cis8601``?
+----------------------------------
+
+``ciso8601`` is not necessarily the best solution for every use case (especially since Python 3.11). See `Should I use ciso8601?`_
+
+.. _`Should I use ciso8601?`: https://github.com/closeio/ciso8601/blob/master/why_ciso8601.md
+
 Error Handling
 --------------
 
