@@ -24,6 +24,7 @@
 * Added missing `fromutc` implementation for `FixedOffset` (#113). Thanks @davidkraljic
 * Removed improper ability to call `FixedOffset`'s `dst`, `tzname` and `utcoffset` without arguments
 * Fixed: `datetime.tzname` returns a `str` in Python 2.7, not a `unicode`
+* Change `METH_VARARGS` to `METH_O`, enhancing performance. ([#130](https://github.com/closeio/ciso8601/pull/130))
 
 # 2.x.x
 

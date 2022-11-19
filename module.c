@@ -108,7 +108,7 @@ static PyObject *tz_cache[2879] = {NULL};
 #endif
 
 static void *
-format_unexpected_character_exception(char *field_name, char *c, size_t index,
+format_unexpected_character_exception(char *field_name, const char *c, size_t index,
                                       int expected_character_count)
 {
     if (*c == '\0') {
@@ -152,14 +152,17 @@ format_unexpected_character_exception(char *field_name, char *c, size_t index,
 #define IS_FRACTIONAL_SEPARATOR (*c == '.' || (*c == ',' && !rfc3339_only))
 
 static PyObject *
-_parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
+_parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
 {
     PyObject *obj;
     PyObject *tzinfo = Py_None;
+#if PY_VERSION_AT_LEAST_33
+    Py_ssize_t len;
+#endif
 
     int i;
-    char *str = NULL;
-    char *c;
+    const char *str;
+    const char *c;
     int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0,
         usecond = 0;
     int time_is_midnight = 0;
@@ -171,9 +174,22 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
     PyObject *temp;
     int extended_date_format = 0;
 
-    if (!PyArg_ParseTuple(args, "s", &str))
+
+#if PY_MAJOR_VERSION >= 3
+    if (!PyUnicode_Check(dtstr)) {
+#else
+    if (!PyString_Check(dtstr)) {
+#endif
+        PyErr_SetString(PyExc_TypeError,
+                        "argument must be str");
         return NULL;
-    c = str;
+    }
+
+#if PY_VERSION_AT_LEAST_33
+    str = c = PyUnicode_AsUTF8AndSize(dtstr, &len);
+#else
+    str = c = PyString_AsString(dtstr);
+#endif
 
     /* Year */
     PARSE_INTEGER(year, 4, "year")
@@ -537,29 +553,29 @@ _parse(PyObject *self, PyObject *args, int parse_any_tzinfo, int rfc3339_only)
 }
 
 static PyObject *
-parse_datetime_as_naive(PyObject *self, PyObject *args)
+parse_datetime_as_naive(PyObject *self, PyObject *dtstr)
 {
-    return _parse(self, args, 0, 0);
+    return _parse(self, dtstr, 0, 0);
 }
 
 static PyObject *
-parse_datetime(PyObject *self, PyObject *args)
+parse_datetime(PyObject *self, PyObject *dtstr)
 {
-    return _parse(self, args, 1, 0);
+    return _parse(self, dtstr, 1, 0);
 }
 
 static PyObject *
-parse_rfc3339(PyObject *self, PyObject *args)
+parse_rfc3339(PyObject *self, PyObject *dtstr)
 {
-    return _parse(self, args, 1, 1);
+    return _parse(self, dtstr, 1, 1);
 }
 
 static PyMethodDef CISO8601Methods[] = {
-    {"parse_datetime", parse_datetime, METH_VARARGS,
+    {"parse_datetime", (PyCFunction)parse_datetime, METH_O,
      "Parse a ISO8601 date time string."},
-    {"parse_datetime_as_naive", parse_datetime_as_naive, METH_VARARGS,
+    {"parse_datetime_as_naive", parse_datetime_as_naive, METH_O,
      "Parse a ISO8601 date time string, ignoring the time zone component."},
-    {"parse_rfc3339", parse_rfc3339, METH_VARARGS,
+    {"parse_rfc3339", parse_rfc3339, METH_O,
      "Parse an RFC 3339 date time string."},
     {NULL, NULL, 0, NULL}};
 
