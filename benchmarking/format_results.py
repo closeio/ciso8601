@@ -99,6 +99,8 @@ def load_benchmarking_results(results_directory):
                 minor = int(minor)
                 timestamps.add(timestamp)
                 for module, _setup, stmt, parse_result, count, time_taken, matched, exception in reader:
+                    if module == "hardcoded":
+                        continue
                     timing = float(time_taken) / int(count) if exception == "" else None
                     exception = exception if exception != "" else None
                     results[module][(major, minor)] = Result(
