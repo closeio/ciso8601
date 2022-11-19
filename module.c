@@ -554,6 +554,14 @@ parse_rfc3339(PyObject *self, PyObject *args)
     return _parse(self, args, 1, 1);
 }
 
+static PyObject *
+_hard_coded_benchmark_timestamp(PyObject *self, PyObject *ignored)
+{
+    return PyDateTimeAPI->DateTime_FromDateAndTime(
+        2014, 1, 9, 21, 48, 0, 0, Py_None,
+        PyDateTimeAPI->DateTimeType);
+}
+
 static PyMethodDef CISO8601Methods[] = {
     {"parse_datetime", parse_datetime, METH_VARARGS,
      "Parse a ISO8601 date time string."},
@@ -561,6 +569,8 @@ static PyMethodDef CISO8601Methods[] = {
      "Parse a ISO8601 date time string, ignoring the time zone component."},
     {"parse_rfc3339", parse_rfc3339, METH_VARARGS,
      "Parse an RFC 3339 date time string."},
+    {"_hard_coded_benchmark_timestamp", _hard_coded_benchmark_timestamp, METH_NOARGS,
+     "Return a datetime using hardcoded values (for benchmarking purposes)"},
     {NULL, NULL, 0, NULL}};
 
 #if PY_MAJOR_VERSION >= 3

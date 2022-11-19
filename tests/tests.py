@@ -7,7 +7,7 @@ import platform
 import re
 import sys
 
-from ciso8601 import FixedOffset, parse_datetime, parse_datetime_as_naive, parse_rfc3339
+from ciso8601 import _hard_coded_benchmark_timestamp, FixedOffset, parse_datetime, parse_datetime_as_naive, parse_rfc3339
 from generate_test_timestamps import generate_valid_timestamp_and_datetime, generate_invalid_timestamp
 
 if sys.version_info.major == 2:
@@ -542,6 +542,13 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
             "20010203T04:05",
         )
 
+
+class HardCodedBenchmarkTimestampTestCase(unittest.TestCase):
+    def test_returns_expected_hardcoded_datetime(self):
+        self.assertEqual(
+            _hard_coded_benchmark_timestamp(),
+            datetime.datetime(2014, 1, 9, 21, 48, 0, 0),
+        )
 
 if __name__ == "__main__":
     unittest.main()

@@ -19,6 +19,7 @@ except ImportError:
 ISO_8601_MODULES = {
     "aniso8601": ("import aniso8601", "aniso8601.parse_datetime('{timestamp}')"),
     "ciso8601": ("import ciso8601", "ciso8601.parse_datetime('{timestamp}')"),
+    "hardcoded": ("import ciso8601", "ciso8601._hard_coded_benchmark_timestamp()"),
     "python-dateutil": ("import dateutil.parser", "dateutil.parser.parse('{timestamp}')"),
     "iso8601": ("import iso8601", "iso8601.parse_date('{timestamp}')"),
     "isodate": ("import isodate", "isodate.parse_datetime('{timestamp}')"),
@@ -142,7 +143,7 @@ def write_module_versions(filepath):
         module_version_writer = csv.writer(fout, delimiter=",", quotechar='"', lineterminator="\n")
         module_version_writer.writerow([sys.version_info.major, sys.version_info.minor])
         for module, (_setup, _stmt) in sorted(ISO_8601_MODULES.items(), key=lambda x: x[0].lower()):
-            if module == "datetime (builtin)":
+            if module == "datetime (builtin)" or module == "hardcoded":
                 continue
             module_version_writer.writerow([module, get_module_version(module)])
 
