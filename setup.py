@@ -56,7 +56,6 @@ setup(
     test_suite="tests",
     tests_require=[
         "pytz",
-        "unittest2 ; python_version < '3'",
     ],
     classifiers=[
         "Intended Audience :: Developers",
