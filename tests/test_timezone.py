@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import unittest
 
 from datetime import datetime, timedelta
 
 from ciso8601 import FixedOffset
 
 if sys.version_info.major == 2:
-    # We use unittest2 since it has a backport of the `unittest.TestCase.assertRaisesRegex` method,
-    # which is called `assertRaisesRegexp` in Python 2. This saves us the hassle of monkey-patching
-    # the class ourselves.
-    import unittest2 as unittest
-else:
-    import unittest
-
+    # We use add `unittest.TestCase.assertRaisesRegex` method, which is called `assertRaisesRegexp` in Python 2.
+    unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
 class TimezoneTestCase(unittest.TestCase):
     def test_utcoffset(self):

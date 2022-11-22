@@ -6,17 +6,14 @@ import pickle
 import platform
 import re
 import sys
+import unittest
 
 from ciso8601 import FixedOffset, parse_datetime, parse_datetime_as_naive, parse_rfc3339
 from generate_test_timestamps import generate_valid_timestamp_and_datetime, generate_invalid_timestamp
 
 if sys.version_info.major == 2:
-    # We use unittest2 since it has a backport of the `unittest.TestCase.assertRaisesRegex` method,
-    # which is called `assertRaisesRegexp` in Python 2. This saves us the hassle of monkey-patching
-    # the class ourselves.
-    import unittest2 as unittest
-else:
-    import unittest
+    # We use add `unittest.TestCase.assertRaisesRegex` method, which is called `assertRaisesRegexp` in Python 2.
+    unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
 
 class ValidTimestampTestCase(unittest.TestCase):
