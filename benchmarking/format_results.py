@@ -128,7 +128,7 @@ def write_benchmarking_results(results_directory, output_file, baseline_module, 
 
     writer = pytablewriter.RstGridTableWriter()
     formatted_python_versions = [f"Python {major}.{minor}" for major, minor in python_versions_by_modernity]
-    writer.header_list = ["Module"] + (["Call"] if include_call else []) + formatted_python_versions + [f"Relative Slowdown (versus {baseline_module}, latest Python)"]
+    writer.header_list = ["Module"] + (["Call"] if include_call else []) + formatted_python_versions + [f"Relative slowdown (versus {baseline_module}, latest Python)"]
     writer.type_hint_list = [pytablewriter.String] * len(writer.header_list)
 
     calling_codes = [calling_code[module] for module in modules_by_modern_speed]
@@ -144,15 +144,16 @@ def write_benchmarking_results(results_directory, output_file, baseline_module, 
         writer.write_table()
         fout.write("\n")
 
-        if len(modules_by_modern_speed) > 1:
+        latest_python_version = python_versions_by_modernity[0]
+        modules_supporting_latest_python = [module for module in modules_by_modern_speed if latest_python_version in results[module]]
+        if len(modules_supporting_latest_python) > 1:
             baseline_module_timing = results[baseline_module].most_modern_result().formatted_timing()
 
-            fastest_module, next_fastest_module = modules_by_modern_speed[0:2]
+            fastest_module, next_fastest_module = modules_supporting_latest_python[0:2]
             if fastest_module == baseline_module:
-                fout.write(f"{baseline_module} takes {baseline_module_timing}, which is **{relative_slowdown(results[next_fastest_module], results[baseline_module])} faster than {next_fastest_module}**, the next fastest ISO 8601 parser in this comparison.\n")
+                fout.write(f"{baseline_module} takes {baseline_module_timing}, which is **{relative_slowdown(results[next_fastest_module], results[baseline_module])} faster than {next_fastest_module}**, the next fastest {formatted_python_versions[0]} parser in this comparison.\n")
             else:
-                fout.write(f"{baseline_module} takes {baseline_module_timing}, which is **{relative_slowdown(results[baseline_module], results[fastest_module])} slower than {fastest_module}**, the fastest ISO 8601 parser in this comparison.\n")
-
+                fout.write(f"{baseline_module} takes {baseline_module_timing}, which is **{relative_slowdown(results[baseline_module], results[fastest_module])} slower than {fastest_module}**, the fastest {formatted_python_versions[0]} parser in this comparison.\n")
 
 def load_module_version_info(results_directory):
     module_versions_used = defaultdict(dict)
