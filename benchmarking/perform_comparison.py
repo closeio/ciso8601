@@ -32,6 +32,10 @@ if (sys.version_info.major, sys.version_info.minor) >= (3, 11):
     # Python 3.11 added full ISO 8601 parsing
     ISO_8601_MODULES["datetime (builtin)"] = ("from datetime import datetime", "datetime.fromisoformat('{timestamp}')")
 
+if sys.version_info.major >= 3 and (sys.version_info.major, sys.version_info.minor) < (3, 11):
+    # backports.datetime_fromisoformat brings the Python 3.11 logic into older Python 3 versions
+    ISO_8601_MODULES["backports.datetime_fromisoformat"] = ("from backports.datetime_fromisoformat import datetime_fromisoformat", "datetime_fromisoformat('{timestamp}')")
+
 if os.name != "nt":
     # udatetime doesn't support Windows.
     ISO_8601_MODULES["udatetime"] = ("import udatetime", "udatetime.from_string('{timestamp}')")
@@ -145,7 +149,13 @@ def write_module_versions(filepath):
         for module, (_setup, _stmt) in sorted(ISO_8601_MODULES.items(), key=lambda x: x[0].lower()):
             if module == "datetime (builtin)" or module == "hardcoded":
                 continue
-            module_version_writer.writerow([module, get_module_version(module)])
+            # Unfortunately, `backports.datetime_fromisoformat` has the distribution name `backports-datetime-fromisoformat` in PyPI
+            # This messes with Python 3.8 and 3.9's get_module_version, so we special case it.
+            if module == "backports.datetime_fromisoformat":
+                module_version = get_module_version("backports-datetime-fromisoformat")
+            else:
+                module_version = get_module_version(module)
+            module_version_writer.writerow([module, module_version])
 
 def run_tests(timestamp, results_directory, compare_to):
     # `Timer.autorange` only exists in Python 3.6+. We want the tests to run in a reasonable amount of time,
