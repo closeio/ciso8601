@@ -44,7 +44,7 @@ setup(
     ext_modules=[
         Extension(
             "ciso8601",
-            sources=["module.c", "timezone.c"],
+            sources=["module.c", "timezone.c", "isocalendar.c"],
             define_macros=[
                 ("CISO8601_VERSION", VERSION),
                 ("CISO8601_CACHING_ENABLED", CISO8601_CACHING_ENABLED),
