@@ -1,6 +1,7 @@
 #include <Python.h>
 #include <ctype.h>
 #include <datetime.h>
+#include "isocalendar.h"
 #include "timezone.h"
 
 #define STRINGIZE(x)            #x
@@ -145,6 +146,7 @@ format_unexpected_character_exception(char *field_name, const char *c, size_t in
 }
 
 #define IS_CALENDAR_DATE_SEPARATOR (*c == '-')
+#define IS_ISOCALENDAR_SEPARATOR (*c == 'W')
 #define IS_DATE_AND_TIME_SEPARATOR (*c == 'T' || *c == ' ' || *c == 't')
 #define IS_TIME_SEPARATOR (*c == ':')
 #define IS_TIME_ZONE_SEPARATOR \
@@ -165,6 +167,7 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
     const char *c;
     int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0,
         usecond = 0;
+    int iso_week = 0, iso_day = 0;
     int time_is_midnight = 0;
     int tzhour = 0, tzminute = 0, tzsign = 0;
 #if CISO8601_CACHING_ENABLED
@@ -173,7 +176,6 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
     PyObject *delta;
     PyObject *temp;
     int extended_date_format = 0;
-
 
 #if PY_MAJOR_VERSION >= 3
     if (!PyUnicode_Check(dtstr)) {
@@ -209,40 +211,88 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
     }
 #endif
 
-    if (IS_CALENDAR_DATE_SEPARATOR) { /* Separated Month and Day (ie. MM-DD) */
+    if (IS_CALENDAR_DATE_SEPARATOR) {
         c++;
         extended_date_format = 1;
 
-        /* Month */
-        PARSE_INTEGER(month, 2, "month")
+        if (IS_ISOCALENDAR_SEPARATOR) { /* Separated ISO Calendar week and day (ie. Www-D) */
+            c++;
 
-        if (*c != '\0' && !IS_DATE_AND_TIME_SEPARATOR) { /* Optional Day */
-            PARSE_SEPARATOR(IS_CALENDAR_DATE_SEPARATOR, "date separator ('-')")
+            if (rfc3339_only) {
+                PyErr_SetString(PyExc_ValueError,
+                                "Datetime string not in RFC 3339 format.");
+                return NULL;
+            }
 
-            /* Day */
-            PARSE_INTEGER(day, 2, "day")
+            PARSE_INTEGER(iso_week, 2, "iso_week")
+
+            if (*c != '\0' && !IS_DATE_AND_TIME_SEPARATOR) { /* Optional Day */
+                PARSE_SEPARATOR(IS_CALENDAR_DATE_SEPARATOR, "date separator ('-')")
+                PARSE_INTEGER(iso_day, 1, "iso_day")
+            }
+            else {
+                iso_day = 1;
+            }
+
+            int rv = iso_to_ymd(year, iso_week, iso_day, &year, &month, &day);
+            if (rv) {
+                PyErr_Format(PyExc_ValueError, "Invalid ISO Calendar date");
+                return NULL;
+            }
         }
-        else if (rfc3339_only) {
-            PyErr_SetString(PyExc_ValueError,
-                            "Datetime string not in RFC 3339 format.");
-            return NULL;
+        else { /* Separated Month and Day (ie. MM-DD) */
+            /* Month */
+            PARSE_INTEGER(month, 2, "month")
+
+            if (*c != '\0' && !IS_DATE_AND_TIME_SEPARATOR) { /* Optional Day */
+                PARSE_SEPARATOR(IS_CALENDAR_DATE_SEPARATOR, "date separator ('-')")
+
+                /* Day */
+                PARSE_INTEGER(day, 2, "day")
+            }
+            else if (rfc3339_only) {
+                PyErr_SetString(PyExc_ValueError,
+                                "Datetime string not in RFC 3339 format.");
+                return NULL;
+            }
+            else {
+                day = 1;
+            }
         }
-        else {
-            day = 1;
-        }
+
     }
     else if (rfc3339_only) {
         PyErr_SetString(PyExc_ValueError,
                         "Datetime string not in RFC 3339 format.");
         return NULL;
     }
-    else { /* Non-separated Month and Day (ie. MMDD) */
-        /* Month */
-        PARSE_INTEGER(month, 2, "month")
-        /* Note that YYMM is not a valid timestamp. If the calendar date is not
-         * separated, a day is required (ie. YYMMDD)
-         */
-        PARSE_INTEGER(day, 2, "day")
+    else {
+
+        if (IS_ISOCALENDAR_SEPARATOR) { /* Non-separated ISO Calendar week and day (ie. WwwD) */
+            c++;
+
+            PARSE_INTEGER(iso_week, 2, "iso_week")
+
+            if (*c != '\0' && !IS_DATE_AND_TIME_SEPARATOR) { /* Optional Day */
+                PARSE_INTEGER(iso_day, 1, "iso_day")
+            }
+            else {
+                iso_day = 1;
+            }
+
+            int rv = iso_to_ymd(year, iso_week, iso_day, &year, &month, &day);
+            if (rv) {
+                PyErr_Format(PyExc_ValueError, "Invalid ISO Calendar date");
+                return NULL;
+            }
+        }
+        else { /* Non-separated Month and Day (ie. MMDD) */
+            PARSE_INTEGER(month, 2, "month")
+            /* Note that YYYYMM is not a valid timestamp. If the calendar date is not
+            * separated, a day is required (ie. YYMMDD)
+            */
+            PARSE_INTEGER(day, 2, "day")
+        }
     }
 
 #if !PY_VERSION_AT_LEAST_36

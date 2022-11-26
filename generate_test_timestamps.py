@@ -1,5 +1,6 @@
 import datetime
 import pytz
+import sys
 
 from collections import namedtuple
 
@@ -22,6 +23,8 @@ NUMBER_FIELDS = {
     "year": NumberField(4, 4, 1, 9999),
     "month": NumberField(2, 2, 1, 12),
     "day": NumberField(2, 2, 1, 31),
+    "iso_week":  NumberField(2, 2, 1, 53),
+    "iso_day":  NumberField(1, 1, 1, 7),
     "hour": NumberField(2, 2, 0, 24),  # 24 = special midnight value
     "minute": NumberField(2, 2, 0, 59),
     "second": NumberField(2, 2, 0, 60),  # 60 = Leap second
@@ -39,7 +42,7 @@ PADDED_NUMBER_FIELD_FORMATS = {
 }
 
 
-def __generate_valid_formats(year=2014, month=2, day=3, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
+def __generate_valid_formats(year=2014, month=2, day=3, iso_week=6, iso_day=1, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
     # Given a set of values, generates the 400+ different combinations of those values within a valid ISO 8601 string.
     # Returns a Python format string, the fields in the format string, and the corresponding parameters you could pass to the datetime constructor
     # These can be used by generate_valid_timestamp_and_datetime and generate_invalid_timestamp_and_datetime to produce test cases
@@ -51,6 +54,16 @@ def __generate_valid_formats(year=2014, month=2, day=3, hour=1, minute=23, secon
     valid_extended_calendar_date_formats = [
         ("{year}-{month}", set(["year", "month"]), {"year": year, "month": month, "day": 1}),
         ("{year}-{month}-{day}", set(["year", "month", "day"]), {"year": year, "month": month, "day": day}),
+    ]
+
+    valid_basic_week_date_formats = [
+        ("{year}W{iso_week}", set(["year", "iso_week"]), {"year": year, "iso_week": iso_week, "iso_day": 1}),
+        ("{year}W{iso_week}{iso_day}", set(["year", "iso_week", "iso_day"]), {"year": year, "iso_week": iso_week, "iso_day": iso_day})
+    ]
+
+    valid_extended_week_date_formats = [
+        ("{year}-W{iso_week}", set(["year", "iso_week"]), {"year": year, "iso_week": iso_week, "iso_day": 1}),
+        ("{year}-W{iso_week}-{iso_day}", set(["year", "iso_week", "iso_day"]), {"year": year, "iso_week": iso_week, "iso_day": iso_day})
     ]
 
     valid_date_and_time_separators = [None, "T", "t", " "]
@@ -85,8 +98,28 @@ def __generate_valid_formats(year=2014, month=2, day=3, hour=1, minute=23, secon
         ("+{tzhour}:{tzminute}", set(["tzhour", "tzminute"]), {"tzinfo": pytz.FixedOffset(1 * ((tzhour * 60) + tzminute))})
     ]
 
-    for valid_calendar_date_formats, valid_time_formats in [(valid_basic_calendar_date_formats, valid_basic_time_formats), (valid_extended_calendar_date_formats, valid_extended_time_formats)]:
+    format_date_time_combinations = [
+        (valid_basic_calendar_date_formats, valid_basic_time_formats),
+        (valid_extended_calendar_date_formats, valid_extended_time_formats),
+    ]
+
+    if (sys.version_info.major, sys.version_info.minor) >= (3, 8):
+        # We rely on datetime.datetime.fromisocalendar
+        # to generate the expected values, but that was added in Python 3.8
+        format_date_time_combinations += [
+            (valid_basic_week_date_formats, valid_basic_time_formats),
+            (valid_extended_week_date_formats, valid_extended_time_formats)
+        ]
+
+    for valid_calendar_date_formats, valid_time_formats in format_date_time_combinations:
         for calendar_format, calendar_fields, calendar_params in valid_calendar_date_formats:
+
+            if "iso_week" in calendar_fields:
+                dt = datetime.datetime.fromisocalendar(calendar_params["year"], calendar_params["iso_week"], calendar_params["iso_day"])
+                calendar_params = __merge_dicts(calendar_params, { "month": dt.month, "day": dt.day })
+                del(calendar_params["iso_week"])
+                del(calendar_params["iso_day"])
+
             for date_and_time_separator in valid_date_and_time_separators:
                 if date_and_time_separator is None:
                     full_format = calendar_format
@@ -117,7 +150,7 @@ def __pad_params(**kwargs):
     return {key: PADDED_NUMBER_FIELD_FORMATS[key].format(**{key: value}) if key in PADDED_NUMBER_FIELD_FORMATS else value for key, value in kwargs.items()}
 
 
-def generate_valid_timestamp_and_datetime(year=2014, month=2, day=3, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
+def generate_valid_timestamp_and_datetime(year=2014, month=2, day=3, iso_week=6, iso_day=1, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
     # Given a set of values, generates the 400+ different combinations of those values within a valid ISO 8601 string, and the corresponding datetime
     # This can be used to generate test cases of valid ISO 8601 timestamps.
 
@@ -128,6 +161,8 @@ def generate_valid_timestamp_and_datetime(year=2014, month=2, day=3, hour=1, min
         "year": year,
         "month": month,
         "day": day,
+        "iso_week": iso_week,
+        "iso_day": iso_day,
         "hour": hour,
         "minute": minute,
         "second": second,
@@ -142,7 +177,7 @@ def generate_valid_timestamp_and_datetime(year=2014, month=2, day=3, hour=1, min
         yield (timestamp, datetime.datetime(**datetime_params))
 
 
-def generate_invalid_timestamp(year=2014, month=2, day=3, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
+def generate_invalid_timestamp(year=2014, month=2, day=3, iso_week=6, iso_day=1, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
     # At the very least, each field can be invalid in the following ways:
     #   - Have too few characters
     #   - Have too many characters
@@ -169,6 +204,8 @@ def generate_invalid_timestamp(year=2014, month=2, day=3, hour=1, minute=23, sec
         "year": year,
         "month": month,
         "day": day,
+        "iso_week": iso_week,
+        "iso_day": iso_day,
         "hour": hour,
         "minute": minute,
         "second": second,
@@ -184,6 +221,10 @@ def generate_invalid_timestamp(year=2014, month=2, day=3, hour=1, minute=23, sec
             if field is not None:
                 # Too few characters
                 for length in range(1, field.min_width):
+                    if timestamp_format.startswith("{year}W{iso_week}{iso_day}") and field_name == "iso_week":
+                        # If you reduce the iso_week field to 1 character, then the iso_day will make it into
+                        # a valid  "{year}W{iso_week}" timestamp
+                        continue
                     str_value = str(__pad_params(**{field_name: kwargs[field_name]})[field_name])[0:length]
                     mangled_kwargs[field_name] = "{{:0>{length}}}".format(length=length).format(str_value)
                     timestamp = timestamp_format.format(**mangled_kwargs)
