@@ -11,7 +11,7 @@
   - [Version 2.0.0](#version-200)
     - [Breaking changes](#breaking-changes)
     - [Other Changes](#other-changes)
-    - [v1.x.x -> 2.0.0 Migration guide](#v1xx---200-migration-guide)
+    - [v1.x.x -\> 2.0.0 Migration guide](#v1xx---200-migration-guide)
       - [ValueError instead of None](#valueerror-instead-of-none)
       - [Tightened ISO 8601 conformance](#tightened-iso-8601-conformance)
       - [`parse_datetime_unaware` has been renamed](#parse_datetime_unaware-has-been-renamed)
@@ -25,6 +25,7 @@
 * Removed improper ability to call `FixedOffset`'s `dst`, `tzname` and `utcoffset` without arguments
 * Fixed: `datetime.tzname` returns a `str` in Python 2.7, not a `unicode`
 * Change `METH_VARARGS` to `METH_O`, enhancing performance. ([#130](https://github.com/closeio/ciso8601/pull/130))
+* Added support for ISO week dates, ([#139](https://github.com/closeio/ciso8601/pull/139))
 
 # 2.x.x
 

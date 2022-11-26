@@ -61,7 +61,7 @@ RFC 3339 can be (roughly) thought of as a subset of ISO 8601. If you need strict
 
 ## Are you OK with the subset of ISO 8601 supported by ciso8601?
 
-You probably are. `ciso8601` [supports the most commonly seen subset of ISO 8601 timestamps](https://github.com/closeio/ciso8601#supported-subset-of-iso-8601).
+You probably are. `ciso8601` supports [the subset of ISO 8601](https://github.com/closeio/ciso8601#supported-subset-of-iso-8601) that is supported by Python itself.
 
 If not, consider [`pendulum`](https://github.com/sdispater/pendulum)'s `parsing.parse_iso8601` instead:
 
