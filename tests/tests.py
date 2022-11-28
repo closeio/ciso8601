@@ -72,12 +72,12 @@ class InvalidTimestampTestCase(unittest.TestCase):
     # See `generate_test_timestamps.generate_invalid_timestamp` for details.
 
     def test_parse_auto_generated_invalid_formats(self):
-        for timestamp in generate_invalid_timestamp():
+        for timestamp, reason in generate_invalid_timestamp():
             try:
-                with self.assertRaises(ValueError, msg="Timestamp '{0}' was supposed to be invalid, but parsing it didn't raise ValueError.".format(timestamp)):
+                with self.assertRaises(ValueError, msg="Timestamp '{0}' was supposed to be invalid ({1}), but parsing it didn't raise ValueError.".format(timestamp, reason)):
                     parse_datetime(timestamp)
             except Exception as exc:
-                print("Timestamp '{0}' was supposed to raise ValueError, but raised {1} instead".format(timestamp, type(exc).__name__))
+                print("Timestamp '{0}' was supposed to raise ValueError ({1}), but raised {2} instead".format(timestamp, reason, type(exc).__name__))
                 raise
 
     def test_non_ascii_characters(self):

@@ -228,25 +228,25 @@ def generate_invalid_timestamp(year=2014, month=2, day=3, iso_week=6, iso_day=1,
                     str_value = str(__pad_params(**{field_name: kwargs[field_name]})[field_name])[0:length]
                     mangled_kwargs[field_name] = "{{:0>{length}}}".format(length=length).format(str_value)
                     timestamp = timestamp_format.format(**mangled_kwargs)
-                    yield timestamp
+                    yield (timestamp, "{0} has too few characters".format(field_name))
 
                 # Too many characters
                 if field.max_width is not None:
                     mangled_kwargs[field_name] = "{{:0>{length}}}".format(length=field.max_width + 1).format(kwargs[field_name])
                     timestamp = timestamp_format.format(**mangled_kwargs)
-                    yield timestamp
+                    yield (timestamp, "{0} has too many characters".format(field_name))
 
                 # Too small of value
                 if (field.min_value - 1) >= 0:
                     mangled_kwargs[field_name] = __pad_params(**{field_name: field.min_value - 1})[field_name]
                     timestamp = timestamp_format.format(**mangled_kwargs)
-                    yield timestamp
+                    yield (timestamp, "{0} has too small value".format(field_name))
 
                 # Too large of value
                 if field.max_value is not None:
                     mangled_kwargs[field_name] = __pad_params(**{field_name: field.max_value + 1})[field_name]
                     timestamp = timestamp_format.format(**mangled_kwargs)
-                    yield timestamp
+                    yield (timestamp, "{0} has too large value".format(field_name))
 
                 # Invalid characters
                 max_invalid_characters = field.max_width if field.max_width is not None else 1
@@ -254,14 +254,14 @@ def generate_invalid_timestamp(year=2014, month=2, day=3, iso_week=6, iso_day=1,
                 for length in range(1, max_invalid_characters):
                     mangled_kwargs[field_name] = "a" * length
                     timestamp = timestamp_format.format(**mangled_kwargs)
-                    yield timestamp
+                    yield (timestamp, "{0} has invalid characters".format(field_name))
                 # ex. 2014 -> aaaa, 2aaa, 20aa, 201a
                 for length in range(0, max_invalid_characters):
                     str_value = str(__pad_params(**{field_name: kwargs[field_name]})[field_name])[0:length]
                     mangled_kwargs[field_name] = "{{:a<{length}}}".format(length=max_invalid_characters).format(str_value)
                     timestamp = timestamp_format.format(**mangled_kwargs)
-                    yield timestamp
+                    yield (timestamp, "{0} has invalid characters".format(field_name))
 
         # Trailing characters
         timestamp = timestamp_format.format(**__pad_params(**kwargs)) + "EXTRA"
-        yield timestamp
+        yield (timestamp, "{0} has extra characters".format(field_name))
