@@ -16,15 +16,8 @@ ciso8601
 Since it's written as a C module, it is much faster than other Python libraries.
 Tested with cPython 2.7, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11.
 
-.. |datetime.fromisoformat| replace:: ``datetime.fromisoformat``
-.. _datetime.fromisoformat: https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat
-
-**Note:** ciso8601 doesn't support the entirety of the ISO 8601 spec; but supports `a superset`_ of what is supported by Python itself (|datetime.fromisoformat|_).
-
 .. _ISO 8601: https://en.wikipedia.org/wiki/ISO_8601
 .. _RFC 3339: https://tools.ietf.org/html/rfc3339
-
-.. _`a superset`: https://github.com/closeio/ciso8601#supported-subset-of-iso-8601
 
 (Interested in working on projects like this? `Close`_ is looking for `great engineers`_ to join our team)
 
@@ -203,15 +196,15 @@ Tested on Linux 5.15.49-linuxkit using the following modules:
 
 .. </include:benchmark_module_versions.rst>
 
-**Note:** ciso8601 doesn't support the entirety of the ISO 8601 spec; but supports `a superset`_ of what is supported by Python itself (|datetime.fromisoformat|_).
-
-
 For full benchmarking details (or to run the benchmark yourself), see `benchmarking/README.rst`_
 
 .. _`benchmarking/README.rst`: https://github.com/closeio/ciso8601/blob/master/benchmarking/README.rst
 
 Supported subset of ISO 8601
 ----------------------------
+
+.. |datetime.fromisoformat| replace:: ``datetime.fromisoformat``
+.. _datetime.fromisoformat: https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat
 
 ``ciso8601`` only supports a subset of ISO 8601, but supports a superset of what is supported by Python itself (|datetime.fromisoformat|_), and supports the entirety of the `RFC 3339`_ specification.
 
@@ -233,8 +226,18 @@ The following date formats are supported:
    ``YYYY-Www`` (week date)      ``2009-W01``   ✅
    ``YYYYWwwD`` (week date)      ``2009W011``   ✅
    ``YYYYWww`` (week date)       ``2009W01``    ✅
-   ``YYYY-DDD`` (ordinal date)   ``1981-095``   ❌
-   ``YYYYDDD`` (ordinal date)    ``1981095``    ❌
+   ``YYYY-DDD`` (ordinal date)   ``1981-095``   ✅
+   ``YYYYDDD`` (ordinal date)    ``1981095``    ✅
+   ============================= ============== ==================
+
+Uncommon ISO 8601 date formats are not supported:
+
+.. table::
+   :widths: auto
+
+   ============================= ============== ==================
+   Format                        Example        Supported
+   ============================= ============== ==================
    ``--MM-DD`` (omitted year)    ``--04-29``    ❌
    ``--MMDD`` (omitted year)     ``--0429``     ❌
    ``±YYYYY-MM`` (>4 digit year) ``+10000-04``  ❌

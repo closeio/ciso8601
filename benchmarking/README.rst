@@ -7,9 +7,7 @@ Benchmarking ciso8601
 Introduction
 ------------
 
-``ciso8601``'s goal is to be the world's fastest ISO 8601 datetime parser for Python (**Note:** ciso8601 `only supports a subset of ISO 8601`_).
-
-.. _`only supports a subset of ISO 8601`: https://github.com/closeio/ciso8601#supported-subset-of-iso-8601
+``ciso8601``'s goal is to be the world's fastest ISO 8601 datetime parser for Python.
 
 In order to see how we compare, we run benchmarks against each other known ISO 8601 parser.
 

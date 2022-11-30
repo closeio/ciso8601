@@ -26,6 +26,7 @@
 * Fixed: `datetime.tzname` returns a `str` in Python 2.7, not a `unicode`
 * Change `METH_VARARGS` to `METH_O`, enhancing performance. ([#130](https://github.com/closeio/ciso8601/pull/130))
 * Added support for ISO week dates, ([#139](https://github.com/closeio/ciso8601/pull/139))
+* Added support for ordinal dates, ([#140](https://github.com/closeio/ciso8601/pull/140))
 
 # 2.x.x
 
