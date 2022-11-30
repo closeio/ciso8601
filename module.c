@@ -168,6 +168,7 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
     int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0,
         usecond = 0;
     int iso_week = 0, iso_day = 0;
+    int ordinal_day = 0;
     int time_is_midnight = 0;
     int tzhour = 0, tzminute = 0, tzsign = 0;
 #if CISO8601_CACHING_ENABLED
@@ -240,15 +241,25 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                 return NULL;
             }
         }
-        else { /* Separated Month and Day (ie. MM-DD) */
-            /* Month */
+        else { /* Separated Month and Day (ie. MM-DD) or ordinal date (ie., DDD)*/
+            // For sake of simplicity, we'll assume that it is a month
+            // If we find out later that it's an ordinal day, then we'll adjust
             PARSE_INTEGER(month, 2, "month")
 
-            if (*c != '\0' && !IS_DATE_AND_TIME_SEPARATOR) { /* Optional Day */
-                PARSE_SEPARATOR(IS_CALENDAR_DATE_SEPARATOR, "date separator ('-')")
+            if (*c != '\0' && !IS_DATE_AND_TIME_SEPARATOR) {
+                if (IS_CALENDAR_DATE_SEPARATOR){ /* Optional day */
+                    c++;
+                    PARSE_INTEGER(day, 2, "day")
+                } else { /* Ordinal day */
+                    PARSE_INTEGER(ordinal_day, 1, "ordinal day")
+                    ordinal_day = (month * 10) + ordinal_day;
 
-                /* Day */
-                PARSE_INTEGER(day, 2, "day")
+                    int rv = ordinal_to_ymd(year, ordinal_day, &year, &month, &day);
+                    if (rv) {
+                        PyErr_Format(PyExc_ValueError, "Invalid ordinal day: %d is %s for year %d", ordinal_day, rv == -1 ? "too small" : "too large", year);
+                        return NULL;
+                    }
+                }
             }
             else if (rfc3339_only) {
                 PyErr_SetString(PyExc_ValueError,
@@ -286,12 +297,27 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                 return NULL;
             }
         }
-        else { /* Non-separated Month and Day (ie. MMDD) */
+        else { /* Non-separated Month and Day (ie. MMDD) or ordinal date (ie., DDD)*/
+            // For sake of simplicity, we'll assume that it is a month
+            // If we find out later that it's an ordinal day, then we'll adjust
             PARSE_INTEGER(month, 2, "month")
-            /* Note that YYYYMM is not a valid timestamp. If the calendar date is not
-            * separated, a day is required (ie. YYMMDD)
-            */
-            PARSE_INTEGER(day, 2, "day")
+
+            PARSE_INTEGER(ordinal_day, 1, "ordinal day")
+
+            if (*c == '\0' || IS_DATE_AND_TIME_SEPARATOR) {  /* Ordinal day */
+                ordinal_day = (month * 10) + ordinal_day;
+                int rv = ordinal_to_ymd(year, ordinal_day, &year, &month, &day);
+                if (rv) {
+                    PyErr_Format(PyExc_ValueError, "Invalid ordinal day: %d is %s for year %d", ordinal_day, rv == -1 ? "too small" : "too large", year);
+                    return NULL;
+                }
+            } else { /* Day */
+                /* Note that YYYYMM is not a valid timestamp. If the calendar date is not
+                * separated, a day is required (ie. YYMMDD)
+                */
+                PARSE_INTEGER(day, 1, "day")
+                day = (ordinal_day * 10) + day;
+            }
         }
     }
 
@@ -357,7 +383,7 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
     if (*c != '\0') {
         /* Date and time separator */
         PARSE_SEPARATOR(IS_DATE_AND_TIME_SEPARATOR,
-                        "date and time separator (ie. 'T' or ' ')")
+                        "date and time separator (ie. 'T', 't', or ' ')")
 
         /* Hour */
         PARSE_INTEGER(hour, 2, "hour")

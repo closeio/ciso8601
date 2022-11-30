@@ -68,7 +68,8 @@ static const int _days_in_month[] = {
 
 static const int _days_before_month[] = {
     0, /* unused; this vector uses 1-based indexing */
-    0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
+    0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334,
+    365
 };
 
 /* year -> 1 if leap year, else 0. */
@@ -277,4 +278,45 @@ iso_to_ymd(const int iso_year, const int iso_week, const int iso_day,
 
     ord_to_ymd(day_1 + day_offset, year, month, day);
     return 0;
+}
+
+int
+ordinal_to_ymd(const int iso_year, int ordinal_day,
+           int *year, int *month, int *day) {
+
+    if (ordinal_day < 1){
+        return -1;
+    }
+
+    /* January */
+    if (ordinal_day <= _days_before_month[2]){
+        *year = iso_year;
+        *month = 1;
+        *day = ordinal_day - _days_before_month[1];
+        return 0;
+    }
+
+    /* February */
+    if (ordinal_day <= (_days_before_month[3] + (is_leap(iso_year) ? 1 : 0 ) )){
+        *year = iso_year;
+        *month = 2;
+        *day = ordinal_day - _days_before_month[2];
+        return 0;
+    }
+
+    if (is_leap(iso_year)){
+        ordinal_day -= 1;
+    }
+
+    /* March - December */
+    for (int i = 3; i <= 12; i++){
+        if (ordinal_day <= _days_before_month[i+1]){
+            *year = iso_year;
+            *month = i;
+            *day = ordinal_day - _days_before_month[i];
+            return 0;
+        }
+    }
+
+    return -2;
 }

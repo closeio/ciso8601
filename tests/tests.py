@@ -66,6 +66,44 @@ class ValidTimestampTestCase(unittest.TestCase):
         else:
             self.assertIsInstance(parse_datetime(timestamp).tzinfo, FixedOffset)
 
+    def test_ordinal(self):
+        self.assertEqual(
+            parse_datetime("2014-001"),
+            datetime.datetime(2014, 1, 1, 0, 0, 0),
+        )
+        self.assertEqual(
+            parse_datetime("2014-031"),
+            datetime.datetime(2014, 1, 31, 0, 0, 0),
+        )
+        self.assertEqual(
+            parse_datetime("2014-032"),
+            datetime.datetime(2014, 2, 1, 0, 0, 0),
+        )
+        self.assertEqual(
+            parse_datetime("2014-059"),
+            datetime.datetime(2014, 2, 28, 0, 0, 0),
+        )
+        self.assertEqual(
+            parse_datetime("2014-060"),
+            datetime.datetime(2014, 3, 1, 0, 0, 0),
+        )
+        self.assertEqual(
+            parse_datetime("2016-060"), # Leap year
+            datetime.datetime(2016, 2, 29, 0, 0, 0),
+        )
+        self.assertEqual(
+            parse_datetime("2014-365"),
+            datetime.datetime(2014, 12, 31, 0, 0, 0),
+        )
+        self.assertEqual(
+            parse_datetime("2016-365"), # Leap year
+            datetime.datetime(2016, 12, 30, 0, 0, 0),
+        )
+        self.assertEqual(
+            parse_datetime("2016-366"), # Leap year
+            datetime.datetime(2016, 12, 31, 0, 0, 0),
+        )
+
 class InvalidTimestampTestCase(unittest.TestCase):
     # Many invalid test cases are covered by `test_parse_auto_generated_invalid_formats`,
     # But it doesn't cover all invalid cases, so we test those here.
@@ -84,9 +122,9 @@ class InvalidTimestampTestCase(unittest.TestCase):
         if sys.version_info >= (3, 3):
             self.assertRaisesRegex(
                 ValueError,
-                r"Invalid character while parsing date separator \('-'\) \('🐵', Index: 7\)",
+                r"Invalid character while parsing date and time separator \(ie. 'T', 't', or ' '\) \('🐵', Index: 10\)",
                 parse_datetime,
-                "2019-01🐵01",
+                "2019-01-01🐵01:02:03Z",
             )
             self.assertRaisesRegex(
                 ValueError,
@@ -97,7 +135,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
         else:
             self.assertRaisesRegex(
                 ValueError,
-                r"Invalid character while parsing date separator \('-'\) \(Index: 7\)",
+                r"Invalid character while parsing ordinal day \(Index: 7\)",
                 parse_datetime,
                 "2019-01🐵01",
             )
@@ -118,21 +156,21 @@ class InvalidTimestampTestCase(unittest.TestCase):
 
         self.assertRaisesRegex(
             ValueError,
-            r"Invalid character while parsing date separator \('-'\) \('=', Index: 7\)",
+            r"Invalid character while parsing ordinal day \('=', Index: 7\)",
             parse_datetime,
             "2018-01=01",
         )
 
         self.assertRaisesRegex(
             ValueError,
-            r"Invalid character while parsing date separator \('-'\) \('0', Index: 7\)",
+            r"Invalid character while parsing date and time separator \(ie. 'T', 't', or ' '\) \('2', Index: 8\)",
             parse_datetime,
-            "2018-0101",
+            "2018-0102",
         )
 
         self.assertRaisesRegex(
             ValueError,
-            r"Invalid character while parsing day \('-', Index: 6\)",
+            r"Invalid character while parsing ordinal day \('-', Index: 6\)",
             parse_datetime,
             "201801-01",
         )
@@ -261,10 +299,53 @@ class InvalidTimestampTestCase(unittest.TestCase):
                 "2014-06-00",
             )
 
+    def test_invalid_ordinal(self):
+        self.assertRaisesRegex(
+            ValueError,
+            r"Invalid ordinal day: 0 is too small",
+            parse_datetime,
+            "2014-000",
+        )
+
+        self.assertRaisesRegex(
+            ValueError,
+            r"Invalid ordinal day: 0 is too small",
+            parse_datetime,
+            "2014000",
+        )
+
+        self.assertRaisesRegex(
+            ValueError,
+            r"Invalid ordinal day: 366 is too large for year 2014",
+            parse_datetime,
+            "2014-366", # Not a leap year
+        )
+
+        self.assertRaisesRegex(
+            ValueError,
+            r"Invalid ordinal day: 366 is too large for year 2014",
+            parse_datetime,
+            "2014366", # Not a leap year
+        )
+
+        self.assertRaisesRegex(
+            ValueError,
+            r"Invalid ordinal day: 999 is too large for year 2014",
+            parse_datetime,
+            "2014-999",
+        )
+
+        self.assertRaisesRegex(
+            ValueError,
+            r"Invalid ordinal day: 999 is too large for year 2014",
+            parse_datetime,
+            "2014999",
+        )
+
     def test_invalid_yyyymm_format(self):
         self.assertRaisesRegex(
             ValueError,
-            r"Unexpected end of string while parsing day. Expected 2 more characters",
+            r"Unexpected end of string while parsing ordinal day. Expected 1 more character",
             parse_datetime,
             "201406",
         )
@@ -272,7 +353,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
     def test_invalid_date_and_time_separator(self):
         self.assertRaisesRegex(
             ValueError,
-            r"Invalid character while parsing date and time separator \(ie. 'T' or ' '\) \('_', Index: 10\)",
+            r"Invalid character while parsing date and time separator \(ie. 'T', 't', or ' '\) \('_', Index: 10\)",
             parse_datetime,
             "2018-01-01_00:00:00",
         )
@@ -503,7 +584,7 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
     def test_issue_35(self):
         self.assertRaisesRegex(
             ValueError,
-            r"Invalid character while parsing date separator \('-'\) \('1', Index: 7\)",
+            r"Invalid character while parsing date and time separator \(ie. 'T', 't', or ' '\) \('2', Index: 8\)",
             parse_datetime,
             "2017-0012-27T13:35:19+0200",
         )
