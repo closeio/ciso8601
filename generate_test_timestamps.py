@@ -23,6 +23,7 @@ NUMBER_FIELDS = {
     "year": NumberField(4, 4, 1, 9999),
     "month": NumberField(2, 2, 1, 12),
     "day": NumberField(2, 2, 1, 31),
+    "ordinal_day": NumberField(3, 3, 1, 365), # Intentionally missing leap year case
     "iso_week":  NumberField(2, 2, 1, 53),
     "iso_day":  NumberField(1, 1, 1, 7),
     "hour": NumberField(2, 2, 0, 24),  # 24 = special midnight value
@@ -42,7 +43,7 @@ PADDED_NUMBER_FIELD_FORMATS = {
 }
 
 
-def __generate_valid_formats(year=2014, month=2, day=3, iso_week=6, iso_day=1, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
+def __generate_valid_formats(year=2014, month=2, day=3, iso_week=6, iso_day=1, ordinal_day=34, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
     # Given a set of values, generates the 400+ different combinations of those values within a valid ISO 8601 string.
     # Returns a Python format string, the fields in the format string, and the corresponding parameters you could pass to the datetime constructor
     # These can be used by generate_valid_timestamp_and_datetime and generate_invalid_timestamp_and_datetime to produce test cases
@@ -64,6 +65,14 @@ def __generate_valid_formats(year=2014, month=2, day=3, iso_week=6, iso_day=1, h
     valid_extended_week_date_formats = [
         ("{year}-W{iso_week}", set(["year", "iso_week"]), {"year": year, "iso_week": iso_week, "iso_day": 1}),
         ("{year}-W{iso_week}-{iso_day}", set(["year", "iso_week", "iso_day"]), {"year": year, "iso_week": iso_week, "iso_day": iso_day})
+    ]
+
+    valid_basic_ordinal_date_formats = [
+        ("{year}{ordinal_day}", set(["year", "ordinal_day"]), {"year": year, "ordinal_day": ordinal_day}),
+    ]
+
+    valid_extended_ordinal_date_formats = [
+        ("{year}-{ordinal_day}", set(["year", "ordinal_day"]), {"year": year, "ordinal_day": ordinal_day}),
     ]
 
     valid_date_and_time_separators = [None, "T", "t", " "]
@@ -101,6 +110,8 @@ def __generate_valid_formats(year=2014, month=2, day=3, iso_week=6, iso_day=1, h
     format_date_time_combinations = [
         (valid_basic_calendar_date_formats, valid_basic_time_formats),
         (valid_extended_calendar_date_formats, valid_extended_time_formats),
+        (valid_basic_ordinal_date_formats, valid_basic_time_formats),
+        (valid_extended_ordinal_date_formats, valid_extended_time_formats),
     ]
 
     if (sys.version_info.major, sys.version_info.minor) >= (3, 8):
@@ -119,6 +130,11 @@ def __generate_valid_formats(year=2014, month=2, day=3, iso_week=6, iso_day=1, h
                 calendar_params = __merge_dicts(calendar_params, { "month": dt.month, "day": dt.day })
                 del(calendar_params["iso_week"])
                 del(calendar_params["iso_day"])
+
+            if "ordinal_day" in calendar_fields:
+                dt = datetime.datetime(calendar_params["year"], 1, 1) + (datetime.timedelta(days=(calendar_params["ordinal_day"] - 1)))
+                calendar_params = __merge_dicts(calendar_params, { "month": dt.month, "day": dt.day })
+                del(calendar_params["ordinal_day"])
 
             for date_and_time_separator in valid_date_and_time_separators:
                 if date_and_time_separator is None:
@@ -150,7 +166,7 @@ def __pad_params(**kwargs):
     return {key: PADDED_NUMBER_FIELD_FORMATS[key].format(**{key: value}) if key in PADDED_NUMBER_FIELD_FORMATS else value for key, value in kwargs.items()}
 
 
-def generate_valid_timestamp_and_datetime(year=2014, month=2, day=3, iso_week=6, iso_day=1, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
+def generate_valid_timestamp_and_datetime(year=2014, month=2, day=3, iso_week=6, iso_day=1, ordinal_day=34, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
     # Given a set of values, generates the 400+ different combinations of those values within a valid ISO 8601 string, and the corresponding datetime
     # This can be used to generate test cases of valid ISO 8601 timestamps.
 
@@ -163,6 +179,7 @@ def generate_valid_timestamp_and_datetime(year=2014, month=2, day=3, iso_week=6,
         "day": day,
         "iso_week": iso_week,
         "iso_day": iso_day,
+        "ordinal_day": ordinal_day,
         "hour": hour,
         "minute": minute,
         "second": second,
@@ -177,7 +194,7 @@ def generate_valid_timestamp_and_datetime(year=2014, month=2, day=3, iso_week=6,
         yield (timestamp, datetime.datetime(**datetime_params))
 
 
-def generate_invalid_timestamp(year=2014, month=2, day=3, iso_week=6, iso_day=1, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
+def generate_invalid_timestamp(year=2014, month=2, day=3, iso_week=6, iso_day=1, ordinal_day=34, hour=1, minute=23, second=45, microsecond=123456, tzhour=4, tzminute=30):
     # At the very least, each field can be invalid in the following ways:
     #   - Have too few characters
     #   - Have too many characters
@@ -195,6 +212,7 @@ def generate_invalid_timestamp(year=2014, month=2, day=3, iso_week=6, iso_day=1,
     #   - The fields having 0 characters (Many fields (like day, minute, second etc.) are optional. So unless the field follows a separator, it is valid to have 0 characters)
     #   - Invalid day numbers for a given month (ex. "2014-02-31")
     #   - Invalid separators (ex. "2014=04=01")
+    #   - Ordinal dates in leap years
     #   - Missing/Mismatched separators (ex. "2014-0101T0000:00")
     #   - Hour = 24, but not Special midnight case  (ex. "24:00:01")
     #   - Timestamps that bear no resemblance to ISO 8601
@@ -206,6 +224,7 @@ def generate_invalid_timestamp(year=2014, month=2, day=3, iso_week=6, iso_day=1,
         "day": day,
         "iso_week": iso_week,
         "iso_day": iso_day,
+        "ordinal_day": ordinal_day,
         "hour": hour,
         "minute": minute,
         "second": second,
@@ -223,7 +242,19 @@ def generate_invalid_timestamp(year=2014, month=2, day=3, iso_week=6, iso_day=1,
                 for length in range(1, field.min_width):
                     if timestamp_format.startswith("{year}W{iso_week}{iso_day}") and field_name == "iso_week":
                         # If you reduce the iso_week field to 1 character, then the iso_day will make it into
-                        # a valid  "{year}W{iso_week}" timestamp
+                        # a valid "{year}W{iso_week}" timestamp
+                        continue
+                    if timestamp_format.startswith("{year}{month}{day}") and (field_name == "month" or field_name == "day"):
+                        # If you reduce the month or day field to 1 character, then it will make it into
+                        # a valid "{year}{ordinal_day}" timestamp
+                        continue
+                    if timestamp_format.startswith("{year}{month}{day}") and field_name == "year" and length == 3:
+                        # If you reduce the year field to 3 characters, then it will make it into
+                        # a valid "{year}{ordinal_day}" timestamp
+                        continue
+                    if timestamp_format.startswith("{year}-{ordinal_day}") and field_name == "ordinal_day" and length == 2:
+                        # If you reduce the ordinal_day field to 2 characters, then it will make it into
+                        # a valid "{year}-{month}" timestamp
                         continue
                     str_value = str(__pad_params(**{field_name: kwargs[field_name]})[field_name])[0:length]
                     mangled_kwargs[field_name] = "{{:0>{length}}}".format(length=length).format(str_value)
@@ -232,6 +263,10 @@ def generate_invalid_timestamp(year=2014, month=2, day=3, iso_week=6, iso_day=1,
 
                 # Too many characters
                 if field.max_width is not None:
+                    if timestamp_format.startswith("{year}-{month}") and field_name == "month":
+                        # If you extend the month field to 3 characters, then it will make it into
+                        # a valid "{year}{ordinal_day}" timestamp
+                        continue
                     mangled_kwargs[field_name] = "{{:0>{length}}}".format(length=field.max_width + 1).format(kwargs[field_name])
                     timestamp = timestamp_format.format(**mangled_kwargs)
                     yield (timestamp, "{0} has too many characters".format(field_name))
