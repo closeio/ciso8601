@@ -1,6 +1,7 @@
 #include <Python.h>
 #include <ctype.h>
 #include <datetime.h>
+
 #include "isocalendar.h"
 #include "timezone.h"
 
@@ -16,23 +17,24 @@
 #define PY_VERSION_AT_LEAST_38 \
     ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 8) || PY_MAJOR_VERSION > 3)
 
-// PyPy compatibility for cPython 3.7's Timezone API was added to PyPy 7.3.6
-// https://foss.heptapod.net/pypy/pypy/-/merge_requests/826
-// But was then reverted in 7.3.7 for PyPy 3.7: https://foss.heptapod.net/pypy/pypy/-/commit/eeeafcf905afa0f26049ac29dc00f5b295171f99
-// It is still present in 7.3.7 for PyPy 3.8+
+/* PyPy compatibility for cPython 3.7's Timezone API was added to PyPy 7.3.6
+ * https://foss.heptapod.net/pypy/pypy/-/merge_requests/826
+ * But was then reverted in 7.3.7 for PyPy 3.7:
+ * https://foss.heptapod.net/pypy/pypy/-/commit/eeeafcf905afa0f26049ac29dc00f5b295171f99
+ * It is still present in 7.3.7 for PyPy 3.8+
+ */
 #ifdef PYPY_VERSION
-    #define SUPPORTS_37_TIMEZONE_API \
-            (PYPY_VERSION_NUM >= 0x07030600) && PY_VERSION_AT_LEAST_38
+#define SUPPORTS_37_TIMEZONE_API \
+    (PYPY_VERSION_NUM >= 0x07030600) && PY_VERSION_AT_LEAST_38
 #else
-    #define SUPPORTS_37_TIMEZONE_API \
-            PY_VERSION_AT_LEAST_37
+#define SUPPORTS_37_TIMEZONE_API PY_VERSION_AT_LEAST_37
 #endif
 
 static PyObject *utc;
 
 #if CISO8601_CACHING_ENABLED
 /* 2879 = (1439 * 2) + 1, number of offsets from UTC possible in
- * Python (ie. [-1439, 1439]).
+ * Python (i.e., [-1439, 1439]).
  *
  * 0 - 1438 = Negative offsets [-1439..-1]
  * 1439 = Zero offset
@@ -41,75 +43,77 @@ static PyObject *utc;
 static PyObject *tz_cache[2879] = {NULL};
 #endif
 
-#define PARSE_INTEGER(field, length, field_name)                       \
-    for (i = 0; i < length; i++) {                                     \
-        if (*c >= '0' && *c <= '9') {                                  \
-            field = 10 * field + *c++ - '0';                           \
-        }                                                              \
-        else {                                                         \
-            return format_unexpected_character_exception(              \
-                field_name, c, (c - str) / sizeof(char), length - i);  \
-        }                                                              \
+#define PARSE_INTEGER(field, length, field_name)                      \
+    for (i = 0; i < length; i++) {                                    \
+        if (*c >= '0' && *c <= '9') {                                 \
+            field = 10 * field + *c++ - '0';                          \
+        }                                                             \
+        else {                                                        \
+            return format_unexpected_character_exception(             \
+                field_name, c, (c - str) / sizeof(char), length - i); \
+        }                                                             \
     }
 
-#define PARSE_FRACTIONAL_SECOND()                              \
-    for (i = 0; i < 6; i++) {                                  \
-        if (*c >= '0' && *c <= '9') {                          \
-            usecond = 10 * usecond + *c++ - '0';               \
-        }                                                      \
-        else if (i == 0) {                                     \
-            /* We need at least one digit. */                  \
-            /* Trailing '.' or ',' is not allowed */           \
-            return format_unexpected_character_exception(      \
-                "subsecond", c, (c - str) / sizeof(char), 1);  \
-        }                                                      \
-        else                                                   \
-            break;                                             \
-    }                                                          \
-                                                               \
-    /* Omit excessive digits */                                \
-    while (*c >= '0' && *c <= '9') c++;                        \
-                                                               \
-    /* If we break early, fully expand the usecond */          \
+#define PARSE_FRACTIONAL_SECOND()                             \
+    for (i = 0; i < 6; i++) {                                 \
+        if (*c >= '0' && *c <= '9') {                         \
+            usecond = 10 * usecond + *c++ - '0';              \
+        }                                                     \
+        else if (i == 0) {                                    \
+            /* We need at least one digit. */                 \
+            /* Trailing '.' or ',' is not allowed */          \
+            return format_unexpected_character_exception(     \
+                "subsecond", c, (c - str) / sizeof(char), 1); \
+        }                                                     \
+        else                                                  \
+            break;                                            \
+    }                                                         \
+                                                              \
+    /* Omit excessive digits */                               \
+    while (*c >= '0' && *c <= '9') c++;                       \
+                                                              \
+    /* If we break early, fully expand the usecond */         \
     while (i++ < 6) usecond *= 10;
 
 #if PY_VERSION_AT_LEAST_33
-    #define PARSE_SEPARATOR(separator, field_name)                                \
-        if (separator) {                                                          \
-            c++;                                                                  \
-        }                                                                         \
-        else {                                                                    \
-            PyObject *unicode_str = PyUnicode_FromString(c);                      \
-            PyObject *unicode_char = PyUnicode_Substring(unicode_str, 0, 1);      \
-            PyErr_Format(PyExc_ValueError,                                        \
-                        "Invalid character while parsing %s ('%U', Index: %lu)",  \
-                        field_name, unicode_char, (c - str) / sizeof(char));      \
-            Py_DECREF(unicode_str);                                               \
-            Py_DECREF(unicode_char);                                              \
-            return NULL;                                                          \
-        }
+#define PARSE_SEPARATOR(separator, field_name)                                \
+    if (separator) {                                                          \
+        c++;                                                                  \
+    }                                                                         \
+    else {                                                                    \
+        PyObject *unicode_str = PyUnicode_FromString(c);                      \
+        PyObject *unicode_char = PyUnicode_Substring(unicode_str, 0, 1);      \
+        PyErr_Format(PyExc_ValueError,                                        \
+                     "Invalid character while parsing %s ('%U', Index: %lu)", \
+                     field_name, unicode_char, (c - str) / sizeof(char));     \
+        Py_DECREF(unicode_str);                                               \
+        Py_DECREF(unicode_char);                                              \
+        return NULL;                                                          \
+    }
 #else
-    #define PARSE_SEPARATOR(separator, field_name)                                \
-        if (separator) {                                                          \
-            c++;                                                                  \
-        }                                                                         \
-        else {                                                                    \
-            if (isascii((int) *c)) {                                              \
-                PyErr_Format(PyExc_ValueError,                                    \
-                        "Invalid character while parsing %s ('%c', Index: %lu)",  \
-                        field_name, *c, (c - str) / sizeof(char));                \
-            }                                                                     \
-            else {                                                                \
-                PyErr_Format(PyExc_ValueError,                                    \
-                        "Invalid character while parsing %s (Index: %lu)",        \
-                        field_name, (c - str) / sizeof(char));                    \
-            }                                                                     \
-            return NULL;                                                          \
-        }
+#define PARSE_SEPARATOR(separator, field_name)                              \
+    if (separator) {                                                        \
+        c++;                                                                \
+    }                                                                       \
+    else {                                                                  \
+        if (isascii((int)*c)) {                                             \
+            PyErr_Format(                                                   \
+                PyExc_ValueError,                                           \
+                "Invalid character while parsing %s ('%c', Index: %lu)",    \
+                field_name, *c, (c - str) / sizeof(char));                  \
+        }                                                                   \
+        else {                                                              \
+            PyErr_Format(PyExc_ValueError,                                  \
+                         "Invalid character while parsing %s (Index: %lu)", \
+                         field_name, (c - str) / sizeof(char));             \
+        }                                                                   \
+        return NULL;                                                        \
+    }
 #endif
 
 static void *
-format_unexpected_character_exception(char *field_name, const char *c, size_t index,
+format_unexpected_character_exception(char *field_name, const char *c,
+                                      size_t index,
                                       int expected_character_count)
 {
     if (*c == '\0') {
@@ -121,34 +125,35 @@ format_unexpected_character_exception(char *field_name, const char *c, size_t in
             (expected_character_count != 1) ? "s" : "");
     }
     else {
-        #if PY_VERSION_AT_LEAST_33
-            PyObject *unicode_str = PyUnicode_FromString(c);
-            PyObject *unicode_char = PyUnicode_Substring(unicode_str, 0, 1);
+#if PY_VERSION_AT_LEAST_33
+        PyObject *unicode_str = PyUnicode_FromString(c);
+        PyObject *unicode_char = PyUnicode_Substring(unicode_str, 0, 1);
+        PyErr_Format(PyExc_ValueError,
+                     "Invalid character while parsing %s ('%U', Index: %zu)",
+                     field_name, unicode_char, index);
+        Py_DECREF(unicode_str);
+        Py_DECREF(unicode_char);
+#else
+        if (isascii((int)*c)) {
+            PyErr_Format(
+                PyExc_ValueError,
+                "Invalid character while parsing %s ('%c', Index: %zu)",
+                field_name, *c, index);
+        }
+        else {
             PyErr_Format(PyExc_ValueError,
-                        "Invalid character while parsing %s ('%U', Index: %zu)",
-                        field_name, unicode_char, index);
-            Py_DECREF(unicode_str);
-            Py_DECREF(unicode_char);
-        #else
-            if (isascii((int) *c)) {
-                PyErr_Format(PyExc_ValueError,
-                        "Invalid character while parsing %s ('%c', Index: %zu)",
-                        field_name, *c, index);
-            }
-            else {
-                PyErr_Format(PyExc_ValueError,
-                        "Invalid character while parsing %s (Index: %zu)",
-                        field_name, index);
-            }
-        #endif
+                         "Invalid character while parsing %s (Index: %zu)",
+                         field_name, index);
+        }
+#endif
     }
     return NULL;
 }
 
 #define IS_CALENDAR_DATE_SEPARATOR (*c == '-')
-#define IS_ISOCALENDAR_SEPARATOR (*c == 'W')
+#define IS_ISOCALENDAR_SEPARATOR   (*c == 'W')
 #define IS_DATE_AND_TIME_SEPARATOR (*c == 'T' || *c == ' ' || *c == 't')
-#define IS_TIME_SEPARATOR (*c == ':')
+#define IS_TIME_SEPARATOR          (*c == ':')
 #define IS_TIME_ZONE_SEPARATOR \
     (*c == 'Z' || *c == '-' || *c == '+' || *c == 'z')
 #define IS_FRACTIONAL_SEPARATOR (*c == '.' || (*c == ',' && !rfc3339_only))
@@ -183,8 +188,7 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
 #else
     if (!PyString_Check(dtstr)) {
 #endif
-        PyErr_SetString(PyExc_TypeError,
-                        "argument must be str");
+        PyErr_SetString(PyExc_TypeError, "argument must be str");
         return NULL;
     }
 
@@ -216,7 +220,8 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
         c++;
         extended_date_format = 1;
 
-        if (IS_ISOCALENDAR_SEPARATOR) { /* Separated ISO Calendar week and day (ie. Www-D) */
+        if (IS_ISOCALENDAR_SEPARATOR) { /* Separated ISO Calendar week and day
+                                           (i.e., Www-D) */
             c++;
 
             if (rfc3339_only) {
@@ -228,7 +233,8 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
             PARSE_INTEGER(iso_week, 2, "iso_week")
 
             if (*c != '\0' && !IS_DATE_AND_TIME_SEPARATOR) { /* Optional Day */
-                PARSE_SEPARATOR(IS_CALENDAR_DATE_SEPARATOR, "date separator ('-')")
+                PARSE_SEPARATOR(IS_CALENDAR_DATE_SEPARATOR,
+                                "date separator ('-')")
                 PARSE_INTEGER(iso_day, 1, "iso_day")
             }
             else {
@@ -241,22 +247,30 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                 return NULL;
             }
         }
-        else { /* Separated Month and Day (ie. MM-DD) or ordinal date (ie., DDD)*/
-            // For sake of simplicity, we'll assume that it is a month
-            // If we find out later that it's an ordinal day, then we'll adjust
+        else { /* Separated month and may (i.e., MM-DD) or
+                  ordinal date (i.e., DDD) */
+            /* For sake of simplicity, we'll assume that it is a month
+             * If we find out later that it's an ordinal day, then we'll adjust
+             */
             PARSE_INTEGER(month, 2, "month")
 
             if (*c != '\0' && !IS_DATE_AND_TIME_SEPARATOR) {
-                if (IS_CALENDAR_DATE_SEPARATOR){ /* Optional day */
+                if (IS_CALENDAR_DATE_SEPARATOR) { /* Optional day */
                     c++;
                     PARSE_INTEGER(day, 2, "day")
-                } else { /* Ordinal day */
+                }
+                else { /* Ordinal day */
                     PARSE_INTEGER(ordinal_day, 1, "ordinal day")
                     ordinal_day = (month * 10) + ordinal_day;
 
-                    int rv = ordinal_to_ymd(year, ordinal_day, &year, &month, &day);
+                    int rv =
+                        ordinal_to_ymd(year, ordinal_day, &year, &month, &day);
                     if (rv) {
-                        PyErr_Format(PyExc_ValueError, "Invalid ordinal day: %d is %s for year %d", ordinal_day, rv == -1 ? "too small" : "too large", year);
+                        PyErr_Format(
+                            PyExc_ValueError,
+                            "Invalid ordinal day: %d is %s for year %d",
+                            ordinal_day, rv == -1 ? "too small" : "too large",
+                            year);
                         return NULL;
                     }
                 }
@@ -270,7 +284,6 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                 day = 1;
             }
         }
-
     }
     else if (rfc3339_only) {
         PyErr_SetString(PyExc_ValueError,
@@ -278,8 +291,8 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
         return NULL;
     }
     else {
-
-        if (IS_ISOCALENDAR_SEPARATOR) { /* Non-separated ISO Calendar week and day (ie. WwwD) */
+        if (IS_ISOCALENDAR_SEPARATOR) { /* Non-separated ISO Calendar week and
+                                           day (i.e., WwwD) */
             c++;
 
             PARSE_INTEGER(iso_week, 2, "iso_week")
@@ -297,24 +310,31 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                 return NULL;
             }
         }
-        else { /* Non-separated Month and Day (ie. MMDD) or ordinal date (ie., DDD)*/
-            // For sake of simplicity, we'll assume that it is a month
-            // If we find out later that it's an ordinal day, then we'll adjust
+        else { /* Non-separated Month and Day (i.e., MMDD) or
+                  ordinal date (i.e., DDD)*/
+            /* For sake of simplicity, we'll assume that it is a month
+             * If we find out later that it's an ordinal day, then we'll adjust
+             */
             PARSE_INTEGER(month, 2, "month")
 
             PARSE_INTEGER(ordinal_day, 1, "ordinal day")
 
-            if (*c == '\0' || IS_DATE_AND_TIME_SEPARATOR) {  /* Ordinal day */
+            if (*c == '\0' || IS_DATE_AND_TIME_SEPARATOR) { /* Ordinal day */
                 ordinal_day = (month * 10) + ordinal_day;
-                int rv = ordinal_to_ymd(year, ordinal_day, &year, &month, &day);
+                int rv =
+                    ordinal_to_ymd(year, ordinal_day, &year, &month, &day);
                 if (rv) {
-                    PyErr_Format(PyExc_ValueError, "Invalid ordinal day: %d is %s for year %d", ordinal_day, rv == -1 ? "too small" : "too large", year);
+                    PyErr_Format(PyExc_ValueError,
+                                 "Invalid ordinal day: %d is %s for year %d",
+                                 ordinal_day,
+                                 rv == -1 ? "too small" : "too large", year);
                     return NULL;
                 }
-            } else { /* Day */
-                /* Note that YYYYMM is not a valid timestamp. If the calendar date is not
-                * separated, a day is required (ie. YYMMDD)
-                */
+            }
+            else { /* Day */
+                /* Note that YYYYMM is not a valid timestamp. If the calendar
+                 * date is not separated, a day is required (i.e., YYMMDD)
+                 */
                 PARSE_INTEGER(day, 1, "day")
                 day = (ordinal_day * 10) + day;
             }
@@ -383,7 +403,7 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
     if (*c != '\0') {
         /* Date and time separator */
         PARSE_SEPARATOR(IS_DATE_AND_TIME_SEPARATOR,
-                        "date and time separator (ie. 'T', 't', or ' ')")
+                        "date and time separator (i.e., 'T', 't', or ' ')")
 
         /* Hour */
         PARSE_INTEGER(hour, 2, "hour")
@@ -391,7 +411,8 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
         if (*c != '\0' &&
             !IS_TIME_ZONE_SEPARATOR) { /* Optional minute and second */
 
-            if (IS_TIME_SEPARATOR) { /* Separated Minute and Second (ie. mm:ss)
+            if (IS_TIME_SEPARATOR) { /* Separated Minute and Second
+                                      *  (i.e., mm:ss)
                                       */
                 c++;
 
@@ -433,7 +454,7 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                                 "mandatory in RFC 3339.");
                 return NULL;
             }
-            else { /* Non-separated Minute and Second (ie. mmss) */
+            else { /* Non-separated Minute and Second (i.e., mmss) */
                 /* Minute */
                 PARSE_INTEGER(minute, 2, "minute")
                 if (*c != '\0' &&
@@ -574,13 +595,13 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                     if ((tzinfo = tz_cache[tz_index]) == NULL) {
                         tzinfo = new_fixed_offset(60 * tzminute);
 
-                        if (tzinfo == NULL) /* ie. PyErr_Occurred() */
+                        if (tzinfo == NULL) /* i.e., PyErr_Occurred() */
                             return NULL;
                         tz_cache[tz_index] = tzinfo;
                     }
 #else
                     tzinfo = new_fixed_offset(60 * tzminute);
-                    if (tzinfo == NULL) /* ie. PyErr_Occurred() */
+                    if (tzinfo == NULL) /* i.e., PyErr_Occurred() */
                         return NULL;
 #endif
                 }
@@ -650,8 +671,7 @@ static PyObject *
 _hard_coded_benchmark_timestamp(PyObject *self, PyObject *ignored)
 {
     return PyDateTimeAPI->DateTime_FromDateAndTime(
-        2014, 1, 9, 21, 48, 0, 0, Py_None,
-        PyDateTimeAPI->DateTimeType);
+        2014, 1, 9, 21, 48, 0, 0, Py_None, PyDateTimeAPI->DateTimeType);
 }
 
 static PyMethodDef CISO8601Methods[] = {
@@ -661,7 +681,8 @@ static PyMethodDef CISO8601Methods[] = {
      "Parse a ISO8601 date time string, ignoring the time zone component."},
     {"parse_rfc3339", parse_rfc3339, METH_O,
      "Parse an RFC 3339 date time string."},
-    {"_hard_coded_benchmark_timestamp", _hard_coded_benchmark_timestamp, METH_NOARGS,
+    {"_hard_coded_benchmark_timestamp", _hard_coded_benchmark_timestamp,
+     METH_NOARGS,
      "Return a datetime using hardcoded values (for benchmarking purposes)"},
     {NULL, NULL, 0, NULL}};
 
