@@ -170,8 +170,8 @@ def generate_valid_timestamp_and_datetime(year=2014, month=2, day=3, iso_week=6,
     # Given a set of values, generates the 400+ different combinations of those values within a valid ISO 8601 string, and the corresponding datetime
     # This can be used to generate test cases of valid ISO 8601 timestamps.
 
-    # Note that this will produce many test cases that exercise the exact same code pathways (ie. offer no additional coverage).
-    # Given a knowledge of the code, this is excessive, but these serve as a good set of black box tests (ie. You could apply these to any ISO 8601 parse).
+    # Note that this will produce many test cases that exercise the exact same code pathways (i.e., offer no additional coverage).
+    # Given a knowledge of the code, this is excessive, but these serve as a good set of black box tests (i.e., You could apply these to any ISO 8601 parse).
 
     kwargs = {
         "year": year,
@@ -205,8 +205,8 @@ def generate_invalid_timestamp(year=2014, month=2, day=3, iso_week=6, iso_day=1,
     # This function takes each valid format (from `__generate_valid_formats()`), and mangles each field within the format to be invalid in each of the above ways.
     # It also tests the case of trailing characters after each format.
 
-    # Note that this will produce many test cases that exercise the exact same code pathways (ie. offer no additional coverage).
-    # Given a knowledge of the code, this is excessive, but these serve as a good set of black box tests (ie. You could apply these to any ISO 8601 parse).
+    # Note that this will produce many test cases that exercise the exact same code pathways (i.e., offer no additional coverage).
+    # Given a knowledge of the code, this is excessive, but these serve as a good set of black box tests (i.e., You could apply these to any ISO 8601 parse).
 
     # This does not produce every invalid timestamp format though. For simplicity of the code, it does not cover the cases of:
     #   - The fields having 0 characters (Many fields (like day, minute, second etc.) are optional. So unless the field follows a separator, it is valid to have 0 characters)
