@@ -4,6 +4,7 @@ BasedOnStyle: Google
 AlwaysBreakAfterReturnType: All
 AllowShortIfStatementsOnASingleLine: false
 AlignAfterOpenBracket: Align
+AlignConsecutiveMacros: Consecutive
 BreakBeforeBraces: Stroustrup
 ColumnLimit: 79
 DerivePointerAlignment: false
@@ -12,6 +13,7 @@ Language: Cpp
 PointerAlignment: Right
 ReflowComments: true
 SpaceBeforeParens: ControlStatements
+SpacesBeforeTrailingComments: 2
 SpacesInParentheses: false
 TabWidth: 4
 UseTab: Never

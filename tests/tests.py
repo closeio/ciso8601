@@ -122,7 +122,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
         if sys.version_info >= (3, 3):
             self.assertRaisesRegex(
                 ValueError,
-                r"Invalid character while parsing date and time separator \(ie. 'T', 't', or ' '\) \('🐵', Index: 10\)",
+                r"Invalid character while parsing date and time separator \(i.e., 'T', 't', or ' '\) \('🐵', Index: 10\)",
                 parse_datetime,
                 "2019-01-01🐵01:02:03Z",
             )
@@ -163,7 +163,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
 
         self.assertRaisesRegex(
             ValueError,
-            r"Invalid character while parsing date and time separator \(ie. 'T', 't', or ' '\) \('2', Index: 8\)",
+            r"Invalid character while parsing date and time separator \(i.e., 'T', 't', or ' '\) \('2', Index: 8\)",
             parse_datetime,
             "2018-0102",
         )
@@ -353,7 +353,7 @@ class InvalidTimestampTestCase(unittest.TestCase):
     def test_invalid_date_and_time_separator(self):
         self.assertRaisesRegex(
             ValueError,
-            r"Invalid character while parsing date and time separator \(ie. 'T', 't', or ' '\) \('_', Index: 10\)",
+            r"Invalid character while parsing date and time separator \(i.e., 'T', 't', or ' '\) \('_', Index: 10\)",
             parse_datetime,
             "2018-01-01_00:00:00",
         )
@@ -584,7 +584,7 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
     def test_issue_35(self):
         self.assertRaisesRegex(
             ValueError,
-            r"Invalid character while parsing date and time separator \(ie. 'T', 't', or ' '\) \('2', Index: 8\)",
+            r"Invalid character while parsing date and time separator \(i.e., 'T', 't', or ' '\) \('2', Index: 8\)",
             parse_datetime,
             "2017-0012-27T13:35:19+0200",
         )

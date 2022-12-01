@@ -7,51 +7,54 @@
  *
  * PSF LICENSE AGREEMENT FOR PYTHON 3.11.0
  *
- * 1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"), and
- *    the Individual or Organization ("Licensee") accessing and otherwise using Python
- *    3.11.0 software in source or binary form and its associated documentation.
+ * 1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"),
+ *    and the Individual or Organization ("Licensee") accessing and otherwise
+ *    using Python 3.11.0 software in source or binary form and its associated
+ *    documentation.
  *
  * 2. Subject to the terms and conditions of this License Agreement, PSF hereby
- *    grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce,
- *    analyze, test, perform and/or display publicly, prepare derivative works,
- *    distribute, and otherwise use Python 3.11.0 alone or in any derivative
- *    version, provided, however, that PSF's License Agreement and PSF's notice of
- *    copyright, i.e., "Copyright © 2001-2022 Python Software Foundation; All Rights
- *    Reserved" are retained in Python 3.11.0 alone or in any derivative version
- *    prepared by Licensee.
+ *    grants Licensee a nonexclusive, royalty-free, world-wide license to
+ *    reproduce, analyze, test, perform and/or display publicly, prepare
+ *    derivative works, distribute, and otherwise use Python 3.11.0 alone or in
+ *    any derivative version, provided, however, that PSF's License Agreement
+ *    and PSF's notice of copyright, i.e., "Copyright © 2001-2022 Python
+ *    Software Foundation; All Rights Reserved" are retained in Python 3.11.0
+ *    alone or in any derivative version prepared by Licensee.
  *
  * 3. In the event Licensee prepares a derivative work that is based on or
  *    incorporates Python 3.11.0 or any part thereof, and wants to make the
- *    derivative work available to others as provided herein, then Licensee hereby
- *    agrees to include in any such work a brief summary of the changes made to Python
- *    3.11.0.
+ *    derivative work available to others as provided herein, then Licensee
+ *    hereby agrees to include in any such work a brief summary of the changes
+ *    made to Python 3.11.0.
  *
  * 4. PSF is making Python 3.11.0 available to Licensee on an "AS IS" basis.
- *    PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED.  BY WAY OF
- *    EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND DISCLAIMS ANY REPRESENTATION OR
- *    WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE
- *    USE OF PYTHON 3.11.0 WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
+ *    PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED.  BY WAY
+ *    OF EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND DISCLAIMS ANY
+ *    REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY
+ *    PARTICULAR PURPOSE OR THAT THE USE OF PYTHON 3.11.0 WILL NOT INFRINGE ANY
+ *    THIRD PARTY RIGHTS.
  *
  * 5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON 3.11.0
- *    FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT OF
- *    MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON 3.11.0, OR ANY DERIVATIVE
- *    THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+ *    FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT
+ *    OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON 3.11.0, OR ANY
+ *    DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
  *
- * 6. This License Agreement will automatically terminate upon a material breach of
- *    its terms and conditions.
+ * 6. This License Agreement will automatically terminate upon a material
+ *    breach of its terms and conditions.
  *
- * 7. Nothing in this License Agreement shall be deemed to create any relationship
- *    of agency, partnership, or joint venture between PSF and Licensee.  This License
- *    Agreement does not grant permission to use PSF trademarks or trade name in a
- *    trademark sense to endorse or promote products or services of Licensee, or any
- *    third party.
+ * 7. Nothing in this License Agreement shall be deemed to create any
+ *    relationship of agency, partnership, or joint venture between PSF and
+ *    Licensee.  This License Agreement does not grant permission to use PSF
+ *    trademarks or trade name in a trademark sense to endorse or promote
+ *    products or services of Licensee, or any third party.
  *
  * 8. By copying, installing or otherwise using Python 3.11.0, Licensee agrees
  *    to be bound by the terms and conditions of this License Agreement.
  */
 
-#include "Python.h"
 #include "isocalendar.h"
+
+#include "Python.h"
 
 /* ---------------------------------------------------------------------------
  * General calendrical helper functions
@@ -63,13 +66,13 @@
  */
 static const int _days_in_month[] = {
     0, /* unused; this vector uses 1-based indexing */
-    31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+    31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
 };
 
 static const int _days_before_month[] = {
     0, /* unused; this vector uses 1-based indexing */
-    0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334,
-    365
+    0,  31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334,
+    365  // Useful for month + 1 accesses for December
 };
 
 /* year -> 1 if leap year, else 0. */
@@ -122,16 +125,16 @@ days_before_year(int year)
      * here.  But so long as MINYEAR is 1, the smallest year this
      * can see is 1.
      */
-    assert (year >= 1);
-    return y*365 + y/4 - y/100 + y/400;
+    assert(year >= 1);
+    return y * 365 + y / 4 - y / 100 + y / 400;
 }
 
 /* Number of days in 4, 100, and 400 year cycles.  That these have
  * the correct values is asserted in the module init function.
  */
-#define DI4Y    1461    /* days_before_year(5); days in 4 years */
-#define DI100Y  36524   /* days_before_year(101); days in 100 years */
-#define DI400Y  146097  /* days_before_year(401); days in 400 years  */
+#define DI4Y   1461   /* days_before_year(5); days in 4 years */
+#define DI100Y 36524  /* days_before_year(101); days in 100 years */
+#define DI400Y 146097 /* days_before_year(401); days in 400 years  */
 
 /* ordinal -> year, month, day, considering 01-Jan-0001 as day 1. */
 static void
@@ -237,27 +240,29 @@ weekday(int year, int month, int day)
 static int
 iso_week1_monday(int year)
 {
-    int first_day = ymd_to_ord(year, 1, 1);     /* ord of 1/1 */
+    int first_day = ymd_to_ord(year, 1, 1); /* ord of 1/1 */
     /* 0 if 1/1 is a Monday, 1 if a Tue, etc. */
     int first_weekday = (first_day + 6) % 7;
     /* ordinal of closest Monday at or before 1/1 */
-    int week1_monday  = first_day - first_weekday;
+    int week1_monday = first_day - first_weekday;
 
-    if (first_weekday > 3)      /* if 1/1 was Fri, Sat, Sun */
+    if (first_weekday > 3) /* if 1/1 was Fri, Sat, Sun */
         week1_monday += 7;
     return week1_monday;
 }
 
 int
 iso_to_ymd(const int iso_year, const int iso_week, const int iso_day,
-           int *year, int *month, int *day) {
+           int *year, int *month, int *day)
+{
     if (iso_week <= 0 || iso_week >= 53) {
         int out_of_range = 1;
         if (iso_week == 53) {
             // ISO years have 53 weeks in it on years starting with a Thursday
             // and on leap years starting on Wednesday
             int first_weekday = weekday(iso_year, 1, 1);
-            if (first_weekday == 3 || (first_weekday == 2 && is_leap(iso_year))) {
+            if (first_weekday == 3 ||
+                (first_weekday == 2 && is_leap(iso_year))) {
                 out_of_range = 0;
             }
         }
@@ -274,22 +279,22 @@ iso_to_ymd(const int iso_year, const int iso_week, const int iso_day,
     // Convert (Y, W, D) to (Y, M, D) in-place
     int day_1 = iso_week1_monday(iso_year);
 
-    int day_offset = (iso_week - 1)*7 + iso_day - 1;
+    int day_offset = (iso_week - 1) * 7 + iso_day - 1;
 
     ord_to_ymd(day_1 + day_offset, year, month, day);
     return 0;
 }
 
 int
-ordinal_to_ymd(const int iso_year, int ordinal_day,
-           int *year, int *month, int *day) {
-
-    if (ordinal_day < 1){
+ordinal_to_ymd(const int iso_year, int ordinal_day, int *year, int *month,
+               int *day)
+{
+    if (ordinal_day < 1) {
         return -1;
     }
 
     /* January */
-    if (ordinal_day <= _days_before_month[2]){
+    if (ordinal_day <= _days_before_month[2]) {
         *year = iso_year;
         *month = 1;
         *day = ordinal_day - _days_before_month[1];
@@ -297,20 +302,20 @@ ordinal_to_ymd(const int iso_year, int ordinal_day,
     }
 
     /* February */
-    if (ordinal_day <= (_days_before_month[3] + (is_leap(iso_year) ? 1 : 0 ) )){
+    if (ordinal_day <= (_days_before_month[3] + (is_leap(iso_year) ? 1 : 0))) {
         *year = iso_year;
         *month = 2;
         *day = ordinal_day - _days_before_month[2];
         return 0;
     }
 
-    if (is_leap(iso_year)){
+    if (is_leap(iso_year)) {
         ordinal_day -= 1;
     }
 
     /* March - December */
-    for (int i = 3; i <= 12; i++){
-        if (ordinal_day <= _days_before_month[i+1]){
+    for (int i = 3; i <= 12; i++) {
+        if (ordinal_day <= _days_before_month[i + 1]) {
             *year = iso_year;
             *month = i;
             *day = ordinal_day - _days_before_month[i];

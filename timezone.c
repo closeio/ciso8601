@@ -33,8 +33,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <datetime.h>
 #include <structmember.h>
 
-#define SECS_PER_MIN 60
-#define SECS_PER_HOUR (60 * SECS_PER_MIN)
+#define SECS_PER_MIN                 60
+#define SECS_PER_HOUR                (60 * SECS_PER_MIN)
 #define TWENTY_FOUR_HOURS_IN_SECONDS 86400
 
 #define PY_VERSION_AT_LEAST_36 \
@@ -46,7 +46,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 typedef struct {
     // Seconds offset from UTC.
     // Must be in range (-86400, 86400) seconds exclusive.
-    // ie. (-1440, 1440) minutes exclusive.
+    // i.e., (-1440, 1440) minutes exclusive.
     PyObject_HEAD int offset;
 } FixedOffset;
 
