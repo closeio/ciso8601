@@ -59,7 +59,7 @@ jobs:
 
       - name: Verify that the `release_version` is larger/newer than the existing release in PyPI
         run: |
-          python -c 'import sys; from packaging import version; code = 0 if version.parse("${{ env.ciso8601_version }}") < version.parse("${{ env.release_version }}") else 1; sys.exit(code)'
+          python -c 'import sys; from packaging import version; code = 0 if version.parse("${{ env.pypi_version }}") < version.parse("${{ env.release_version }}") else 1; sys.exit(code)'
 
       - name: Verify that the `release_version` is present in the CHANGELOG
         # TODO: Use something like `changelog-cli` to extract the correct version number
