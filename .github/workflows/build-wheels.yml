@@ -59,7 +59,7 @@ jobs:
 
       - name: Verify that the `release_version` is larger/newer than the existing release in PyPI
         run: |
-          python -c 'import sys; from packaging import version; code = 0 if version.parse("${{ env.ciso8601_version }}") < version.parse("${{ env.release_version }}") else 1; sys.exit(code)'
+          python -c 'import sys; from packaging import version; code = 0 if version.parse("${{ env.pypi_version }}") < version.parse("${{ env.release_version }}") else 1; sys.exit(code)'
 
       - name: Verify that the `release_version` is present in the CHANGELOG
         # TODO: Use something like `changelog-cli` to extract the correct version number
@@ -71,7 +71,7 @@ jobs:
           echo -e "release_version=${{ env.release_version }}\nrelease_tag=${{ env.release_tag }}" > release_values.txt
 
       - name: Share normalized release values
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: release_values
           path: release_values.txt
@@ -93,7 +93,7 @@ jobs:
           CIBW_SKIP: "pp*-macosx* *-win32 *-manylinux_i686"
           CIBW_ARCHS_MACOS: x86_64 arm64 universal2
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: ./wheelhouse/*.whl
 
@@ -112,7 +112,7 @@ jobs:
       - name: Build sdist
         run: python setup.py sdist
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: dist/*.tar.gz
 

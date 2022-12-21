@@ -2,6 +2,7 @@
 
 - [Unreleased](#unreleased)
 - [2.x.x](#2xx)
+  - [Version 2.3.0](#version-230)
   - [Version 2.2.0](#version-220)
   - [Version 2.1.3](#version-213)
   - [Version 2.1.2](#version-212)
@@ -20,6 +21,13 @@
 
 # Unreleased
 
+*
+
+# 2.x.x
+
+## Version 2.3.0
+
+* Added Python 3.11 support
 * Fix the build for PyPy2 ([#116](https://github.com/closeio/ciso8601/pull/116))
 * Added missing `fromutc` implementation for `FixedOffset` (#113). Thanks @davidkraljic
 * Removed improper ability to call `FixedOffset`'s `dst`, `tzname` and `utcoffset` without arguments
@@ -27,8 +35,6 @@
 * Change `METH_VARARGS` to `METH_O`, enhancing performance. ([#130](https://github.com/closeio/ciso8601/pull/130))
 * Added support for ISO week dates, ([#139](https://github.com/closeio/ciso8601/pull/139))
 * Added support for ordinal dates, ([#140](https://github.com/closeio/ciso8601/pull/140))
-
-# 2.x.x
 
 ## Version 2.2.0
 
