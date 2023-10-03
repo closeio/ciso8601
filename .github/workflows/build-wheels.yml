@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-python@v4
         name: Install Python
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - run: |
           pip install packaging
@@ -107,7 +107,7 @@ jobs:
       - uses: actions/setup-python@v4
         name: Install Python
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Build sdist
         run: python setup.py sdist
