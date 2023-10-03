@@ -7,11 +7,11 @@ workflows:
       - test:
           matrix:
             parameters:
-              python_version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+              python_version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
       - test_pypy:
           matrix:
             parameters:
-              python_version: ["2.7", "3.7", "3.8", "3.9"]
+              python_version: ["2.7", "3.7", "3.8", "3.9", "3.10"]
       - lint-rst
       - clang-format
 
@@ -67,7 +67,7 @@ jobs:
             . venv/bin/activate
             rst-lint --encoding=utf-8 README.rst
     docker:
-      - image: cimg/python:3.11
+      - image: cimg/python:3.12
 
   clang-format:
     working_directory: ~/code
@@ -91,4 +91,4 @@ jobs:
               fi
             done
     docker:
-      - image: cimg/python:3.11
+      - image: cimg/python:3.12
