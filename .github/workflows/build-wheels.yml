@@ -45,7 +45,7 @@ jobs:
           echo 'VERSION in setup.py   `${{ env.ciso8601_version }}`'
           echo 'Version in PyPI       `${{ env.pypi_version }}`'
 
-      - name: Verify that  the version string we produced looks like a version string
+      - name: Verify that the version string we produced looks like a version string
         run: |
           echo "${{ env.release_version }}" | sed '/^[0-9]\+\.[0-9]\+\.[0-9]\+$/!{q1}'
 
@@ -109,8 +109,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Get build tool
+        run: pip install --upgrade build
+
       - name: Build sdist
-        run: python setup.py sdist
+        run: python -m build
 
       - uses: actions/upload-artifact@v3
         with:
