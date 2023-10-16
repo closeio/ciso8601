@@ -128,8 +128,8 @@ def write_benchmarking_results(results_directory, output_file, baseline_module, 
 
     writer = pytablewriter.RstGridTableWriter()
     formatted_python_versions = [f"Python {major}.{minor}" for major, minor in python_versions_by_modernity]
-    writer.header_list = ["Module"] + (["Call"] if include_call else []) + formatted_python_versions + [f"Relative slowdown (versus {baseline_module}, latest Python)"]
-    writer.type_hint_list = [pytablewriter.String] * len(writer.header_list)
+    writer.headers = ["Module"] + (["Call"] if include_call else []) + formatted_python_versions + [f"Relative slowdown (versus {baseline_module}, latest Python)"]
+    writer.type_hints = [pytablewriter.String] * len(writer.headers)
 
     calling_codes = [calling_code[module] for module in modules_by_modern_speed]
     performance_results = [[results[module].get(python_version, NOT_APPLICABLE) for python_version in python_versions_by_modernity] for module in modules_by_modern_speed]
