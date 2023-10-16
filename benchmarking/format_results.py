@@ -23,7 +23,7 @@ class Result:
         if self.exception:
             return f"Raised  ``{self.exception}`` Exception"
         elif not self.matched_expected:
-            return f"**Incorrect Result** (``{self.parsed_value}``)"
+            return "❌"
         else:
             return self.formatted_timing()
 
