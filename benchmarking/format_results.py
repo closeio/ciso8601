@@ -121,14 +121,20 @@ def load_benchmarking_results(results_directory):
     python_versions_by_modernity = sorted(python_versions, reverse=True)
     return results, python_versions_by_modernity, calling_code
 
+SPACER_COLUMN = ["…"]
 
 def write_benchmarking_results(results_directory, output_file, baseline_module, include_call):
     results, python_versions_by_modernity, calling_code = load_benchmarking_results(results_directory)
     modules_by_modern_speed = [module for module, results in sorted([*results.items()], key=lambda kvp: kvp[1].most_modern_result().timing)]
 
+    # GitHub in desktop browsers displays 830 pixels in a table width before adding a scroll bar.
+    # Experimentally, this means we can show the results from the 4 latest versions of Python and our important slowdown summary before it cuts off
+    # We add a spacer column before continuing with older versions of Python so that the slowdown summary isn't lost in the noise.
+    modern_versions_before_slowdown_summary = 4
+
     writer = pytablewriter.RstGridTableWriter()
     formatted_python_versions = [f"Python {major}.{minor}" for major, minor in python_versions_by_modernity]
-    writer.headers = ["Module"] + (["Call"] if include_call else []) + formatted_python_versions + [f"Relative slowdown (versus {baseline_module}, latest Python)"]
+    writer.headers = ["Module"] + (["Call"] if include_call else []) + formatted_python_versions[0:modern_versions_before_slowdown_summary] + [f"Relative slowdown (versus {baseline_module}, latest Python)"] + SPACER_COLUMN + formatted_python_versions[modern_versions_before_slowdown_summary:]
     writer.type_hints = [pytablewriter.String] * len(writer.headers)
 
     calling_codes = [calling_code[module] for module in modules_by_modern_speed]
@@ -136,7 +142,7 @@ def write_benchmarking_results(results_directory, output_file, baseline_module, 
     relative_slowdowns = [relative_slowdown(results[module], results[baseline_module]) if module != baseline_module else NOT_APPLICABLE for module in modules_by_modern_speed]
 
     writer.value_matrix = [
-        [module] + ([calling_code[module]] if include_call else []) + performance_by_version + [relative_slowdown] for module, calling_code, performance_by_version, relative_slowdown in zip(modules_by_modern_speed, calling_codes, performance_results, relative_slowdowns)
+        [module] + ([calling_code[module]] if include_call else []) + performance_by_version[0:modern_versions_before_slowdown_summary] + [relative_slowdown] + SPACER_COLUMN + performance_by_version[modern_versions_before_slowdown_summary:] for module, calling_code, performance_by_version, relative_slowdown in zip(modules_by_modern_speed, calling_codes, performance_results, relative_slowdowns)
     ]
 
     with open(output_file, "w") as fout:
