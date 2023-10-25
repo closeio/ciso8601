@@ -2,6 +2,7 @@
 
 - [Unreleased](#unreleased)
 - [2.x.x](#2xx)
+  - [Version 2.3.1](#version-231)
   - [Version 2.3.0](#version-230)
   - [Version 2.2.0](#version-220)
   - [Version 2.1.3](#version-213)
@@ -24,6 +25,10 @@
 *
 
 # 2.x.x
+
+## Version 2.3.1
+
+* Added Python 3.12 wheels
 
 ## Version 2.3.0
 

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       requested_release_tag:
-        description: 'The tag to use for this release (e.g., `v2.3.0`)'
+        description: 'The tag to use for this release (e.g., `v2.3.1`)'
         required: true
 
 jobs:
