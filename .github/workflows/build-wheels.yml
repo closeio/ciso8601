@@ -93,7 +93,7 @@ jobs:
         with:
           platforms: all
 
-      - uses: pypa/cibuildwheel@v2.16.2
+      - uses: closeio/cibuildwheel@v2.16.2
 
       - uses: actions/upload-artifact@v3
         with:
