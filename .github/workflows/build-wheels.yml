@@ -87,11 +87,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
       - name: Build wheels
         uses: closeio/cibuildwheel@v2.16.2
         env:
           CIBW_SKIP: "pp*-macosx* *-win32 *-manylinux_i686"
           CIBW_ARCHS_MACOS: x86_64 arm64 universal2
+          CIBW_ARCHS_LINUX: x86_64 aarch64
 
       - uses: actions/upload-artifact@v3
         with:
