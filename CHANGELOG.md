@@ -22,7 +22,8 @@
 
 # Unreleased
 
-*
+* Add support for aarch64 wheels. Thank you @bbayles!
+* Add wheels for PyPy 3.10
 
 # 2.x.x
 

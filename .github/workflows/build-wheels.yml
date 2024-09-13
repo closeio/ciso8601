@@ -4,19 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       requested_release_tag:
-        description: 'The tag to use for this release (e.g., `v2.3.1`)'
+        description: "The tag to use for this release (e.g., `v2.3.1`)"
         required: true
 
 jobs:
   sanity_check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - run: |
           pip install packaging
@@ -71,7 +71,7 @@ jobs:
           echo -e "release_version=${{ env.release_version }}\nrelease_tag=${{ env.release_tag }}" > release_values.txt
 
       - name: Share normalized release values
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release_values
           path: release_values.txt
@@ -85,17 +85,17 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up QEMU  # Needed to build aarch64 wheels
+      - name: Set up QEMU # Needed to build aarch64 wheels
         if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
-      - uses: closeio/cibuildwheel@v2.16.2
+      - uses: closeio/cibuildwheel@v2.20.0
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
 
@@ -104,12 +104,12 @@ jobs:
     needs: [sanity_check]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Get build tool
         run: pip install --upgrade build
@@ -117,55 +117,6 @@ jobs:
       - name: Build sdist
         run: python -m build
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: dist/*.tar.gz
-
-  # create_or_update_draft_release:
-  #   # TODO: Figure out how to do this in an idempotent way
-  #   name: Create or update draft release in GitHub
-  #   needs: [build_wheels, build_sdist, sanity_check]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Get normalized release values
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: release_values
-
-  #     - name: Load normalized release values
-  #       run: |
-  #         xargs -a release_values.txt -l -I{} bash -c 'echo {} >> $GITHUB_ENV'
-
-  #     - uses: actions/create-release@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions
-  #       with:
-  #         tag_name: ${{ env.release_tag }}
-  #         commitish: master # Default branch
-  #         release_name: ${{ env.release_tag }}
-  #         body: "" # TODO: Pull this in using `changelog-cli`
-  #         draft: true
-
-  # upload_to_pypi:
-  #   name: Upload wheels to PyPI
-  #   needs: [build_wheels, build_sdist, sanity_check]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/download-artifact@v2
-  #       with:
-  #         name: artifact
-  #         path: dist
-
-  #     - uses: closeio/gh-action-pypi-publish@v1.4.2
-  #       with:
-  #         user: __token__
-  #         password: ${{ secrets.PYPI_PASSWORD }}
-  #         # repository_url: https://test.pypi.org/legacy/ # Test PyPI
-
-  # create_release:
-  #   name: Create release in GitHub
-  #   needs: [upload_to_pypi]
-  #   runs-on: ubuntu-latest
-  #   steps:  # TODO
-  #     - run: |
-  #         echo "We're doing a release!? ${{ github.event }}"
