@@ -4,22 +4,14 @@ workflows:
   workflow:
     jobs:
       - test_python_34
+      - test_old_pythons:
+          matrix:
+            parameters:
+              python_version: ["2.7", "3.5", "3.6", "3.7"]
       - test:
           matrix:
             parameters:
-              python_version:
-                [
-                  "2.7",
-                  "3.5",
-                  "3.6",
-                  "3.7",
-                  "3.8",
-                  "3.9",
-                  "3.10",
-                  "3.11",
-                  "3.12",
-                  "3.13",
-                ]
+              python_version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
       - test_pypy:
           matrix:
             parameters:
@@ -39,7 +31,7 @@ jobs:
     docker:
       - image: circleci/python:3.4
 
-  test:
+  test_old_pythons:
     parameters:
       python_version:
         type: string
@@ -48,6 +40,21 @@ jobs:
       - run:
           name: Test
           command: python setup.py test
+    docker:
+      - image: cimg/python:<<parameters.python_version>>
+
+  test:
+    parameters:
+      python_version:
+        type: string
+    steps:
+      - checkout
+      - run:
+          name: Test
+          # setuptools dropped support for being a test runner in v72.0.0
+          command: |
+            pip install --force-reinstall 'setuptools==71.1.0'
+            python setup.py test
     docker:
       - image: cimg/python:<<parameters.python_version>>
 
