@@ -13,8 +13,7 @@ RUN apt-get install -y git curl gcc build-essential
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
 
 # Install the Python versions
-RUN apt install -y python2 python2-dev && \
-    apt install -y python3.7 python3.7-dev python3.7-venv && \
+RUN apt install -y python3.7 python3.7-dev python3.7-venv && \
     apt install -y python3.8 python3.8-dev python3.8-venv && \
     apt install -y python3.9 python3.9-dev python3.9-venv && \
     apt install -y python3.10 python3.10-dev python3.10-venv && \
