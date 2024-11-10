@@ -446,6 +446,17 @@ class InvalidTimestampTestCase(unittest.TestCase):
             "20140102T01:02:03",
         )
 
+    def test_bce_years(self):
+        """
+        These are technically valid ISO 8601 datetimes.
+        However, cPython cannot support values non-positive year values
+        """
+        self.assertRaisesRegex(
+            ValueError,
+            r"Invalid character while parsing year \('-', Index: 0\). While valid ISO 8601 years, BCE years are not supported by Python's `datetime` objects.",
+            parse_datetime,
+            "-2014-01-02",
+        )
 
 class Rfc3339TestCase(unittest.TestCase):
     def test_valid_rfc3339_timestamps(self):
