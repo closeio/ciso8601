@@ -23,6 +23,7 @@ ISO_8601_MODULES = {
     "python-dateutil": ("import dateutil.parser", "dateutil.parser.parse('{timestamp}')"),
     "iso8601": ("import iso8601", "iso8601.parse_date('{timestamp}')"),
     "isodate": ("import isodate", "isodate.parse_datetime('{timestamp}')"),
+    "pendulum": ("from pendulum.parsing import parse_iso8601", "parse_iso8601('{timestamp}')"),
     "PySO8601": ("import PySO8601", "PySO8601.parse('{timestamp}')"),
     "str2date": ("from str2date import str2date", "str2date('{timestamp}')"),
 }
@@ -59,14 +60,9 @@ if (sys.version_info.major, sys.version_info.minor) != (3, 4):
     # `arrow` no longer supports Python 3.4
     ISO_8601_MODULES["arrow"] = ("import arrow", "arrow.get('{timestamp}').datetime")
 
-if sys.version_info.major >= 3 and (sys.version_info.major, sys.version_info.minor) < (3, 12):
+if sys.version_info.major >= 3:
     # `maya` uses a version of `regex` which no longer supports Python 2
-    # `maya` uses `pendulum`, which doesn't yet support Python 3.12
     ISO_8601_MODULES["maya"] = ("import maya", "maya.parse('{timestamp}').datetime()")
-
-if (sys.version_info.major, sys.version_info.minor) < (3, 12):
-    # `pendulum` doesn't yet support Python 3.12
-    ISO_8601_MODULES["pendulum"] = ("from pendulum.parsing import parse_iso8601", "parse_iso8601('{timestamp}')")
 
 if (sys.version_info.major, sys.version_info.minor) >= (3, 5):
     # `moment` is built on `times`, which is built on `arrow`, which no longer supports Python 3.4

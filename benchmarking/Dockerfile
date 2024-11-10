@@ -8,6 +8,9 @@ RUN apt-get update && \
 # Install the other dependencies
 RUN apt-get install -y git curl gcc build-essential
 
+# Install the Rust toolchain for `pendulum`
+RUN curl --proto '=https' --tlsv1.3 -sSf https://sh.rustup.rs | sh -s -- -y
+
 # Install tzdata non-iteractively
 # https://stackoverflow.com/questions/44331836/apt-get-install-tzdata-noninteractive/44333806#44333806
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
