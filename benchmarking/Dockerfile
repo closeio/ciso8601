@@ -19,10 +19,11 @@ RUN apt install -y python2 python2-dev && \
     apt install -y python3.9 python3.9-dev python3.9-venv && \
     apt install -y python3.10 python3.10-dev python3.10-venv && \
     apt install -y python3.11 python3.11-dev python3.11-venv && \
-    apt install -y python3.12 python3.12-dev python3.12-venv
+    apt install -y python3.12 python3.12-dev python3.12-venv && \
+    apt install -y python3.13 python3.13-dev python3.13-venv
 
-# Make Python 3.12 the default `python`
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.12 10
+# Make Python 3.13 the default `python`
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.13 10
 
 # Get pip
 RUN python -m ensurepip --upgrade
@@ -41,4 +42,4 @@ RUN git clone https://github.com/closeio/ciso8601.git && \
     chmod +x /ciso8601/benchmarking/run_benchmarks.sh
 
 WORKDIR /ciso8601/benchmarking
-ENTRYPOINT ./run_benchmarks.sh
+ENTRYPOINT ["bash", "./run_benchmarks.sh"]

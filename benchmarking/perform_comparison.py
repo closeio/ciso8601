@@ -168,7 +168,7 @@ def run_tests(timestamp, results_directory, compare_to):
     auto_range_count_filepath = os.path.join(results_directory, "auto_range_counts.csv")
     test_interation_counts = auto_range_counts(auto_range_count_filepath)
 
-    exec(ISO_8601_MODULES[compare_to][0])
+    exec(ISO_8601_MODULES[compare_to][0], globals())
     expected_parse_result = eval(ISO_8601_MODULES[compare_to][1].format(timestamp=timestamp))
 
     results = []
@@ -178,7 +178,7 @@ def run_tests(timestamp, results_directory, compare_to):
         time_taken = None
         exception = None
         try:
-            exec(setup)
+            exec(setup, globals())
             parse_result = eval(stmt.format(timestamp=timestamp))
 
             timer = timeit.Timer(stmt=stmt.format(timestamp=timestamp), setup=setup)
