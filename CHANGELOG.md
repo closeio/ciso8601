@@ -24,6 +24,7 @@
 
 * Add support for aarch64 wheels. Thank you @bbayles!
 * Add wheels for PyPy 3.10
+* Added Python 3.13 support
 
 # 2.x.x
 
