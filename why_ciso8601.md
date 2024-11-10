@@ -29,9 +29,9 @@ graph TD;
     H--yes-->V;
     H--no-->Z;
 
-    V[Use `backports.datetime_fromisoformat`]
-    Y[Use `ciso8601`]
-    Z[Use `datetime.fromisoformat`]
+    V[Use backports.datetime_fromisoformat]
+    Y[Use ciso8601]
+    Z[Use datetime.fromisoformat]
 ```
 
 ## Do you care about the performance of timestamp parsing?
