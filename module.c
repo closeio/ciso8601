@@ -124,6 +124,14 @@ format_unexpected_character_exception(char *field_name, const char *c,
             field_name, expected_character_count,
             (expected_character_count != 1) ? "s" : "");
     }
+    else if (*c == '-' && index == 0 && strcmp(field_name, "year") == 0) {
+        PyErr_Format(
+            PyExc_ValueError,
+            "Invalid character while parsing %s ('-', Index: 0). "
+            "While valid ISO 8601 years, BCE years are not supported by "
+            "Python's `datetime` objects.",
+            field_name);
+    }
     else {
 #if PY_VERSION_AT_LEAST_33
         PyObject *unicode_str = PyUnicode_FromString(c);

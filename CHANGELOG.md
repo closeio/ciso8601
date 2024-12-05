@@ -25,6 +25,7 @@
 * Add support for aarch64 wheels. Thank you @bbayles!
 * Add wheels for PyPy 3.10
 * Added Python 3.13 support
+* Better error message when attempting to parse a BCE year (#156). Thanks @javiabellan
 
 # 2.x.x
 
