@@ -2,6 +2,7 @@
 
 - [Unreleased](#unreleased)
 - [2.x.x](#2xx)
+  - [Version 2.3.2](#version-232)
   - [Version 2.3.1](#version-231)
   - [Version 2.3.0](#version-230)
   - [Version 2.2.0](#version-220)
@@ -22,12 +23,16 @@
 
 # Unreleased
 
+* Nil.
+
+# 2.x.x
+
+## Version 2.3.2
+
 * Add support for aarch64 wheels. Thank you @bbayles!
 * Add wheels for PyPy 3.10
 * Added Python 3.13 support
 * Better error message when attempting to parse a BCE year (#156). Thanks @javiabellan
-
-# 2.x.x
 
 ## Version 2.3.1
 
