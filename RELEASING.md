@@ -19,4 +19,14 @@ The document will describe the process of releasing a new version of `ciso8601`
 4. In the `Describe this release` field copy-paste the `CHANGELOG.md` notes for this release.
 5. Click `Publish Release`
 
-This will trigger a [GitHub Action](.github/workflows/build-wheels.yml) that listens for new tags that follow our format, builds the wheels for the release, and publishes them to PyPI.
+There is a [GitHub Action](.github/workflows/build-wheels.yml) that must be dispatched manually, which builds the wheels for the release. The artifacts can then be downloaded locally then [uploaded to pypi](https://packaging.python.org/en/latest/guides/distributing-packages-using-setuptools/#upload-your-distributions).
+
+The `dist/` folder should look roughly like:
+```
+$ ls dist
+ciso8601-2.3.2-cp310-cp310-macosx_11_0_arm64.whl
+ciso8601-2.3.2-cp310-cp310-macosx_11_0_universal2.whl
+...
+ciso8601-2.3.2-pp39-pypy39_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ciso8601-2.3.2.tar.gz
+```
