@@ -83,7 +83,7 @@ FixedOffset_dst(FixedOffset *self, PyObject *dt)
 static PyObject *
 FixedOffset_fromutc(FixedOffset *self, PyDateTime_DateTime *dt)
 {
-    if (!PyDateTime_Check(dt)) {
+    if (!PyDateTime_Check((PyObject *)dt)) {
         PyErr_SetString(PyExc_TypeError,
                         "fromutc: argument must be a datetime");
         return NULL;
