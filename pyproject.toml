@@ -35,4 +35,4 @@ skip = ["pp*"]
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
-skip = ["pp*-win*", "*-win3"]
+skip = ["pp*-win*", "*-win32"]
