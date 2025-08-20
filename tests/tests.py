@@ -240,7 +240,36 @@ class InvalidTimestampTestCase(unittest.TestCase):
         )
 
     def test_invalid_day_for_month(self):
-        if platform.python_implementation() == 'PyPy' and sys.version_info.major >= 3:
+        if platform.python_implementation() == 'CPython' and sys.version_info >= (3, 14):
+            for non_leap_year in (1700, 1800, 1900, 2014):
+                self.assertRaisesRegex(
+                    ValueError,
+                    "day 29 must be in range 1..28 for month 2 in year {0}".format(non_leap_year),
+                    parse_datetime,
+                    "{}-02-29".format(non_leap_year),
+                )
+
+            self.assertRaisesRegex(
+                ValueError,
+                r"day 32 must be in range 1..31 for month 1 in year 2014",
+                parse_datetime,
+                "2014-01-32",
+            )
+
+            self.assertRaisesRegex(
+                ValueError,
+                r"day 31 must be in range 1..30 for month 6 in year 2014",
+                parse_datetime,
+                "2014-06-31",
+            )
+
+            self.assertRaisesRegex(
+                ValueError,
+                r"day 0 must be in range 1..30 for month 6 in year 2014",
+                parse_datetime,
+                "2014-06-00",
+            )
+        elif platform.python_implementation() == 'PyPy' and sys.version_info.major >= 3:
             for non_leap_year in (1700, 1800, 1900, 2014):
                 self.assertRaisesRegex(
                     ValueError,
@@ -577,7 +606,14 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
         )
 
     def test_issue_22(self):
-        if platform.python_implementation() == 'PyPy' and sys.version_info.major >= 3:
+        if platform.python_implementation() == 'CPython' and sys.version_info >= (3, 14):
+            self.assertRaisesRegex(
+                ValueError,
+                r"day 31 must be in range 1..30 for month 11 in year 2016",
+                parse_datetime,
+                "2016-11-31T12:34:34.521059",
+            )
+        elif platform.python_implementation() == 'PyPy' and sys.version_info.major >= 3:
             self.assertRaisesRegex(
                 ValueError,
                 r"('day must be in 1..30', 31)",
@@ -601,7 +637,14 @@ class GithubIssueRegressionTestCase(unittest.TestCase):
         )
 
     def test_issue_42(self):
-        if platform.python_implementation() == 'PyPy' and sys.version_info.major >= 3:
+        if platform.python_implementation() == 'CPython' and sys.version_info >= (3, 14):
+            self.assertRaisesRegex(
+                ValueError,
+                r"day 0 must be in range 1..28 for month 2 in year 2014",
+                parse_datetime,
+                "20140200",
+            )
+        elif platform.python_implementation() == 'PyPy' and sys.version_info.major >= 3:
             self.assertRaisesRegex(
                 ValueError,
                 r"('day must be in 1..28', 0)",
