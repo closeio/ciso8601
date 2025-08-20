@@ -81,22 +81,28 @@ FixedOffset_dst(FixedOffset *self, PyObject *dt)
 }
 
 static PyObject *
-FixedOffset_fromutc(FixedOffset *self, PyDateTime_DateTime *dt)
+FixedOffset_fromutc(FixedOffset *self, PyObject *dt_obj)
 {
-    if (!PyDateTime_Check((PyObject *)dt)) {
+    if (!PyDateTime_Check(dt_obj)) {
         PyErr_SetString(PyExc_TypeError,
                         "fromutc: argument must be a datetime");
         return NULL;
     }
+
+    PyDateTime_DateTime *dt = (PyDateTime_DateTime *)dt_obj;
+
     if (!dt->hastzinfo || dt->tzinfo != (PyObject *)self) {
-        PyErr_SetString(PyExc_ValueError,
-                        "fromutc: dt.tzinfo "
-                        "is not self");
+        PyErr_SetString(PyExc_ValueError, "fromutc: dt.tzinfo is not self");
         return NULL;
     }
 
-    return PyNumber_Add((PyObject *)dt,
-                        FixedOffset_utcoffset(self, (PyObject *)self));
+    PyObject *delta = FixedOffset_utcoffset(self, dt_obj);
+    if (!delta)
+        return NULL;
+
+    PyObject *res = PyNumber_Add(dt_obj, delta);
+    Py_DECREF(delta);
+    return res;
 }
 
 static PyObject *
