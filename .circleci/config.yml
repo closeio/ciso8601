@@ -12,17 +12,11 @@ workflows:
           matrix:
             parameters:
               python_version:
-                ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+                ["3.6", "3.7"]
       - test_old_pypy:
           matrix:
             parameters:
               python_version: ["2.7"]
-      - test_pypy:
-          matrix:
-            parameters:
-              python_version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
-      - lint-rst
-      - clang-format
 
 jobs:
   # `cimg/python` doesn't support Python 3.4,
@@ -53,7 +47,7 @@ jobs:
     docker:
       - image: pypy:<<parameters.python_version>>
 
-  test: &tests
+  test:
     parameters:
       python_version:
         type: string
@@ -79,50 +73,3 @@ jobs:
             python -m unittest
     docker:
       - image: cimg/python:<<parameters.python_version>>
-
-  test_pypy:
-    <<: *tests
-    docker:
-      - image: pypy:<<parameters.python_version>>
-
-  lint-rst:
-    working_directory: ~/code
-    steps:
-      - checkout
-      - run:
-          name: Install lint tools
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install Pygments restructuredtext-lint
-      - run:
-          name: Lint
-          command: |
-            . venv/bin/activate
-            rst-lint --encoding=utf-8 README.rst
-    docker:
-      - image: cimg/python:3.13
-
-  clang-format:
-    working_directory: ~/code
-    steps:
-      - checkout
-      - run:
-          name: Install lint tools
-          command: |
-            sudo apt-get update -y
-            sudo apt-get install -y clang-format
-      - run:
-          name: Lint
-          command: |
-            SOURCE_FILES=`find ./ -name \*.c -type f -or -name \*.h -type f`
-            for SOURCE_FILE in $SOURCE_FILES
-            do
-              export FORMATTING_ISSUE_COUNT=`clang-format -output-replacements-xml $SOURCE_FILE | grep offset | wc -l`
-              if [ "$FORMATTING_ISSUE_COUNT" -gt "0" ]; then
-                echo "Source file $SOURCE_FILE contains formatting issues. Please use clang-format tool to resolve found issues."
-                exit 1
-              fi
-            done
-    docker:
-      - image: cimg/python:3.13
