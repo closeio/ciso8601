@@ -2,6 +2,7 @@
 
 - [Unreleased](#unreleased)
 - [2.x.x](#2xx)
+  - [Version 2.3.3](#version-233)
   - [Version 2.3.2](#version-232)
   - [Version 2.3.1](#version-231)
   - [Version 2.3.0](#version-230)
@@ -26,6 +27,13 @@
 * Nil.
 
 # 2.x.x
+
+## Version 2.3.3
+
+* Added Python 3.14 support
+* Added PyPy 3.11 support
+* Fixed memory leak in `FixedOffset_fromutc` (#172).
+* Migrated some CI testing to GHA
 
 ## Version 2.3.2
 
