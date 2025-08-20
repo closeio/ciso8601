@@ -1,0 +1,84 @@
+name: Test and Lint
+
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14.0-rc.2'
+          - 'pypy-3.7'
+          - 'pypy-3.8'
+          - 'pypy-3.9'
+          - 'pypy-3.10'
+          - 'pypy-3.11'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install ciso8601
+        run: |
+          python -m venv venv
+          . venv/bin/activate
+          pip install --upgrade build
+          python -m build -s
+          pip install dist/ciso8601-*.tar.gz
+      - name: Install testing dependencies
+        run: |
+          . venv/bin/activate
+          pip install pytz
+      - name: Test
+        run: |
+          . venv/bin/activate
+          python -m unittest
+
+  lint-rst:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+      - name: Install lint tools
+        run: |
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install Pygments restructuredtext-lint
+      - name: Lint
+        run: |
+          . venv/bin/activate
+          rst-lint --encoding=utf-8 README.rst
+
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install lint tools
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y clang-format
+      - name: Lint
+        run: |
+          SOURCE_FILES=`find ./ -name \*.c -type f -or -name \*.h -type f`
+          for SOURCE_FILE in $SOURCE_FILES
+          do
+            export FORMATTING_ISSUE_COUNT=`clang-format -output-replacements-xml $SOURCE_FILE | grep offset | wc -l`
+            if [ "$FORMATTING_ISSUE_COUNT" -gt "0" ]; then
+              echo "Source file $SOURCE_FILE contains formatting issues. Please use clang-format tool to resolve found issues."
+              exit 1
+            fi
+          done
