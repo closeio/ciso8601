@@ -22,7 +22,8 @@ RUN apt install -y python3.7 python3.7-dev python3.7-venv && \
     apt install -y python3.10 python3.10-dev python3.10-venv && \
     apt install -y python3.11 python3.11-dev python3.11-venv && \
     apt install -y python3.12 python3.12-dev python3.12-venv && \
-    apt install -y python3.13 python3.13-dev python3.13-venv
+    apt install -y python3.13 python3.13-dev python3.13-venv && \
+    apt install -y python3.14 python3.14-dev python3.14-venv
 
 # Make Python 3.13 the default `python`
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.13 10
