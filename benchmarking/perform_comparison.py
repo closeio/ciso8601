@@ -20,7 +20,7 @@ ISO_8601_MODULES = {
     "aniso8601": ("import aniso8601", "aniso8601.parse_datetime('{timestamp}')"),
     "ciso8601": ("import ciso8601", "ciso8601.parse_datetime('{timestamp}')"),
     "hardcoded": ("import ciso8601", "ciso8601._hard_coded_benchmark_timestamp()"),
-    "python-dateutil": ("import dateutil.parser", "dateutil.parser.parse('{timestamp}')"),
+    "python-dateutil": ("import dateutil.parser", "dateutil.parser.isoparse('{timestamp}')"),
     "iso8601": ("import iso8601", "iso8601.parse_date('{timestamp}')"),
     "isodate": ("import isodate", "isodate.parse_datetime('{timestamp}')"),
     "pendulum": ("from pendulum.parsing import parse_iso8601", "parse_iso8601('{timestamp}')"),
