@@ -40,6 +40,9 @@ static PyObject *utc;
  * 1439 = Zero offset
  * 1440 - 2878 = Positive offsets [1...1439]
  */
+#ifdef Py_GIL_DISABLED
+static PyMutex tz_cache_lock = {0};
+#endif
 static PyObject *tz_cache[2879] = {NULL};
 #endif
 
@@ -600,13 +603,25 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                 else {
 #if CISO8601_CACHING_ENABLED
                     tz_index = tzminute + 1439;
+#ifdef Py_GIL_DISABLED
+                    PyMutex_Lock(&tz_cache_lock);
+#endif
                     if ((tzinfo = tz_cache[tz_index]) == NULL) {
                         tzinfo = new_fixed_offset(60 * tzminute);
 
-                        if (tzinfo == NULL) /* i.e., PyErr_Occurred() */
+                        /* i.e., PyErr_Occurred() */
+                        if (tzinfo == NULL) {
+#ifdef Py_GIL_DISABLED
+                            PyMutex_Unlock(&tz_cache_lock);
+#endif
                             return NULL;
+                        }
+
                         tz_cache[tz_index] = tzinfo;
                     }
+#ifdef Py_GIL_DISABLED
+                    PyMutex_Unlock(&tz_cache_lock);
+#endif
 #else
                     tzinfo = new_fixed_offset(60 * tzminute);
                     if (tzinfo == NULL) /* i.e., PyErr_Occurred() */
@@ -739,6 +754,10 @@ initciso8601(void)
     utc = PyDateTime_TimeZone_UTC;
 #else
     utc = new_fixed_offset(0);
+#endif
+
+#ifdef Py_GIL_DISABLED
+    PyUnstable_Module_SetGIL(module, Py_MOD_GIL_NOT_USED);
 #endif
 
 // PyMODINIT_FUNC is void in Python 2, returns PyObject* in Python 3
