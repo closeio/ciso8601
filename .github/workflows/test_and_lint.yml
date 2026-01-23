@@ -60,7 +60,7 @@ jobs:
       - name: Lint
         run: |
           . venv/bin/activate
-          rst-lint --encoding=utf-8 README.rst
+          rst-lint README.rst
 
   clang-format:
     runs-on: ubuntu-latest
