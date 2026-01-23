@@ -158,7 +158,7 @@ You can check your reStructured text for syntax errors using (restructuredtext-l
 
 ```
 pip install Pygments restructuredtext-lint
-rst-lint --encoding=utf-8 README.rst
+rst-lint README.rst
 ```
 
 #### Pull Requests
