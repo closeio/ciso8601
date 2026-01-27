@@ -158,7 +158,7 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
     /* Year */
     PARSE_INTEGER(year, 4, "year")
 
-    /* Python 3.6+ does this validation as part of datetime's C API constructor.
+    /* Year validation was added to datetime's C API constructor in Python 3.6+.
      * Since we require Python 3.8+, this check is no longer needed.
      * See
      * https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
@@ -289,9 +289,9 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
         }
     }
 
-    /* Validation of date fields is done by Python 3.6+ as part of datetime's
-     * C API constructor. Since we require Python 3.8+, these checks are no
-     * longer needed. See https://github.com/closeio/ciso8601/pull/30 and
+    /* Validation of date fields was added to datetime's C API constructor in
+     * Python 3.6+. Since we require Python 3.8+, these checks are no longer
+     * needed. See https://github.com/closeio/ciso8601/pull/30 and
      * https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
      */
 
@@ -395,9 +395,9 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
             time_is_midnight = 1;
         }
 
-        /* Validation of hour/minute/second is done by Python 3.6+ as part of
-         * datetime's constructor. Since we require Python 3.8+, these checks are
-         * no longer needed.
+        /* Validation of hour/minute/second was added to datetime's constructor in
+         * Python 3.6+. Since we require Python 3.8+, these checks are no longer
+         * needed.
          */
 
         /* Optional tzinfo */
