@@ -8,12 +8,6 @@
 #define STRINGIZE(x)            #x
 #define EXPAND_AND_STRINGIZE(x) STRINGIZE(x)
 
-#define PY_VERSION_AT_LEAST_33 \
-    ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 3) || PY_MAJOR_VERSION > 3)
-#define PY_VERSION_AT_LEAST_36 \
-    ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6) || PY_MAJOR_VERSION > 3)
-#define PY_VERSION_AT_LEAST_37 \
-    ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 7) || PY_MAJOR_VERSION > 3)
 #define PY_VERSION_AT_LEAST_38 \
     ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 8) || PY_MAJOR_VERSION > 3)
 
@@ -22,12 +16,12 @@
  * But was then reverted in 7.3.7 for PyPy 3.7:
  * https://foss.heptapod.net/pypy/pypy/-/commit/eeeafcf905afa0f26049ac29dc00f5b295171f99
  * It is still present in 7.3.7 for PyPy 3.8+
+ * Since we require Python 3.8+, this is always available.
  */
 #ifdef PYPY_VERSION
-#define SUPPORTS_37_TIMEZONE_API \
-    (PYPY_VERSION_NUM >= 0x07030600) && PY_VERSION_AT_LEAST_38
+#define SUPPORTS_37_TIMEZONE_API (PYPY_VERSION_NUM >= 0x07030600)
 #else
-#define SUPPORTS_37_TIMEZONE_API PY_VERSION_AT_LEAST_37
+#define SUPPORTS_37_TIMEZONE_API 1
 #endif
 
 static PyObject *utc;
@@ -75,7 +69,6 @@ static PyObject *tz_cache[2879] = {NULL};
     /* If we break early, fully expand the usecond */         \
     while (i++ < 6) usecond *= 10;
 
-#if PY_VERSION_AT_LEAST_33
 #define PARSE_SEPARATOR(separator, field_name)                                \
     if (separator) {                                                          \
         c++;                                                                  \
@@ -90,26 +83,6 @@ static PyObject *tz_cache[2879] = {NULL};
         Py_DECREF(unicode_char);                                              \
         return NULL;                                                          \
     }
-#else
-#define PARSE_SEPARATOR(separator, field_name)                              \
-    if (separator) {                                                        \
-        c++;                                                                \
-    }                                                                       \
-    else {                                                                  \
-        if (isascii((int)*c)) {                                             \
-            PyErr_Format(                                                   \
-                PyExc_ValueError,                                           \
-                "Invalid character while parsing %s ('%c', Index: %lu)",    \
-                field_name, *c, (c - str) / sizeof(char));                  \
-        }                                                                   \
-        else {                                                              \
-            PyErr_Format(PyExc_ValueError,                                  \
-                         "Invalid character while parsing %s (Index: %lu)", \
-                         field_name, (c - str) / sizeof(char));             \
-        }                                                                   \
-        return NULL;                                                        \
-    }
-#endif
 
 static void *
 format_unexpected_character_exception(char *field_name, const char *c,
@@ -133,7 +106,6 @@ format_unexpected_character_exception(char *field_name, const char *c,
             field_name);
     }
     else {
-#if PY_VERSION_AT_LEAST_33
         PyObject *unicode_str = PyUnicode_FromString(c);
         PyObject *unicode_char = PyUnicode_Substring(unicode_str, 0, 1);
         PyErr_Format(PyExc_ValueError,
@@ -141,19 +113,6 @@ format_unexpected_character_exception(char *field_name, const char *c,
                      field_name, unicode_char, index);
         Py_DECREF(unicode_str);
         Py_DECREF(unicode_char);
-#else
-        if (isascii((int)*c)) {
-            PyErr_Format(
-                PyExc_ValueError,
-                "Invalid character while parsing %s ('%c', Index: %zu)",
-                field_name, *c, index);
-        }
-        else {
-            PyErr_Format(PyExc_ValueError,
-                         "Invalid character while parsing %s (Index: %zu)",
-                         field_name, index);
-        }
-#endif
     }
     return NULL;
 }
@@ -171,9 +130,7 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
 {
     PyObject *obj;
     PyObject *tzinfo = Py_None;
-#if PY_VERSION_AT_LEAST_33
     Py_ssize_t len;
-#endif
 
     int i;
     const char *str;
@@ -191,38 +148,21 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
     PyObject *temp;
     int extended_date_format = 0;
 
-#if PY_MAJOR_VERSION >= 3
     if (!PyUnicode_Check(dtstr)) {
-#else
-    if (!PyString_Check(dtstr)) {
-#endif
         PyErr_SetString(PyExc_TypeError, "argument must be str");
         return NULL;
     }
 
-#if PY_VERSION_AT_LEAST_33
     str = c = PyUnicode_AsUTF8AndSize(dtstr, &len);
-#else
-    str = c = PyString_AsString(dtstr);
-#endif
 
     /* Year */
     PARSE_INTEGER(year, 4, "year")
 
-#if !PY_VERSION_AT_LEAST_36
-    /* Python 3.6+ does this validation as part of datetime's C API
-     * constructor. See
+    /* Python 3.6+ does this validation as part of datetime's C API constructor.
+     * Since we require Python 3.8+, this check is no longer needed.
+     * See
      * https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
-     * We skip ` || year < datetime.MAXYEAR)`, since ciso8601 currently doesn't
-     * support 5 character years, so it is impossible.
      */
-    if (year <
-        1) /* datetime.MINYEAR = 1, which is not exposed to the C API. */
-    {
-        PyErr_Format(PyExc_ValueError, "year %d is out of range", year);
-        return NULL;
-    }
-#endif
 
     if (IS_CALENDAR_DATE_SEPARATOR) {
         c++;
@@ -349,64 +289,11 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
         }
     }
 
-#if !PY_VERSION_AT_LEAST_36
-    /* Validation of date fields
-     * These checks are needed for Python <3.6 support. See
-     * https://github.com/closeio/ciso8601/pull/30 Python 3.6+ does this
-     * validation as part of datetime's C API constructor. See
+    /* Validation of date fields is done by Python 3.6+ as part of datetime's
+     * C API constructor. Since we require Python 3.8+, these checks are no
+     * longer needed. See https://github.com/closeio/ciso8601/pull/30 and
      * https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
      */
-    if (month < 1 || month > 12) {
-        PyErr_SetString(PyExc_ValueError, "month must be in 1..12");
-        return NULL;
-    }
-
-    if (day < 1) {
-        PyErr_SetString(PyExc_ValueError, "day is out of range for month");
-        return NULL;
-    }
-
-    /* Validate max day based on month */
-    switch (month) {
-        case 2:
-            /* In the Gregorian calendar three criteria must be taken into
-             * account to identify leap years:
-             *     -The year can be evenly divided by 4;
-             *     -If the year can be evenly divided by 100, it is NOT a leap
-             * year, unless;
-             *     -The year is also evenly divisible by 400. Then it is a leap
-             * year.
-             */
-            if (day > 28) {
-                unsigned int leap =
-                    (year % 4 == 0) && (year % 100 || (year % 400 == 0));
-                if (leap == 0 || day > 29) {
-                    PyErr_SetString(PyExc_ValueError,
-                                    "day is out of range for month");
-                    return NULL;
-                }
-            }
-            break;
-        case 4:
-        case 6:
-        case 9:
-        case 11:
-            if (day > 30) {
-                PyErr_SetString(PyExc_ValueError,
-                                "day is out of range for month");
-                return NULL;
-            }
-            break;
-        default:
-            /* For other months i.e. 1, 3, 5, 7, 8, 10 and 12 */
-            if (day > 31) {
-                PyErr_SetString(PyExc_ValueError,
-                                "day is out of range for month");
-                return NULL;
-            }
-            break;
-    }
-#endif
 
     if (*c != '\0') {
         /* Date and time separator */
@@ -508,24 +395,10 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
             time_is_midnight = 1;
         }
 
-#if !PY_VERSION_AT_LEAST_36
-        /* Validate hour/minute/second
-         * Only needed for Python <3.6 support.
-         * Python 3.6+ does this validation as part of datetime's constructor).
+        /* Validation of hour/minute/second is done by Python 3.6+ as part of
+         * datetime's constructor. Since we require Python 3.8+, these checks are
+         * no longer needed.
          */
-        if (hour > 23) {
-            PyErr_SetString(PyExc_ValueError, "hour must be in 0..23");
-            return NULL;
-        }
-        if (minute > 59) {
-            PyErr_SetString(PyExc_ValueError, "minute must be in 0..59");
-            return NULL;
-        }
-        if (second > 59) {
-            PyErr_SetString(PyExc_ValueError, "second must be in 0..59");
-            return NULL;
-        }
-#endif
 
         /* Optional tzinfo */
         if (IS_TIME_ZONE_SEPARATOR) {
@@ -575,13 +448,10 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                     tzinfo = utc;
                 }
                 else if (abs(tzminute) >= 1440) {
-                    /* Format the error message as if we were still using pytz
-                     * for Python 2 and datetime.timezone for Python 3.
-                     * This is done to maintain complete backwards
-                     * compatibility with ciso8601 2.0.x. Perhaps change to a
-                     * simpler message in ciso8601 v3.0.0.
+                    /* Since we require Python 3.8+, we always use the Python 3
+                     * error format. This maintains backwards compatibility with
+                     * ciso8601 2.0.x for Python 3.
                      */
-#if PY_MAJOR_VERSION >= 3
                     delta = PyDelta_FromDSU(0, tzminute * 60, 0);
                     PyErr_Format(PyExc_ValueError,
                                  "offset must be a timedelta"
@@ -590,11 +460,6 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                                  " not %R.",
                                  delta);
                     Py_DECREF(delta);
-#else
-                    PyErr_Format(PyExc_ValueError,
-                                 "('absolute offset is too large', %d)",
-                                 tzminute);
-#endif
                     return NULL;
                 }
                 else {
@@ -694,7 +559,6 @@ static PyMethodDef CISO8601Methods[] = {
      "Return a datetime using hardcoded values (for benchmarking purposes)"},
     {NULL, NULL, 0, NULL}};
 
-#if PY_MAJOR_VERSION >= 3
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
     "ciso8601",
@@ -706,33 +570,19 @@ static struct PyModuleDef moduledef = {
     NULL,
     NULL,
 };
-#endif
 
 PyMODINIT_FUNC
-#if PY_MAJOR_VERSION >= 3
 PyInit_ciso8601(void)
-#else
-initciso8601(void)
-#endif
 {
-#if PY_MAJOR_VERSION >= 3
     PyObject *module = PyModule_Create(&moduledef);
-#else
-    PyObject *module = Py_InitModule("ciso8601", CISO8601Methods);
-#endif
     /* CISO8601_VERSION is defined in setup.py */
     PyModule_AddStringConstant(module, "__version__",
                                EXPAND_AND_STRINGIZE(CISO8601_VERSION));
 
     PyDateTime_IMPORT;
 
-    // PyMODINIT_FUNC is void in Python 2, returns PyObject* in Python 3
     if (initialize_timezone_code(module) < 0) {
-#if PY_MAJOR_VERSION >= 3
         return NULL;
-#else
-        return;
-#endif
     }
 
 #if SUPPORTS_37_TIMEZONE_API
@@ -741,8 +591,5 @@ initciso8601(void)
     utc = new_fixed_offset(0);
 #endif
 
-// PyMODINIT_FUNC is void in Python 2, returns PyObject* in Python 3
-#if PY_MAJOR_VERSION >= 3
     return module;
-#endif
 }

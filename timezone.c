@@ -37,8 +37,10 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SECS_PER_HOUR                (60 * SECS_PER_MIN)
 #define TWENTY_FOUR_HOURS_IN_SECONDS 86400
 
-#define PY_VERSION_AT_LEAST_36 \
-    ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6) || PY_MAJOR_VERSION > 3)
+/* Since we require Python 3.8+, PY_VERSION_AT_LEAST_36 is always true.
+ * We keep this macro for clarity in the code, but it's effectively a constant.
+ */
+#define PY_VERSION_AT_LEAST_36 1
 
 /*
  * class FixedOffset(tzinfo):
@@ -111,13 +113,7 @@ FixedOffset_tzname(FixedOffset *self, PyObject *dt)
     int offset = self->offset;
 
     if (offset == 0) {
-#if PY_VERSION_AT_LEAST_36
         return PyUnicode_FromString("UTC");
-#elif PY_MAJOR_VERSION >= 3
-        return PyUnicode_FromString("UTC+00:00");
-#else
-        return PyString_FromString("UTC+00:00");
-#endif
     }
     else {
         char result_tzname[10] = {0};
@@ -130,11 +126,7 @@ FixedOffset_tzname(FixedOffset *self, PyObject *dt)
         snprintf(result_tzname, 10, "UTC%c%02u:%02u", sign,
                  (offset / SECS_PER_HOUR) & 31,
                  offset / SECS_PER_MIN % SECS_PER_MIN);
-#if PY_MAJOR_VERSION >= 3
         return PyUnicode_FromString(result_tzname);
-#else
-        return PyString_FromString(result_tzname);
-#endif
     }
 }
 
