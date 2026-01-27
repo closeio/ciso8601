@@ -46,4 +46,4 @@ RFC 3339 can be (roughly) thought of as a subset of ISO 8601. If you need strict
 
 Since Python 3.11, `datetime.fromisoformat` supports parsing nearly any ISO 8601 timestamp, and the cPython implementation is [very performant](https://github.com/closeio/ciso8601#benchmark).
 
-If you need to support older versions of Python 3 (down to 3.8, which is the minimum version `ciso8601` supports), consider [`backports.datetime_fromisoformat`](https://github.com/movermeyer/backports.datetime_fromisoformat).
+If you need to support older versions of Python 3, consider [`backports.datetime_fromisoformat`](https://github.com/movermeyer/backports.datetime_fromisoformat).
