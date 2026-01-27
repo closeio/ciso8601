@@ -37,11 +37,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SECS_PER_HOUR                (60 * SECS_PER_MIN)
 #define TWENTY_FOUR_HOURS_IN_SECONDS 86400
 
-/* Since we require Python 3.8+, PY_VERSION_AT_LEAST_36 is always true.
- * We keep this macro for clarity in the code, but it's effectively a constant.
- */
-#define PY_VERSION_AT_LEAST_36 1
-
 /*
  * class FixedOffset(tzinfo):
  */
