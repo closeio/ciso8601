@@ -444,9 +444,6 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                     tzinfo = utc;
                 }
                 else if (abs(tzminute) >= 1440) {
-                    /* Use Python 3 error format for backwards compatibility
-                     * with ciso8601 2.0.x.
-                     */
                     delta = PyDelta_FromDSU(0, tzminute * 60, 0);
                     PyErr_Format(PyExc_ValueError,
                                  "offset must be a timedelta"
