@@ -15,8 +15,7 @@
  * https://foss.heptapod.net/pypy/pypy/-/merge_requests/826
  * But was then reverted in 7.3.7 for PyPy 3.7:
  * https://foss.heptapod.net/pypy/pypy/-/commit/eeeafcf905afa0f26049ac29dc00f5b295171f99
- * It is still present in 7.3.7 for PyPy 3.8+
- * Since we require Python 3.8+, this is always available.
+ * It is still present in 7.3.7 for PyPy 3.8+.
  */
 #ifdef PYPY_VERSION
 #define SUPPORTS_37_TIMEZONE_API (PYPY_VERSION_NUM >= 0x07030600)
@@ -158,9 +157,8 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
     /* Year */
     PARSE_INTEGER(year, 4, "year")
 
-    /* Year validation was added to datetime's C API constructor in
-     * Python 3.6+. Since we require Python 3.8+, this check is no longer
-     * needed. See
+    /* Year validation is handled by Python 3.6+ datetime's C API constructor.
+     * See
      * https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
      */
 
@@ -289,9 +287,8 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
         }
     }
 
-    /* Validation of date fields was added to datetime's C API constructor in
-     * Python 3.6+. Since we require Python 3.8+, these checks are no longer
-     * needed. See https://github.com/closeio/ciso8601/pull/30 and
+    /* Validation of date fields is handled by Python 3.6+ datetime's C API
+     * constructor. See https://github.com/closeio/ciso8601/pull/30 and
      * https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
      */
 
@@ -395,9 +392,8 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
             time_is_midnight = 1;
         }
 
-        /* Validation of hour/minute/second was added to datetime's constructor
-         * in Python 3.6+. Since we require Python 3.8+, these checks are no
-         * longer needed.
+        /* Validation of hour/minute/second is handled by Python 3.6+
+         * datetime's constructor.
          */
 
         /* Optional tzinfo */
@@ -448,9 +444,8 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                     tzinfo = utc;
                 }
                 else if (abs(tzminute) >= 1440) {
-                    /* Since we require Python 3.8+, we always use the Python 3
-                     * error format. This maintains backwards compatibility
-                     * with ciso8601 2.0.x for Python 3.
+                    /* Use Python 3 error format for backwards compatibility
+                     * with ciso8601 2.0.x.
                      */
                     delta = PyDelta_FromDSU(0, tzminute * 60, 0);
                     PyErr_Format(PyExc_ValueError,
