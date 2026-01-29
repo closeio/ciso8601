@@ -8,20 +8,14 @@
 #define STRINGIZE(x)            #x
 #define EXPAND_AND_STRINGIZE(x) STRINGIZE(x)
 
-#define PY_VERSION_AT_LEAST_38 \
-    ((PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 8) || PY_MAJOR_VERSION > 3)
-
 /* PyPy compatibility for cPython 3.7's Timezone API was added to PyPy 7.3.6
  * https://foss.heptapod.net/pypy/pypy/-/merge_requests/826
  * But was then reverted in 7.3.7 for PyPy 3.7:
  * https://foss.heptapod.net/pypy/pypy/-/commit/eeeafcf905afa0f26049ac29dc00f5b295171f99
  * It is still present in 7.3.7 for PyPy 3.8+.
  */
-#ifdef PYPY_VERSION
-#define SUPPORTS_37_TIMEZONE_API (PYPY_VERSION_NUM >= 0x07030600)
-#else
-#define SUPPORTS_37_TIMEZONE_API 1
-#endif
+#define SUPPORTS_37_TIMEZONE_API \
+    (!defined(PYPY_VERSION) || PYPY_VERSION_NUM >= 0x07030600)
 
 static PyObject *utc;
 

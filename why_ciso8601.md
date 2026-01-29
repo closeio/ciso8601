@@ -7,6 +7,7 @@ This document aims to describe some considerations to make when choosing a times
 - [Do you care about the performance of timestamp parsing?](#do-you-care-about-the-performance-of-timestamp-parsing)
 - [Do you need strict RFC 3339 parsing?](#do-you-need-strict-rfc-3339-parsing)
 - [Do you need to support Python \< 3.11?](#do-you-need-to-support-python--311)
+- [Do you need to support Python \< 3.8?](#do-you-need-to-support-python--38)
 
 ### Flowchart <!-- omit in toc -->
 
@@ -21,10 +22,15 @@ graph TD;
     E--no-->H;
 
     H[Do you need to support Python < 3.11?]
-    H--yes-->V;
+    H--yes-->I;
     H--no-->Z;
 
+    I[Do you need to support Python < 3.8?]
+    I--yes-->W;
+    I--no-->V;
+
     V[Use backports.datetime_fromisoformat]
+    W[Use ciso8601 v2.x]
     Y[Use ciso8601]
     Z[Use datetime.fromisoformat]
 ```
@@ -47,3 +53,7 @@ RFC 3339 can be (roughly) thought of as a subset of ISO 8601. If you need strict
 Since Python 3.11, `datetime.fromisoformat` supports parsing nearly any ISO 8601 timestamp, and the cPython implementation is [very performant](https://github.com/closeio/ciso8601#benchmark).
 
 If you need to support older versions of Python 3, consider [`backports.datetime_fromisoformat`](https://github.com/movermeyer/backports.datetime_fromisoformat).
+
+## Do you need to support Python < 3.8?
+
+`ciso8601` v3.x requires Python 3.8 or newer. If you need to support Python 2.7 or Python 3.4-3.7, you can use [`ciso8601` v2.x](https://github.com/closeio/ciso8601/tree/v2.3.1), which supports these older Python versions.
