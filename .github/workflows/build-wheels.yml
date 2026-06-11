@@ -11,9 +11,9 @@ jobs:
   sanity_check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         name: Install Python
         with:
           python-version: "3.13"
@@ -71,7 +71,7 @@ jobs:
           echo -e "release_version=${{ env.release_version }}\nrelease_tag=${{ env.release_tag }}" > release_values.txt
 
       - name: Share normalized release values
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release_values
           path: release_values.txt
@@ -90,11 +90,11 @@ jobs:
             cibw_archs: "ARM64"
           - os: macos-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up QEMU # Needed to build aarch64 wheels
         if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: all
 
@@ -102,7 +102,7 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.os }}-wheels
           path: ./wheelhouse/*.whl
@@ -112,9 +112,9 @@ jobs:
     needs: [sanity_check]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         name: Install Python
         with:
           python-version: "3.13"
@@ -125,7 +125,7 @@ jobs:
       - name: Build sdist
         run: python -m build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sdist
           path: dist/*.tar.gz
