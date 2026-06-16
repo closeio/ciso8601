@@ -33,7 +33,7 @@ class ModuleResults(UserDict):
         non_exception_results = [(_python_version, result) for _python_version, result in self.data.items() if result.exception is None]
         return sorted(non_exception_results, key=lambda kvp: kvp[0], reverse=True)[0][1]
 
-FILENAME_REGEX_RAW = r"benchmark_timings_python(\d)(\d\d?).csv"
+FILENAME_REGEX_RAW = r"benchmark_timings_python(\d)(\d\d?)(t?).csv"
 FILENAME_REGEX = re.compile(FILENAME_REGEX_RAW)
 
 MODULE_VERSION_FILENAME_REGEX_RAW = r"module_versions_python(\d)(\d\d?).csv"
@@ -94,22 +94,23 @@ def load_benchmarking_results(results_directory):
         try:
             with open(csv_file, "r") as fin:
                 reader = csv.reader(fin, delimiter=",", quotechar='"')
-                major, minor, timestamp = next(reader)
+                major, minor, freethreaded, timestamp = next(reader)
                 major = int(major)
                 minor = int(minor)
+                freethreaded = freethreaded == "t"
                 timestamps.add(timestamp)
                 for module, _setup, stmt, parse_result, count, time_taken, matched, exception in reader:
                     if module == "hardcoded":
                         continue
                     timing = float(time_taken) / int(count) if exception == "" else None
                     exception = exception if exception != "" else None
-                    results[module][(major, minor)] = Result(
+                    results[module][(major, minor, freethreaded)] = Result(
                         timing,
                         parse_result,
                         exception,
                         matched == "True"
                     )
-                    python_versions.add((major, minor))
+                    python_versions.add((major, minor, freethreaded))
                     calling_code[module] = f"``{stmt.format(timestamp=timestamp)}``"
         except Exception:
             print(f"Problem while parsing `{csv_file}`")
@@ -133,7 +134,7 @@ def write_benchmarking_results(results_directory, output_file, baseline_module, 
     modern_versions_before_slowdown_summary = 4
 
     writer = pytablewriter.RstGridTableWriter()
-    formatted_python_versions = [f"Python {major}.{minor}" for major, minor in python_versions_by_modernity]
+    formatted_python_versions = [f"Python {major}.{minor}{'t' if freethreaded else ''}" for major, minor, freethreaded in python_versions_by_modernity]
     writer.headers = ["Module"] + (["Call"] if include_call else []) + formatted_python_versions[0:modern_versions_before_slowdown_summary] + [f"Relative slowdown (versus {baseline_module}, latest Python)"] + SPACER_COLUMN + formatted_python_versions[modern_versions_before_slowdown_summary:]
     writer.type_hints = [pytablewriter.String] * len(writer.headers)
 

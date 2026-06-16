@@ -2,6 +2,7 @@ import argparse
 import csv
 import os
 import sys
+import sysconfig
 import timeit
 
 from datetime import datetime, timedelta
@@ -138,7 +139,7 @@ def update_auto_range_counts(filepath, results):
 def write_results(filepath, timestamp, results):
     with open(filepath, "w") as fout:
         writer = csv.writer(fout, delimiter=",", quotechar='"', lineterminator="\n")
-        writer.writerow([sys.version_info.major, sys.version_info.minor, timestamp])
+        writer.writerow([sys.version_info.major, sys.version_info.minor, "t" if sysconfig.get_config_var("Py_GIL_DISABLED") else "", timestamp])
         for result in results:
             writer.writerow(result.to_row())
 
@@ -204,7 +205,7 @@ def run_tests(timestamp, results_directory, compare_to):
 
     update_auto_range_counts(auto_range_count_filepath, results)
 
-    results_filepath = os.path.join(results_directory, "benchmark_timings_python{major}{minor}.csv".format(major=sys.version_info.major, minor=sys.version_info.minor))
+    results_filepath = os.path.join(results_directory, "benchmark_timings_python{major}{minor}{freethreaded}.csv".format(major=sys.version_info.major, minor=sys.version_info.minor, freethreaded="t" if sysconfig.get_config_var("Py_GIL_DISABLED") else ""))
     write_results(results_filepath, timestamp, results)
 
     module_versions_filepath = os.path.join(results_directory, "module_versions_python{major}{minor}.csv".format(major=sys.version_info.major, minor=sys.version_info.minor))
