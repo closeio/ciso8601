@@ -208,6 +208,9 @@ Supported subset of ISO 8601
 Date formats
 ^^^^^^^^^^^^
 
+Years must be in the range 1 to 9999, matching Python's ``datetime`` objects.
+Year zero is rejected with a ``ValueError``, including in week dates.
+
 The following date formats are supported:
 
 .. table::
