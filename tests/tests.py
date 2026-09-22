@@ -48,6 +48,13 @@ class ValidTimestampTestCase(unittest.TestCase):
                 datetime.datetime(leap_year, 2, 29, 0, 0, 0, 0),
             )
 
+    def test_minimum_year(self):
+        for parser in (parse_datetime, parse_datetime_as_naive):
+            for timestamp in ("0001-01-01", "00010101", "0001-001", "0001001",
+                              "0001-W01-1", "0001W011", "0001-W01", "0001W01"):
+                with self.subTest(parser=parser, timestamp=timestamp):
+                    self.assertEqual(parser(timestamp), datetime.datetime(1, 1, 1))
+
     def test_special_midnight(self):
         self.assertEqual(
             parse_datetime("2014-02-03T24:00:00"),
@@ -108,6 +115,16 @@ class InvalidTimestampTestCase(unittest.TestCase):
     # Many invalid test cases are covered by `test_parse_auto_generated_invalid_formats`,
     # But it doesn't cover all invalid cases, so we test those here.
     # See `generate_test_timestamps.generate_invalid_timestamp` for details.
+
+    def test_zero_year(self):
+        for parser in (parse_datetime, parse_datetime_as_naive, parse_rfc3339):
+            for timestamp in ("0000-01-01", "00000101", "0000-001", "0000001",
+                              "0000-W01-1", "0000W011", "0000-W01", "0000W01",
+                              "0000-W52-7", "0000W527", "0000-W53-1", "0000W531",
+                              "0000-01-01T00:00:00Z"):
+                with self.subTest(parser=parser, timestamp=timestamp):
+                    with self.assertRaisesRegex(ValueError, "year 0 is out of range"):
+                        parser(timestamp)
 
     def test_parse_auto_generated_invalid_formats(self):
         for timestamp, reason in generate_invalid_timestamp():

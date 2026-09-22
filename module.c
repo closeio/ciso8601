@@ -154,10 +154,12 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
     /* Year */
     PARSE_INTEGER(year, 4, "year")
 
-    /* Year validation is handled by Python 3.6+ datetime's C API constructor.
-     * See
-     * https://github.com/python/cpython/commit/b67f0967386a9c9041166d2bbe0a421bd81e10bc
-     */
+    /* Week-date conversion requires a positive year before the datetime
+     * constructor gets a chance to validate it. */
+    if (year < 1) {
+        PyErr_SetString(PyExc_ValueError, "year 0 is out of range");
+        return NULL;
+    }
 
     if (IS_CALENDAR_DATE_SEPARATOR) {
         c++;
