@@ -528,6 +528,8 @@ class Rfc3339TestCase(unittest.TestCase):
             "2018-01-02T030405-12:34",  # Missing mandatory time separators
             "2018-01-02T03:04:05-1234",  # Missing mandatory offset separator
             "2018-01-02T03:04:05,12345Z",  # Invalid comma fractional second separator
+            "2018-002T03:04:05Z",  # Ordinal dates are not valid in RFC 3339
+            "2018-W01-2T03:04:05Z",  # Week dates are not valid in RFC 3339
         ]:
             with self.assertRaisesRegex(ValueError, r"RFC 3339", msg="Timestamp '{0}' was supposed to be invalid, but parsing it didn't raise ValueError.".format(timestamp)):
                 parse_rfc3339(timestamp)
