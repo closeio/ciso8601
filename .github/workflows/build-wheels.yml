@@ -102,6 +102,15 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
 
+      # cibuildwheel 4 dropped Python 3.8/PyPy, so keep the legacy builder above.
+      - name: Build Python 3.15 wheels
+        uses: pypa/cibuildwheel@v4.3.0
+        env:
+          CIBW_BUILD: "cp315-*"
+          CIBW_ENABLE: ""
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+          CIBW_ARCHS_MACOS: "x86_64 arm64"
+
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.os }}-wheels
