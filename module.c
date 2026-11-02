@@ -482,8 +482,15 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
     }
 
     /* Make sure that there is no more to parse. */
-    if (*c != '\0') {
-        PyErr_Format(PyExc_ValueError, "unconverted data remains: '%s'", c);
+    if (c != str + len) {
+        if (*c == '\0') {
+            PyErr_SetString(PyExc_ValueError,
+                            "unconverted data remains: embedded null byte");
+        }
+        else {
+            PyErr_Format(PyExc_ValueError, "unconverted data remains: '%s'",
+                         c);
+        }
 #if !CISO8601_CACHING_ENABLED
         if (tzinfo != Py_None && tzinfo != utc)
             Py_DECREF(tzinfo);
