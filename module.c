@@ -203,6 +203,13 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
                     PARSE_INTEGER(day, 2, "day")
                 }
                 else { /* Ordinal day */
+                    if (rfc3339_only) {
+                        PyErr_SetString(
+                            PyExc_ValueError,
+                            "Datetime string not in RFC 3339 format.");
+                        return NULL;
+                    }
+
                     PARSE_INTEGER(ordinal_day, 1, "ordinal day")
                     ordinal_day = (month * 10) + ordinal_day;
 
