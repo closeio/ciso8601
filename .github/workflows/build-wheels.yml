@@ -98,7 +98,14 @@ jobs:
         with:
           platforms: all
 
-      - uses: closeio/cibuildwheel@v3.1.4
+      - name: Build legacy wheels
+        uses: closeio/cibuildwheel@v3.4.1
+        env:
+          CIBW_BUILD: "cp38-* pp38-*"
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+
+      - name: Build wheels
+        uses: closeio/cibuildwheel@v4.3.5
         env:
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
 

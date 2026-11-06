@@ -10,18 +10,19 @@ recursive = true
 aggressive = 3
 
 [tool.cibuildwheel]
+# Legacy versions are built explicitly in CI and not represented here.
 build = [
-    "cp38-*",
     "cp39-*",
     "cp310-*",
     "cp311-*",
     "cp312-*",
     "cp313-*",
     "cp314-*",
-    "pp38-*",
+    "cp315-*",
     "pp39-*",
     "pp310-*",
     "pp311-*",
+    "pp312-*",
 ]
 enable = ["pypy", "pypy-eol"]
 
