@@ -25,6 +25,7 @@ jobs:
           - 'pypy-3.9'
           - 'pypy-3.10'
           - 'pypy-3.11'
+          - 'pypy-3.12'
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6

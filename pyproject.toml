@@ -22,6 +22,7 @@ build = [
     "pp39-*",
     "pp310-*",
     "pp311-*",
+    "pp312-*",
 ]
 enable = ["pypy", "pypy-eol"]
 
