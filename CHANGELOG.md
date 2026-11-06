@@ -2,6 +2,7 @@
 
 - [Unreleased](#unreleased)
 - [2.x.x](#2xx)
+  - [Version 2.4.0](#version-240)
   - [Version 2.3.3](#version-233)
   - [Version 2.3.2](#version-232)
   - [Version 2.3.1](#version-231)
@@ -27,6 +28,14 @@
 * Nil.
 
 # 2.x.x
+
+## Version 2.4.0
+
+* Timestamps containing a null byte (`\x00`) now raise a `ValueError` (#188). Previously, parsing stopped at the first null byte and silently ignored everything after it.
+* Dropped Python 3.7 support
+* Added Python 3.15 support
+* Added PyPy 3.12 support
+* Added ARM64 wheels for Windows
 
 ## Version 2.3.3
 
