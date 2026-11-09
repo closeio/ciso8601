@@ -19,7 +19,7 @@ The document will describe the process of releasing a new version of `ciso8601`
 4. In the `Describe this release` field copy-paste the `CHANGELOG.md` notes for this release.
 5. Click `Publish Release`
 
-There is a [GitHub Action](.github/workflows/build-wheels.yml) that must be dispatched manually, which builds the wheels for the release. The artifacts can then be downloaded locally then [uploaded to pypi](https://packaging.python.org/en/latest/guides/distributing-packages-using-setuptools/#upload-your-distributions).
+There is a [GitHub Action](.github/workflows/release.yml) that must be dispatched manually, which builds the wheels for the release. The artifacts can then be downloaded locally then [uploaded to pypi](https://packaging.python.org/en/latest/guides/distributing-packages-using-setuptools/#upload-your-distributions).
 
 The `dist/` folder should look roughly like:
 ```

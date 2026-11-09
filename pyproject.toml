@@ -25,6 +25,9 @@ build = [
     "pp312-*",
 ]
 enable = ["pypy", "pypy-eol"]
+test-requires = ["pytz"]
+test-sources = ["tests", "generate_test_timestamps.py"]
+test-command = "python -m unittest"
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64", "aarch64"]

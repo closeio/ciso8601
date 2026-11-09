@@ -1,4 +1,4 @@
-name: Test and Lint
+name: Lint
 
 on:
   push:
@@ -6,46 +6,6 @@ on:
     branches: [ main, master ]
 
 jobs:
-
-  test:
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: true
-      matrix:
-        python-version:
-          - '3.8'
-          - '3.9'
-          - '3.10'
-          - '3.11'
-          - '3.12'
-          - '3.13'
-          - '3.14'
-          - '3.15'
-          - 'pypy-3.8'
-          - 'pypy-3.9'
-          - 'pypy-3.10'
-          - 'pypy-3.11'
-          - 'pypy-3.12'
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install ciso8601
-        run: |
-          python -m venv venv
-          . venv/bin/activate
-          pip install --upgrade build
-          python -m build
-          pip install dist/ciso8601-*.whl
-      - name: Install testing dependencies
-        run: |
-          . venv/bin/activate
-          pip install pytz
-      - name: Test
-        run: |
-          . venv/bin/activate
-          python -m unittest
 
   lint-rst:
     runs-on: ubuntu-latest
