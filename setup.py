@@ -28,7 +28,7 @@ if os.environ.get("STRICT_WARNINGS", "0") == "1":
         os.environ["_CL_"] = ""
     os.environ["_CL_"] += " /WX"
 
-VERSION = "2.3.3"
+VERSION = "2.4.0"
 CISO8601_CACHING_ENABLED = int(os.environ.get('CISO8601_CACHING_ENABLED', '1') == '1')
 
 setup(
