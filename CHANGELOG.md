@@ -2,6 +2,7 @@
 
 - [Unreleased](#unreleased)
 - [2.x.x](#2xx)
+  - [Version 2.4.1](#version-241)
   - [Version 2.4.0](#version-240)
   - [Version 2.3.3](#version-233)
   - [Version 2.3.2](#version-232)
@@ -25,9 +26,15 @@
 
 # Unreleased
 
-* Fixed a crash when parsing ISO week dates with year `0000` (e.g., `0000W06`), which segfaulted on Linux aarch64. These now raise `ValueError`.
+* Nil.
 
 # 2.x.x
+
+## Version 2.4.1
+
+* Fixed a crash when parsing ISO week dates with year `0000` (e.g., `0000W06`). Previously, this segfaulted on Linux aarch64.
+* Fixed the Windows ARM64 wheel build.
+* Build and test all wheels in CI.
 
 ## Version 2.4.0
 
