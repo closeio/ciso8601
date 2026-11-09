@@ -124,6 +124,11 @@ class InvalidTimestampTestCase(unittest.TestCase):
             for timestamp in ("\x00", "2024-01-01T12:\x0000:00Z"):
                 self.assertRaises(ValueError, parse, timestamp)
 
+    def test_iso_week_date_year_zero(self):
+        for parse in (parse_datetime, parse_datetime_as_naive):
+            for timestamp in ("0000W06", "0000W017", "0000-W53", "0000-W01-1"):
+                self.assertRaises(ValueError, parse, timestamp)
+
     def test_parse_auto_generated_invalid_formats(self):
         for timestamp, reason in generate_invalid_timestamp():
             try:

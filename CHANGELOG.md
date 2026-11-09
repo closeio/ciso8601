@@ -25,7 +25,7 @@
 
 # Unreleased
 
-* Nil.
+* Fixed a crash when parsing ISO week dates with year `0000` (e.g., `0000W06`), which segfaulted on Linux aarch64. These now raise `ValueError`.
 
 # 2.x.x
 

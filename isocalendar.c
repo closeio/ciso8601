@@ -255,6 +255,11 @@ int
 iso_to_ymd(const int iso_year, const int iso_week, const int iso_day,
            int *year, int *month, int *day)
 {
+    // The ordinal math below is only valid for year >= 1 (days_before_year)
+    if (iso_year < 1) {
+        return -1;
+    }
+
     if (iso_week <= 0 || iso_week >= 53) {
         int out_of_range = 1;
         if (iso_week == 53) {
