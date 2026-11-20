@@ -134,7 +134,12 @@ FixedOffset_repr(FixedOffset *self)
 static PyObject *
 FixedOffset_getinitargs(FixedOffset *self)
 {
-    PyObject *args = PyTuple_Pack(1, PyLong_FromLong(self->offset));
+    PyObject *offset = PyLong_FromLong(self->offset);
+    if (!offset)
+        return NULL;
+
+    PyObject *args = PyTuple_Pack(1, offset);
+    Py_DECREF(offset);
     return args;
 }
 

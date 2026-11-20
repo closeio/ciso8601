@@ -26,7 +26,7 @@
 
 # Unreleased
 
-* Nil.
+* Fixed memory leak in `FixedOffset.__getinitargs__`, which is called when a `FixedOffset` is copied or pickled (#195).
 
 # 2.x.x
 
