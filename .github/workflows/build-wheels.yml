@@ -62,6 +62,8 @@ jobs:
             cibw_archs: "x86_64"
           - os: ubuntu-24.04-arm
             cibw_archs: "aarch64"
+          - os: ubuntu-24.04-riscv
+            cibw_archs: "riscv64"
           - os: windows-2025
             cibw_archs: "AMD64"
           - os: windows-11-arm
@@ -77,7 +79,9 @@ jobs:
       - uses: actions/checkout@v6
 
       # cibuildwheel 4 dropped Python 3.8, so build only 3.8 with the 3.x series.
+      # cibuildwheel 3.x uses actions/setup-python, which has no riscv64 build.
       - name: Build legacy wheels
+        if: matrix.cibw_archs != 'riscv64'
         uses: closeio/cibuildwheel@v3.4.1
         env:
           CIBW_BUILD: "cp38-* pp38-*"
