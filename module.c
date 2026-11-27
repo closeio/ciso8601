@@ -508,6 +508,15 @@ _parse(PyObject *self, PyObject *dtstr, int parse_any_tzinfo, int rfc3339_only)
 #endif
 
     if (obj && time_is_midnight) {
+        if (year == 9999 && month == 12 && day == 31) {
+            /* 24:00:00 on the last representable day is 10000-01-01. Report
+             * it like any other out-of-range year instead of letting the
+             * addition below raise OverflowError.
+             */
+            Py_DECREF(obj);
+            PyErr_SetString(PyExc_ValueError, "year 10000 is out of range");
+            return NULL;
+        }
         delta = PyDelta_FromDSU(1, 0, 0); /* 1 day */
         temp = obj;
         obj = PyNumber_Add(temp, delta);
