@@ -416,6 +416,23 @@ class InvalidTimestampTestCase(unittest.TestCase):
             "2014-02-03T24:35:27",
         )
 
+    def test_invalid_hour_24_on_last_day(self):
+        # 24:00:00 on 9999-12-31 is 10000-01-01, which datetime cannot represent
+        for timestamp in (
+            "9999-12-31T24:00:00",
+            "9999-12-31T24:00:00Z",
+            "9999-12-31T24:00:00+01:00",
+            "9999-365T24:00",
+            "9999-W52-5T24",
+        ):
+            for parser in (parse_datetime, parse_datetime_as_naive):
+                self.assertRaisesRegex(
+                    ValueError,
+                    r"year 10000 is out of range",
+                    parser,
+                    timestamp,
+                )
+
     def test_invalid_time_separator(self):
         self.assertRaisesRegex(
             ValueError,
